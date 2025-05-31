@@ -25,3 +25,9 @@
 /processorParam:TextureFormat=Color
 /build:ball.png
 
+#begin GroundEffect.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:GroundEffect.fx
+

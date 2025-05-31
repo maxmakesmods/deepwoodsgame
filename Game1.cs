@@ -7,11 +7,10 @@ namespace DeepWoods
 {
     public class Game1 : Game
     {
+        private Effect groundEffect;
+        private VertexPositionColorTexture[] drawingQuad;
+        private short[] drawingIndices;
         private GraphicsDeviceManager _graphics;
-        private SpriteBatch _spriteBatch;
-
-        Texture2D ballTexture;
-        Vector2 ballPos;
 
         public Game1()
         {
@@ -24,36 +23,49 @@ namespace DeepWoods
         {
             base.Initialize();
             Window.AllowUserResizing = true;
+            GraphicsDevice.BlendState = BlendState.Opaque;
+            GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+            GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
+            GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
         }
 
         protected override void LoadContent()
         {
-            _spriteBatch = new SpriteBatch(GraphicsDevice);
+            groundEffect = Content.Load<Effect>("GroundEffect");
+            SetupBasicEffect();
+            SetupUserIndexedVertexRectangle(16f / 9f, 1f, -1f);
+        }
 
-            ballTexture = Content.Load<Texture2D>("ball");
-            ballPos = Vector2.Zero;
+        private void SetupBasicEffect()
+        {
+            Matrix world = Matrix.Identity;
+            Matrix view = Matrix.CreateLookAt(new(0, -1, 2), new(0, 0, 0), Vector3.Up);
+            Matrix projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(45f), 16f/9f, 1f, 1000f);
+
+            groundEffect.Parameters["WorldViewProjection"].SetValue(world * view * projection);
+        }
+
+        private void SetupUserIndexedVertexRectangle(float width, float height, float zpos)
+        {
+            float halfwidth = width * 0.5f;
+            float halfheight = height * 0.5f;
+            float bottomscale = 1f;
+
+            drawingQuad = new VertexPositionColorTexture[4];
+            drawingQuad[0] = new VertexPositionColorTexture(new Vector3(-halfwidth * bottomscale, -halfheight, zpos), Color.White, new Vector2(0f, 0f));
+            drawingQuad[1] = new VertexPositionColorTexture(new Vector3(-halfwidth, halfheight, zpos), Color.Red, new Vector2(0f, 1f));
+            drawingQuad[2] = new VertexPositionColorTexture(new Vector3(halfwidth, halfheight, zpos), Color.Green, new Vector2(1f, 1f));
+            drawingQuad[3] = new VertexPositionColorTexture(new Vector3(halfwidth * bottomscale, -halfheight, zpos), Color.Blue, new Vector2(1f, 0f));
+
+            drawingIndices = [0, 1, 2, 0, 2, 3];
         }
 
         protected override void Update(GameTime gameTime)
         {
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed
-                || Keyboard.GetState().IsKeyDown(Keys.Escape))
+            if (Keyboard.GetState().IsKeyDown(Keys.Escape))
             {
                 Exit();
             }
-
-            Vector2 mousePos = new(Mouse.GetState().Position.X, Mouse.GetState().Position.Y);
-
-            Rectangle rect = new((int)ballPos.X, (int)ballPos.Y, 100, 100);
-
-            if (rect.Contains(mousePos) || Mouse.GetState().LeftButton == ButtonState.Pressed)
-            {
-                var rand = new Random();
-                int x = rand.Next(0, Window.ClientBounds.Right - Window.ClientBounds.Left - 100);
-                int y = rand.Next(0, Window.ClientBounds.Bottom - Window.ClientBounds.Top - 100);
-                ballPos = new Vector2(x, y);
-            }
-
             base.Update(gameTime);
         }
 
@@ -61,9 +73,11 @@ namespace DeepWoods
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            _spriteBatch.Begin();
-            _spriteBatch.Draw(ballTexture, ballPos, Color.White);
-            _spriteBatch.End();
+            foreach (EffectPass pass in groundEffect.CurrentTechnique.Passes)
+            {
+                pass.Apply();
+                GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, drawingQuad, 0, 4, drawingIndices, 0, 2);
+            }
 
             base.Draw(gameTime);
         }
