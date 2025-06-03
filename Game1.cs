@@ -11,6 +11,9 @@ namespace DeepWoods
         private VertexPositionColorTexture[] drawingQuad;
         private short[] drawingIndices;
         private GraphicsDeviceManager _graphics;
+        private Texture2D groundTilesTexture;
+
+        private Camera camera;
 
         public Game1()
         {
@@ -27,35 +30,36 @@ namespace DeepWoods
             GraphicsDevice.DepthStencilState = DepthStencilState.Default;
             GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
             GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+            camera = new Camera();
         }
 
         protected override void LoadContent()
         {
             groundEffect = Content.Load<Effect>("GroundEffect");
-            SetupBasicEffect();
-            SetupUserIndexedVertexRectangle(16f / 9f, 1f, -1f);
+            groundTilesTexture = Content.Load<Texture2D>("groundtiles");
+
+            int gridSize = 8;
+            int cellSize = 32;
+
+            SetupUserIndexedVertexRectangle(gridSize, gridSize);
+            groundEffect.Parameters["GridSize"].SetValue(new Vector2(gridSize, gridSize));
+            groundEffect.Parameters["GroundTilesTexture"].SetValue(groundTilesTexture);
+            groundEffect.Parameters["GroundTilesTextureSize"].SetValue(new Vector2(256, 256));
+            groundEffect.Parameters["CellSize"].SetValue((float)cellSize);
+
+            var terrainGrid = Terrain.GenerateTerrain(gridSize, gridSize);
+            var terrainGridTexture = Terrain.GenerateTerrainTexture(GraphicsDevice, terrainGrid);
+
+            groundEffect.Parameters["TerrainGridTexture"].SetValue(terrainGridTexture);
         }
 
-        private void SetupBasicEffect()
+        private void SetupUserIndexedVertexRectangle(int width, int height)
         {
-            Matrix world = Matrix.Identity;
-            Matrix view = Matrix.CreateLookAt(new(0, -1, 2), new(0, 0, 0), Vector3.Up);
-            Matrix projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(45f), 16f/9f, 1f, 1000f);
-
-            groundEffect.Parameters["WorldViewProjection"].SetValue(world * view * projection);
-        }
-
-        private void SetupUserIndexedVertexRectangle(float width, float height, float zpos)
-        {
-            float halfwidth = width * 0.5f;
-            float halfheight = height * 0.5f;
-            float bottomscale = 1f;
-
             drawingQuad = new VertexPositionColorTexture[4];
-            drawingQuad[0] = new VertexPositionColorTexture(new Vector3(-halfwidth * bottomscale, -halfheight, zpos), Color.White, new Vector2(0f, 0f));
-            drawingQuad[1] = new VertexPositionColorTexture(new Vector3(-halfwidth, halfheight, zpos), Color.Red, new Vector2(0f, 1f));
-            drawingQuad[2] = new VertexPositionColorTexture(new Vector3(halfwidth, halfheight, zpos), Color.Green, new Vector2(1f, 1f));
-            drawingQuad[3] = new VertexPositionColorTexture(new Vector3(halfwidth * bottomscale, -halfheight, zpos), Color.Blue, new Vector2(1f, 0f));
+            drawingQuad[0] = new VertexPositionColorTexture(new Vector3(0, 0, 0), Color.White, new Vector2(0f, 0f));
+            drawingQuad[1] = new VertexPositionColorTexture(new Vector3(0, height, 0), Color.Red, new Vector2(0f, 1f));
+            drawingQuad[2] = new VertexPositionColorTexture(new Vector3(width, height, 0), Color.Green, new Vector2(1f, 1f));
+            drawingQuad[3] = new VertexPositionColorTexture(new Vector3(width, 0, 0), Color.Blue, new Vector2(1f, 0f));
 
             drawingIndices = [0, 1, 2, 0, 2, 3];
         }
@@ -66,12 +70,18 @@ namespace DeepWoods
             {
                 Exit();
             }
+            camera.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
             base.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
+
+            Matrix world = Matrix.Identity;
+            Matrix view = camera.View;
+            Matrix projection = camera.Projection;
+            groundEffect.Parameters["WorldViewProjection"].SetValue(world * view * projection);
 
             foreach (EffectPass pass in groundEffect.CurrentTechnique.Passes)
             {
