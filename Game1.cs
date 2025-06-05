@@ -26,20 +26,25 @@ namespace DeepWoods
         {
             base.Initialize();
             Window.AllowUserResizing = true;
+            _graphics.PreferredBackBufferWidth = 1920;
+            _graphics.PreferredBackBufferHeight = 1080;
+            _graphics.ApplyChanges();
             GraphicsDevice.BlendState = BlendState.Opaque;
             GraphicsDevice.DepthStencilState = DepthStencilState.Default;
             GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
             GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-            camera = new Camera();
         }
 
         protected override void LoadContent()
         {
+            camera = new Camera();
+
             groundEffect = Content.Load<Effect>("GroundEffect");
             groundTilesTexture = Content.Load<Texture2D>("groundtiles");
 
-            int gridSize = 8;
+            int gridSize = 32;
             int cellSize = 32;
+            int numPatches = 10;
 
             SetupUserIndexedVertexRectangle(gridSize, gridSize);
             groundEffect.Parameters["GridSize"].SetValue(new Vector2(gridSize, gridSize));
@@ -47,10 +52,12 @@ namespace DeepWoods
             groundEffect.Parameters["GroundTilesTextureSize"].SetValue(new Vector2(256, 256));
             groundEffect.Parameters["CellSize"].SetValue((float)cellSize);
 
-            var terrainGrid = Terrain.GenerateTerrain(gridSize, gridSize);
+            var terrainGrid = Terrain.GenerateTerrain(gridSize, gridSize, numPatches);
             var terrainGridTexture = Terrain.GenerateTerrainTexture(GraphicsDevice, terrainGrid);
 
             groundEffect.Parameters["TerrainGridTexture"].SetValue(terrainGridTexture);
+
+            camera.position = new Vector3(gridSize / 2, 0, gridSize / 2);
         }
 
         private void SetupUserIndexedVertexRectangle(int width, int height)

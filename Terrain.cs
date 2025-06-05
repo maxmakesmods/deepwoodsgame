@@ -14,18 +14,70 @@ namespace DeepWoods
             Grass, Sand, Mud, Gravel
         }
 
-        public static GroundType[,] GenerateTerrain(int width, int height)
+        private class PatchCenter
         {
-            var groundTypes = Enum.GetValues<GroundType>();
+            public int x;
+            public int y;
+            public GroundType groundType;
+        }
+
+        private static int calcDistSqrd(int x1, int y1, int x2, int y2)
+        {
+            return (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1);
+        }
+
+        public static GroundType[,] GenerateTerrain(int width, int height, int numPatches)
+        {
             var rng = new Random();
+            var groundTypes = Enum.GetValues<GroundType>().ToList();
+            groundTypes.Sort((g1, g2) => rng.Next(-1, 2));
+
+            int currentGroundTypeIndex = 0;
+
+            GroundType getNextGroundType()
+            {
+                if (currentGroundTypeIndex >= groundTypes.Count)
+                {
+                    currentGroundTypeIndex = 0;
+                }
+                return groundTypes[currentGroundTypeIndex++];
+            }
+
+            List<PatchCenter> patchCenters = new();
+            for (int i = 0; i < numPatches; i++)
+            {
+                patchCenters.Add(new()
+                {
+                    x = rng.Next(width),
+                    y = rng.Next(height),
+                    groundType = getNextGroundType()
+                });
+            }
 
             GroundType[,] grid = new GroundType[width, height];
             for (int x = 0; x < width; x++)
             {
                 for (int y = 0; y < height; y++)
                 {
-                    grid[x, y] = groundTypes[rng.Next(groundTypes.Length)];
+                    GroundType nearestGroundType = GroundType.Grass;
+                    float nearestDistSqrd = float.MaxValue;
+                    foreach (var patchCenter in patchCenters)
+                    {
+                        float distSqrd = calcDistSqrd(x, y, patchCenter.x, patchCenter.y);
+                        if (distSqrd <  nearestDistSqrd)
+                        {
+                            nearestGroundType = patchCenter.groundType;
+                            nearestDistSqrd = distSqrd;
+                        }
+                    }
+                    grid[x, y] = nearestGroundType;
                 }
+            }
+
+            // TODO: temporary debug
+            foreach (var patchCenter in patchCenters)
+            {
+                grid[patchCenter.x, patchCenter.y] = (GroundType)5;
             }
 
             return grid;

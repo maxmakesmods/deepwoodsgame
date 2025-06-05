@@ -6,7 +6,7 @@ namespace DeepWoods
 {
     internal class Camera
     {
-        private Vector3 position;
+        public Vector3 position;
         private float angle = 20f;
         private float aspectRatio = 16f / 9f;
         private float fov = 45f;

@@ -60,11 +60,12 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
 
 float4 MainPS(VertexShaderOutput input) : COLOR
 {
-    int gridX = int(input.Tex.x * GridSize.x + 0.5);
-    int gridY = int(input.Tex.y * GridSize.y + 0.5);
+    int gridX = int(input.Tex.x * GridSize.x);
+    int gridY = int(input.Tex.y * GridSize.y);
+    
+    //float2 gridTextureTexelSize = (GridSize * 1.0 / CellSize);
     
     float2 gridTextureUV = float2(gridX / GridSize.x, gridY / GridSize.y);
-    
     int groundType = int(tex2D(TerrainGridTextureSampler, gridTextureUV).r / 256.0 + 0.5);
     
     float x = frac(input.Tex.x * GridSize.x) * CellSize / GroundTilesTextureSize.x;
