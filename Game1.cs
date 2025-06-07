@@ -12,6 +12,7 @@ namespace DeepWoods
         private short[] drawingIndices;
         private GraphicsDeviceManager _graphics;
         private Texture2D groundTilesTexture;
+        private Texture2D bluenoiseTexture;
 
         private Camera camera;
 
@@ -41,16 +42,25 @@ namespace DeepWoods
 
             groundEffect = Content.Load<Effect>("GroundEffect");
             groundTilesTexture = Content.Load<Texture2D>("groundtiles");
+            bluenoiseTexture = Content.Load<Texture2D>("bluenoise_rgba");
 
             int gridSize = 32;
             int cellSize = 32;
             int numPatches = 10;
+
+            Random rng = new Random();
 
             SetupUserIndexedVertexRectangle(gridSize, gridSize);
             groundEffect.Parameters["GridSize"].SetValue(new Vector2(gridSize, gridSize));
             groundEffect.Parameters["GroundTilesTexture"].SetValue(groundTilesTexture);
             groundEffect.Parameters["GroundTilesTextureSize"].SetValue(new Vector2(256, 256));
             groundEffect.Parameters["CellSize"].SetValue((float)cellSize);
+
+            groundEffect.Parameters["BlueNoiseTexture"].SetValue(bluenoiseTexture);
+            groundEffect.Parameters["BlueNoiseChannel"].SetValue(rng.Next(4));
+            groundEffect.Parameters["BlueNoiseOffset"].SetValue(new Vector2(rng.Next(bluenoiseTexture.Width), rng.Next(bluenoiseTexture.Height)));
+            groundEffect.Parameters["BlueNoiseTextureSize"].SetValue(new Vector2(bluenoiseTexture.Width, bluenoiseTexture.Height));
+            groundEffect.Parameters["BlurHalfSize"].SetValue(6);
 
             var terrainGrid = Terrain.GenerateTerrain(gridSize, gridSize, numPatches);
             var terrainGridTexture = Terrain.GenerateTerrainTexture(GraphicsDevice, terrainGrid);

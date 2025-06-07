@@ -11,6 +11,11 @@ float2 GridSize;
 float CellSize;
 float2 GroundTilesTextureSize;
 
+int BlueNoiseChannel;
+float2 BlueNoiseOffset;
+float2 BlueNoiseTextureSize;
+int BlurHalfSize;
+
 sampler2D GroundTilesTextureSampler = sampler_state
 {
     Texture = <GroundTilesTexture>;
@@ -29,6 +34,16 @@ sampler2D TerrainGridTextureSampler = sampler_state
     MipFilter = POINT;
     AddressU = CLAMP;
     AddressV = CLAMP;
+};
+
+sampler2D BlueNoiseTextureSampler = sampler_state
+{
+    Texture = <BlueNoiseTexture>;
+    MinFilter = POINT;
+    MagFilter = POINT;
+    MipFilter = POINT;
+    AddressU = WRAP;
+    AddressV = WRAP;
 };
 
 matrix WorldViewProjection;
@@ -58,22 +73,50 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
 	return output;
 }
 
-float4 MainPS(VertexShaderOutput input) : COLOR
+int getGroundType(float2 uv)
 {
-    int gridX = int(input.Tex.x * GridSize.x);
-    int gridY = int(input.Tex.y * GridSize.y);
-    
-    //float2 gridTextureTexelSize = (GridSize * 1.0 / CellSize);
-    
+    int gridX = int(uv.x * GridSize.x);
+    int gridY = int(uv.y * GridSize.y);
+
     float2 gridTextureUV = float2(gridX / GridSize.x, gridY / GridSize.y);
     int groundType = int(tex2D(TerrainGridTextureSampler, gridTextureUV).r / 256.0 + 0.5);
     
-    float x = frac(input.Tex.x * GridSize.x) * CellSize / GroundTilesTextureSize.x;
-    float y = frac(input.Tex.y * GridSize.y) * CellSize / GroundTilesTextureSize.y;
-    
-    float4 color = tex2D(GroundTilesTextureSampler, float2(x, y) + float2(groundType / 8.0, 0.0));
+    return groundType;
+}
 
-    return color;//    input.Color * (step(0.9, y) + step(0.9, x));
+float3 getGroundTypeColor(float2 uv, int groundType)
+{
+    float x = frac(uv.x * GridSize.x) * CellSize / GroundTilesTextureSize.x;
+    float y = frac(uv.y * GridSize.y) * CellSize / GroundTilesTextureSize.y;
+    
+    float3 color = tex2D(GroundTilesTextureSampler, float2(x, y) + float2(groundType / 8.0, 0.0)).rgb;
+
+    return color;
+}
+
+float getRandomFromBlueNoise(float2 uv)
+{
+    float2 bluenoiseUV = int2(uv * GridSize * CellSize) / BlueNoiseTextureSize;
+    float bluenoise = tex2D(BlueNoiseTextureSampler, bluenoiseUV + BlueNoiseOffset)[BlueNoiseChannel];
+    return bluenoise;
+}
+
+float4 MainPS(VertexShaderOutput input) : COLOR
+{
+    float2 gridTexelSize = 1.0 / (GridSize * CellSize);
+
+    int blurFullSize = BlurHalfSize * 2 + 1;
+    
+    float bluenoise = getRandomFromBlueNoise(input.Tex);
+    int pixelIndex = int(bluenoise * (blurFullSize * blurFullSize));
+
+    int pixelX = pixelIndex / blurFullSize;
+    int pixelY = pixelIndex % blurFullSize;
+
+    int groundType = getGroundType(input.Tex + float2(pixelX - BlurHalfSize, pixelY - BlurHalfSize) * gridTexelSize);
+    float3 color = getGroundTypeColor(input.Tex, groundType);
+
+    return float4(color, 1.0);
 }
 
 technique BasicColorDrawing
