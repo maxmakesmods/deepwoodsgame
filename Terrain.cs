@@ -26,9 +26,9 @@ namespace DeepWoods
             return (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1);
         }
 
-        public static GroundType[,] GenerateTerrain(int width, int height, int numPatches)
+        public static GroundType[,] GenerateTerrain(int seed, int width, int height, int numPatches)
         {
-            var rng = new Random();
+            var rng = new Random(seed);
             var groundTypes = Enum.GetValues<GroundType>().ToList();
             groundTypes.Sort((g1, g2) => rng.Next(-1, 2));
 
@@ -72,12 +72,6 @@ namespace DeepWoods
                     }
                     grid[x, y] = nearestGroundType;
                 }
-            }
-
-            // TODO: temporary debug
-            foreach (var patchCenter in patchCenters)
-            {
-                grid[patchCenter.x, patchCenter.y] = (GroundType)5;
             }
 
             return grid;
