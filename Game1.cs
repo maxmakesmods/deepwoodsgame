@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -8,6 +9,7 @@ namespace DeepWoods
     public class Game1 : Game
     {
         private Effect groundEffect;
+        private Effect spriteEffect;
         private VertexPositionColorTexture[] drawingQuad;
         private short[] drawingIndices;
         private GraphicsDeviceManager _graphics;
@@ -26,6 +28,21 @@ namespace DeepWoods
         private int numPatches = 10;
         private int ditherSize = 2;
 
+        private int mapSeed;
+
+        private SpriteBatch spriteBatch;
+        private SpriteFont ft88RegularFont;
+
+        private FPSCounter drawFPS = new();
+        private FPSCounter updateFPS = new();
+
+        private Texture2D treeTexture;
+        private Texture2D towerTexture;
+        private Texture2D wagonTexture;
+        private Texture2D campfireAbandonedTexture;
+
+        private List<Sprite> sprites = new List<Sprite>();
+
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -37,6 +54,8 @@ namespace DeepWoods
         {
             base.Initialize();
             Window.AllowUserResizing = true;
+            this.IsFixedTimeStep = true;
+            _graphics.SynchronizeWithVerticalRetrace = true;
             _graphics.PreferredBackBufferWidth = 1920;
             _graphics.PreferredBackBufferHeight = 1080;
             _graphics.ApplyChanges();
@@ -50,13 +69,22 @@ namespace DeepWoods
         {
             camera = new Camera();
 
-            groundEffect = Content.Load<Effect>("GroundEffect");
+            spriteBatch = new SpriteBatch(GraphicsDevice);
+            ft88RegularFont = Content.Load<SpriteFont>("fonts/FT88-Regular");
+
+            groundEffect = Content.Load<Effect>("effects/GroundEffect");
+            spriteEffect = Content.Load<Effect>("effects/SpriteEffect");
             groundTilesTexture = Content.Load<Texture2D>("groundtiles");
             bluenoiseTexture = Content.Load<Texture2D>("bluenoise_rgba");
 
+            treeTexture = Content.Load<Texture2D>("objects/tree");
+            towerTexture = Content.Load<Texture2D>("objects/tower");
+            wagonTexture = Content.Load<Texture2D>("objects/abandoned_wagon");
+            campfireAbandonedTexture = Content.Load<Texture2D>("objects/campfire_abandoned");
+
             Random rng = new Random();
 
-            int seed = rng.Next();
+            mapSeed = rng.Next();
 
             SetupUserIndexedVertexRectangle(gridSize, gridSize);
             groundEffect.Parameters["GridSize"].SetValue(new Vector2(gridSize, gridSize));
@@ -73,15 +101,18 @@ namespace DeepWoods
             groundEffect.Parameters["BlurHalfSize"].SetValue(ditherSize);
 
             groundEffect.Parameters["AmbientLightColor"].SetValue(new Vector3(0.3f, 0.3f, 0.4f));
+            spriteEffect.Parameters["AmbientLightColor"].SetValue(new Vector3(0.3f, 0.3f, 0.4f));
+            //groundEffect.Parameters["AmbientLightColor"].SetValue(Vector3.One);
 
 
             // TODO TEMP light test
-            for (int i = 0; i < 8; i++)
+            int numLights = 8;
+            for (int i = 0; i < numLights; i++)
             {
                 float distance = 0.5f + rng.NextSingle() * 2f;
                 Vector3 color = new Vector3(rng.NextSingle(), rng.NextSingle(), rng.NextSingle());
                 Vector2 position = new Vector2(rng.NextSingle() * gridSize, rng.NextSingle() * gridSize);
-                Vector2 direction = new Vector2(rng.NextSingle(), rng.NextSingle());
+                Vector2 direction = new Vector2(rng.NextSingle() * 2f - 1f, rng.NextSingle() * 2f - 1f);
                 float speed = 0.5f + rng.NextSingle() * 2f;
 
                 lights[i] = new Vector4(color.X, color.Y, color.Z, distance);
@@ -91,11 +122,51 @@ namespace DeepWoods
             }
             groundEffect.Parameters["Lights"].SetValue(lights);
             groundEffect.Parameters["LightPositions"].SetValue(lightPositions);
+            groundEffect.Parameters["NumLights"].SetValue(numLights);
+            spriteEffect.Parameters["Lights"].SetValue(lights);
+            spriteEffect.Parameters["LightPositions"].SetValue(lightPositions);
+            spriteEffect.Parameters["NumLights"].SetValue(numLights);
 
 
 
-            var terrainGrid = Terrain.GenerateTerrain(seed, gridSize, gridSize, numPatches);
+
+            var terrainGrid = Terrain.GenerateTerrain(mapSeed, gridSize, gridSize, numPatches);
             var terrainGridTexture = Terrain.GenerateTerrainTexture(GraphicsDevice, terrainGrid);
+
+            // TODO TEMP Sprite Test
+            for (int x = 0; x < gridSize; x++)
+            {
+                for (int y = gridSize - 1; y >= 0; y--)
+                {
+                    if (terrainGrid[x,y] == Terrain.GroundType.Grass)
+                    {
+                        if (rng.NextSingle() < 0.9f)
+                        {
+                            sprites.Add(new Sprite(treeTexture, new Vector2(x, y), new Vector2(1, 2), true));
+                        }
+                        else
+                        {
+                            if (rng.NextSingle() < 0.5f)
+                            {
+                                sprites.Add(new Sprite(towerTexture, new Vector2(x, y), new Vector2(1, 2), true));
+                            }
+                            else
+                            {
+                                sprites.Add(new Sprite(wagonTexture, new Vector2(x, y), new Vector2(1, 1), true));
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (rng.NextSingle() < 0.05f)
+                        {
+                            sprites.Add(new Sprite(campfireAbandonedTexture, new Vector2(x, y), new Vector2(1, 1), false));
+                        }
+                    }
+                }
+            }
+
+
 
             groundEffect.Parameters["TerrainGridTexture"].SetValue(terrainGridTexture);
 
@@ -136,6 +207,7 @@ namespace DeepWoods
                 }
             }
             groundEffect.Parameters["LightPositions"].SetValue(lightPositions);
+            spriteEffect.Parameters["LightPositions"].SetValue(lightPositions);
         }
 
         protected override void Update(GameTime gameTime)
@@ -144,15 +216,21 @@ namespace DeepWoods
             {
                 Exit();
             }
-            camera.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
+
+            float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            updateFPS.CountFrame(deltaTime);
+            camera.Update(deltaTime);
             base.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
         {
+            float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            drawFPS.CountFrame(deltaTime);
+
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            MoveLightsForFun((float)gameTime.ElapsedGameTime.TotalSeconds);
+            MoveLightsForFun(deltaTime);
 
             Matrix world = Matrix.Identity;
             Matrix view = camera.View;
@@ -165,7 +243,22 @@ namespace DeepWoods
                 GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, drawingQuad, 0, 4, drawingIndices, 0, 2);
             }
 
+            foreach (var sprite in sprites)
+            {
+                sprite.Draw(GraphicsDevice, spriteEffect, view, projection);
+            }
+
+            DrawStringOnScreen($"Seed: {mapSeed}, DrawFPS: {drawFPS.FPS}, UpdateFPS: {updateFPS.FPS}");
+
             base.Draw(gameTime);
+        }
+
+        private void DrawStringOnScreen(string text)
+        {
+            spriteBatch.Begin();
+            spriteBatch.DrawString(ft88RegularFont, text, new Vector2(22f, 22f), Color.Black);
+            spriteBatch.DrawString(ft88RegularFont, text, new Vector2(20f, 20f), Color.White);
+            spriteBatch.End();
         }
     }
 }

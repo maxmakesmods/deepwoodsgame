@@ -21,6 +21,7 @@ int BlurHalfSize;
 float3 AmbientLightColor;
 float4 Lights[8];
 float2 LightPositions[8];
+int NumLights;
 
 sampler2D GroundTilesTextureSampler = sampler_state
 {
@@ -126,7 +127,7 @@ float3 applyLights(float2 pos, float3 color)
 {
     float3 light = AmbientLightColor;
 
-    for (int i = 0; i < 8; i++)
+    for (int i = 0; i < NumLights; i++)
     {
         float distSqrd = calcDistSqrd(pos, LightPositions[i]);
         float maxDistSqrd = Lights[i].a * Lights[i].a;
