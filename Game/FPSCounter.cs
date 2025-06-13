@@ -1,14 +1,13 @@
-﻿
-namespace DeepWoods
+﻿namespace DeepWoods.Game
 {
     internal class FPSCounter
     {
         public int FPS { get; private set; } = 0;
 
         private int counter;
-        private float frameTimeSum;
+        private double frameTimeSum;
 
-        public void CountFrame(float frameTime)
+        public void CountFrame(double frameTime)
         {
             frameTimeSum += frameTime;
             counter++;

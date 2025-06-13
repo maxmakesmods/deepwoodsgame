@@ -1,21 +1,26 @@
-﻿
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
-namespace DeepWoods
+namespace DeepWoods.World
 {
     internal class Camera
     {
         public Vector3 position;
         private float angle = 20f;
-        private float aspectRatio = 16f / 9f;
         private float fov = 45f;
         private float cameraSpeed = 0.5f;
         private float cameraZoomSpeed = 1.2f;
         private int lastMouseWheel = 0;
+        private readonly GraphicsDevice graphicsDevice;
 
         public Matrix View => Matrix.Invert(Matrix.CreateRotationX(MathHelper.ToRadians(angle)) * Matrix.CreateTranslation(position));
-        public Matrix Projection => Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(fov), aspectRatio, 1f, 1000f);
+        public Matrix Projection => Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(fov), graphicsDevice.Viewport.AspectRatio, 1f, 1000f);
+
+        public Camera(GraphicsDevice graphicsDevice)
+        {
+            this.graphicsDevice = graphicsDevice;
+        }
 
         public void Update(float timeDelta)
         {
@@ -45,8 +50,6 @@ namespace DeepWoods
             {
                 position.Z = 1;
             }
-
-            // TODO: Update fov and aspectRatio
         }
     }
 }

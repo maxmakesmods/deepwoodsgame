@@ -1,8 +1,8 @@
-﻿
+﻿using DeepWoods.World;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace DeepWoods
+namespace DeepWoods.Objects
 {
     internal class Sprite
     {

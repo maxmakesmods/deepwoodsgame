@@ -42,7 +42,7 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
 {
 	VertexShaderOutput output = (VertexShaderOutput)0;
 
-	output.Position = mul(input.Position, WorldViewProjection);
+    output.Position = mul(input.Position, WorldViewProjection);
     output.TexCoord = input.TexCoord;
     output.WorldPos = mul(input.Position, World).xy;
 
@@ -72,7 +72,6 @@ float3 applyLights(float2 pos, float3 color)
 float4 MainPS(VertexShaderOutput input) : COLOR
 {
     float4 color = tex2D(SpriteTextureSampler, input.TexCoord);
-    
     return float4(applyLights(input.WorldPos, color.rgb), color.a);
 }
 

@@ -7,6 +7,8 @@
 	#define PS_SHADERMODEL ps_4_0_level_9_1
 #endif
 
+matrix WorldViewProjection;
+
 float2 GridSize;
 float CellSize;
 float2 GroundTilesTextureSize;
@@ -52,8 +54,6 @@ sampler2D BlueNoiseTextureSampler = sampler_state
     AddressU = WRAP;
     AddressV = WRAP;
 };
-
-matrix WorldViewProjection;
 
 struct VertexShaderInput
 {

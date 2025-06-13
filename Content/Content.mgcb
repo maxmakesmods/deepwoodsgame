@@ -13,7 +13,7 @@
 
 #---------------------------------- Content ---------------------------------#
 
-#begin ball.png
+#begin textures/bluenoise_rgba.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -23,19 +23,7 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:ball.png
-
-#begin bluenoise_rgba.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:bluenoise_rgba.png
+/build:textures/bluenoise_rgba.png
 
 #begin effects/GroundEffect.fx
 /importer:EffectImporter
@@ -56,7 +44,7 @@
 /processorParam:TextureFormat=Compressed
 /build:fonts/FT88-Regular.spritefont
 
-#begin groundtiles.png
+#begin textures/groundtiles.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -66,7 +54,7 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:groundtiles.png
+/build:textures/groundtiles.png
 
 #begin objects/abandoned_wagon.png
 /importer:TextureImporter
