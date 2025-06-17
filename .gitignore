@@ -1,3 +1,5 @@
 .vs
 obj
 bin
+/Content/MonoGameExtended/MonoGame.Extended.Content.Pipeline.dll
+/Content/MonoGameExtended/MonoGame.Extended.dll

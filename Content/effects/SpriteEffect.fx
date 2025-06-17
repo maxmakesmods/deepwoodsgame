@@ -15,6 +15,10 @@ float4 Lights[8];
 float2 LightPositions[8];
 int NumLights;
 
+int IsShadow;
+float ShadowSkew;
+float ShadowStrength;
+
 sampler2D SpriteTextureSampler = sampler_state
 {
     Texture = <SpriteTexture>;
@@ -42,7 +46,17 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
 {
 	VertexShaderOutput output = (VertexShaderOutput)0;
 
-    output.Position = mul(input.Position, WorldViewProjection);
+    if (IsShadow)
+    {
+        float x = input.Position.x + ShadowSkew * input.Position.y;
+        float y = input.Position.y * 1.25;
+        output.Position = mul(float4(x, y, input.Position.z, input.Position.w), WorldViewProjection);
+    }
+    else
+    {
+        output.Position = mul(input.Position, WorldViewProjection);
+    }
+
     output.TexCoord = input.TexCoord;
     output.WorldPos = mul(input.Position, World).xy;
 
@@ -72,7 +86,14 @@ float3 applyLights(float2 pos, float3 color)
 float4 MainPS(VertexShaderOutput input) : COLOR
 {
     float4 color = tex2D(SpriteTextureSampler, input.TexCoord);
-    return float4(applyLights(input.WorldPos, color.rgb), color.a);
+    if (IsShadow)
+    {
+        return float4(0.0, 0.0, 0.0, 0.5 * color.a * ShadowStrength);
+    }
+    else
+    {
+        return float4(applyLights(input.WorldPos, color.rgb), color.a);
+    }
 }
 
 technique BasicColorDrawing

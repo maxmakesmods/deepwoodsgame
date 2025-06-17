@@ -1,0 +1,107 @@
+[
+  {
+    "name": "abandoned_wagon",
+    "x": 0,
+    "y": 0,
+    "width": 64,
+    "height": 64
+  },
+  {
+    "name": "campfire",
+    "x": 64,
+    "y": 0,
+    "width": 32,
+    "height": 64
+  },
+  {
+    "name": "campfire_abandoned",
+    "x": 96,
+    "y": 0,
+    "width": 32,
+    "height": 32
+  },
+  {
+    "name": "fairyring",
+    "x": 128,
+    "y": 0,
+    "width": 32,
+    "height": 32
+  },
+  {
+    "name": "herb1",
+    "x": 160,
+    "y": 0,
+    "width": 32,
+    "height": 32
+  },
+  {
+    "name": "herb2",
+    "x": 192,
+    "y": 0,
+    "width": 32,
+    "height": 32
+  },
+  {
+    "name": "herb3",
+    "x": 224,
+    "y": 0,
+    "width": 32,
+    "height": 32
+  },
+  {
+    "name": "herb4",
+    "x": 96,
+    "y": 32,
+    "width": 32,
+    "height": 32
+  },
+  {
+    "name": "portal_obsidian",
+    "x": 0,
+    "y": 64,
+    "width": 32,
+    "height": 64
+  },
+  {
+    "name": "portal_stone",
+    "x": 32,
+    "y": 64,
+    "width": 32,
+    "height": 64
+  },
+  {
+    "name": "portal_wood",
+    "x": 64,
+    "y": 64,
+    "width": 32,
+    "height": 64
+  },
+  {
+    "name": "tower",
+    "x": 0,
+    "y": 128,
+    "width": 32,
+    "height": 96
+  },
+  {
+    "name": "tree",
+    "x": 96,
+    "y": 64,
+    "width": 32,
+    "height": 64
+  },
+  {
+    "name": "well",
+    "x": 128,
+    "y": 32,
+    "width": 32,
+    "height": 32
+  },
+  {
+    "name": "woodpile",
+    "x": 160,
+    "y": 32,
+    "width": 32,
+    "height": 32
+  }
+]

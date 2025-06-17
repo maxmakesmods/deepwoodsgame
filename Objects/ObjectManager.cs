@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using DeepWoods.Loaders;
 using DeepWoods.World;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace DeepWoods.Objects
@@ -18,15 +19,25 @@ namespace DeepWoods.Objects
         private int width;
         private int height;
 
-        public ObjectManager(int seed, int width, int height, Terrain terrain)
+        public ObjectManager(ContentManager content, int seed, int width, int height, Terrain terrain)
         {
             rng = new Random(seed);
+
+            var objects = content.Load<List<DWObject>>("objects/objects");
 
             // TODO TEMP Sprite Test
             for (int x = 0; x < width; x++)
             {
                 for (int y = height - 1; y >= 0; y--)
                 {
+                    if (rng.NextSingle() < 0.1f)
+                    {
+                        var dwobj = objects[rng.Next(objects.Count)];
+
+                        sprites.Add(new Sprite(TextureLoader.ObjectsTexture, new Vector2(x, y), new Rectangle(dwobj.x, dwobj.y, dwobj.width, dwobj.height), true));
+                    }
+
+                    /*
                     if (terrain.terrainGrid[x, y] == Terrain.GroundType.Grass)
                     {
                         if (rng.NextSingle() < 0.9f)
@@ -52,6 +63,7 @@ namespace DeepWoods.Objects
                             sprites.Add(new Sprite(TextureLoader.CampfireAbandonedTexture, new Vector2(x, y), new Vector2(1, 1), false));
                         }
                     }
+                    */
                 }
             }
 

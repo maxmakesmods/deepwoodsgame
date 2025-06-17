@@ -22,6 +22,7 @@ namespace DeepWoods.Game
         private LightManager lightManager;
         private ObjectManager objectManager;
         private TextHelper textHelper;
+        private InGameClock clock;
 
         private FPSCounter fps = new();
 
@@ -55,6 +56,11 @@ namespace DeepWoods.Game
             textHelper = new TextHelper(GraphicsDevice, Content);
 
 
+            clock = new InGameClock();
+            clock.TimeScale = 60;
+            clock.SetTime(1, 12, 0);
+
+
             camera = new Camera(GraphicsDevice);
             camera.position = new Vector3(gridSize / 2, 0, gridSize / 2);
 
@@ -64,7 +70,7 @@ namespace DeepWoods.Game
             terrain.Apply();
 
             lightManager = new LightManager(rng.Next(), gridSize, gridSize);
-            objectManager = new ObjectManager(rng.Next(), gridSize, gridSize, terrain);
+            objectManager = new ObjectManager(Content, rng.Next(), gridSize, gridSize, terrain);
         }
 
         protected override void Update(GameTime gameTime)
@@ -74,10 +80,11 @@ namespace DeepWoods.Game
                 Exit();
             }
 
-            float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            double deltaTime = gameTime.ElapsedGameTime.TotalSeconds;
 
             fps.CountFrame(deltaTime);
-            camera.Update(deltaTime);
+            camera.Update((float)deltaTime);
+            clock.Update(deltaTime);
             base.Update(gameTime);
         }
 
@@ -87,7 +94,7 @@ namespace DeepWoods.Game
 
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            lightManager.MoveLightsForFun(deltaTime);
+            lightManager.Update(clock.DayDelta, deltaTime);
             lightManager.Apply();
 
             Matrix view = camera.View;
@@ -96,7 +103,7 @@ namespace DeepWoods.Game
             terrain.Draw(GraphicsDevice, view, projection);
             objectManager.Draw(GraphicsDevice, view, projection);
 
-            textHelper.DrawStringOnScreen($"Seed: {terrain.seed}, FPS: {fps.FPS}");
+            textHelper.DrawStringOnScreen($"Seed: {terrain.seed}, Time: {clock.Day}:{clock.Hour}:{clock.Minute}, FPS: {fps.FPS}");
 
             base.Draw(gameTime);
         }

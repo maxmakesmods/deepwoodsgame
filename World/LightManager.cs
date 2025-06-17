@@ -16,7 +16,11 @@ namespace DeepWoods.World
         private int width;
         private int height;
 
-        Vector3 ambientLightColor = new(0.3f, 0.3f, 0.4f);
+        private static readonly Vector3 AMBIENT_DAY = new(0.7f, 0.7f, 0.7f);
+        private static readonly Vector3 AMBIENT_NIGHT = new(0.3f, 0.3f, 0.4f);
+        private static readonly Vector3 AMBIENT_DUSK = new(0.5f, 0.4f, 0.4f);
+
+        Vector3 ambientLightColor = AMBIENT_DAY;
 
         public LightManager(int seed, int width, int height)
         {
@@ -40,7 +44,38 @@ namespace DeepWoods.World
             }
         }
 
-        public void MoveLightsForFun(float deltaTime)
+        public void Update(double dayDelta, float deltaTime)
+        {
+            if (dayDelta < 0.25)
+            {
+                ambientLightColor = Vector3.Lerp(AMBIENT_NIGHT, AMBIENT_DUSK, (float)(dayDelta * 4));
+            }
+            else if (dayDelta < 0.5)
+            {
+                ambientLightColor = Vector3.Lerp(AMBIENT_DUSK, AMBIENT_DAY, (float)((dayDelta - 0.25) * 4));
+            }
+            else if (dayDelta < 0.75)
+            {
+                ambientLightColor = Vector3.Lerp(AMBIENT_DAY, AMBIENT_DUSK, (float)((dayDelta - 0.5) * 4));
+            }
+            else
+            {
+                ambientLightColor = Vector3.Lerp(AMBIENT_DUSK, AMBIENT_NIGHT, (float)((dayDelta - 0.75) * 4));
+            }
+
+            double dayTimeDelta = (Math.Clamp(dayDelta, 0.25, 0.75) - 0.25) * 2.0;
+
+            float shadowSkew = (float)(dayTimeDelta * 2.0 - 1.0);
+
+            float shadowStrength = (float)(1.0 - Math.Abs(dayTimeDelta * 2.0 - 1.0));
+
+            EffectLoader.SpriteEffect.Parameters["ShadowSkew"].SetValue(shadowSkew);
+            EffectLoader.SpriteEffect.Parameters["ShadowStrength"].SetValue(shadowStrength);
+
+            MoveLightsForFun(deltaTime);
+        }
+
+        private void MoveLightsForFun(float deltaTime)
         {
             for (int i = 0; i < 8; i++)
             {

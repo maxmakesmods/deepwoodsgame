@@ -12,7 +12,7 @@ namespace DeepWoods.World
 {
     internal class Terrain
     {
-        private readonly static int CellSize = 32;
+        public readonly static int CellSize = 32;
         private readonly static int DitherSize = 2;
 
         private readonly VertexPositionColorTexture[] drawingQuad;
