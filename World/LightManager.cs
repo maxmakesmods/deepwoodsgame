@@ -6,7 +6,7 @@ namespace DeepWoods.World
 {
     internal class LightManager
     {
-        private int numLights = 8;
+        private int numLights = 0;
 
         private Vector4[] lights = new Vector4[8];
         private Vector2[] lightPositions = new Vector2[8];

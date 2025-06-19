@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using DeepWoods.Loaders;
+using DeepWoods.World.Generators;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -18,6 +19,7 @@ namespace DeepWoods.World
         private readonly VertexPositionColorTexture[] drawingQuad;
         private readonly short[] drawingIndices = [0, 1, 2, 0, 2, 3];
         public readonly GroundType[,] terrainGrid; // TODO: make private
+        public readonly Tile[,] tiles; // TODO: make private
         private readonly Texture2D terrainGridTexture;
         public readonly int seed; // TODO: make private
         private readonly int width;
@@ -43,18 +45,37 @@ namespace DeepWoods.World
         public Terrain(GraphicsDevice graphicsDevice, int seed, int width, int height, int numPatches)
         {
             rng = new Random(seed);
-
-            terrainGrid = GenerateTerrain(width, height, numPatches);
-            terrainGridTexture = GenerateTerrainTexture(graphicsDevice, terrainGrid);
-            drawingQuad = CreateVertices(width, height);
             this.seed = seed;
             this.width = width;
             this.height = height;
+
+
+            Generator generator = new LabyrinthGenerator(width, height, rng.Next());
+            tiles = generator.Generate();
+
+            terrainGrid = GenerateTerrain(width, height, numPatches);
+            UpdateTerrainFromTiles();
+            terrainGridTexture = GenerateTerrainTexture(graphicsDevice, terrainGrid);
+            drawingQuad = CreateVertices(width, height);
 
             blueNoiseDitherChannel = rng.Next(4);
             blueNoiseVariantChannel = rng.Next(4);
             blueNoiseDitherOffset = new Vector2(rng.Next(TextureLoader.BluenoiseTexture.Width), rng.Next(TextureLoader.BluenoiseTexture.Height));
             blueNoiseVariantOffset = new Vector2(rng.Next(TextureLoader.BluenoiseTexture.Width), rng.Next(TextureLoader.BluenoiseTexture.Height));
+        }
+
+        private void UpdateTerrainFromTiles()
+        {
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    if (!tiles[x, y].isOpen)
+                    {
+                        terrainGrid[x, y] = GroundType.Grass;
+                    }
+                }
+            }
         }
 
         private static int calcDistSqrd(int x1, int y1, int x2, int y2)

@@ -14,7 +14,7 @@ namespace DeepWoods.Game
     {
         private GraphicsDeviceManager _graphics;
 
-        private int gridSize = 32;
+        private int gridSize = 128;
         private int numPatches = 10;
 
         private Camera camera;
@@ -37,8 +37,8 @@ namespace DeepWoods.Game
         {
             base.Initialize();
             Window.AllowUserResizing = true;
-            IsFixedTimeStep = true;
-            _graphics.SynchronizeWithVerticalRetrace = true;
+            IsFixedTimeStep = false;
+            _graphics.SynchronizeWithVerticalRetrace = false;
             _graphics.PreferredBackBufferWidth = 1920;
             _graphics.PreferredBackBufferHeight = 1080;
             _graphics.ApplyChanges();
@@ -57,7 +57,7 @@ namespace DeepWoods.Game
 
 
             clock = new InGameClock();
-            clock.TimeScale = 60;
+            //clock.TimeScale = 60;
             clock.SetTime(1, 12, 0);
 
 
@@ -103,7 +103,7 @@ namespace DeepWoods.Game
             terrain.Draw(GraphicsDevice, view, projection);
             objectManager.Draw(GraphicsDevice, view, projection);
 
-            textHelper.DrawStringOnScreen($"Seed: {terrain.seed}, Time: {clock.Day}:{clock.Hour}:{clock.Minute}, FPS: {fps.FPS}");
+            textHelper.DrawStringOnScreen($"Seed: {terrain.seed}, Time: {clock.Day}:{clock.Hour}:{clock.Minute}, FPS: {fps.FPS}, ms/f: {fps.SPF}");
 
             base.Draw(gameTime);
         }

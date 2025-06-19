@@ -25,17 +25,27 @@ namespace DeepWoods.Objects
 
             var objects = content.Load<List<DWObject>>("objects/objects");
 
-            // TODO TEMP Sprite Test
-            for (int x = 0; x < width; x++)
-            {
-                for (int y = height - 1; y >= 0; y--)
-                {
-                    if (rng.NextSingle() < 0.1f)
-                    {
-                        var dwobj = objects[rng.Next(objects.Count)];
 
+
+            // TODO TEMP Sprite Test
+            for (int y = height - 1; y >= 0; y--)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    if (terrain.tiles[x, y].isOpen)
+                    {
+                        if (rng.NextSingle() < 0.2f)
+                        {
+                            var dwobj = objects.Where(o => o.name != "tree").OrderBy(_ => rng.Next()).FirstOrDefault();
+                            sprites.Add(new Sprite(TextureLoader.ObjectsTexture, new Vector2(x, y), new Rectangle(dwobj.x, dwobj.y, dwobj.width, dwobj.height), true));
+                        }
+                    }
+                    else
+                    {
+                        var dwobj = objects.Where(o => o.name == "tree").FirstOrDefault();
                         sprites.Add(new Sprite(TextureLoader.ObjectsTexture, new Vector2(x, y), new Rectangle(dwobj.x, dwobj.y, dwobj.width, dwobj.height), true));
                     }
+
 
                     /*
                     if (terrain.terrainGrid[x, y] == Terrain.GroundType.Grass)
