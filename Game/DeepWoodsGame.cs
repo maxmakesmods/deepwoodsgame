@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using DeepWoods.Loaders;
+﻿using DeepWoods.Loaders;
 using DeepWoods.Objects;
 using DeepWoods.UI;
 using DeepWoods.World;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System;
 
 namespace DeepWoods.Game
 {
@@ -103,7 +102,7 @@ namespace DeepWoods.Game
             terrain.Draw(GraphicsDevice, view, projection);
             objectManager.Draw(GraphicsDevice, view, projection);
 
-            textHelper.DrawStringOnScreen($"Seed: {terrain.seed}, Time: {clock.Day}:{clock.Hour}:{clock.Minute}, FPS: {fps.FPS}, ms/f: {fps.SPF}");
+            textHelper.DrawStringOnScreen($"Seed: {terrain.seed}, Time: {clock.Day}:{clock.Hour}:{clock.Minute}, Tile: {camera.TilePos.X},{camera.TilePos.Y}, FPS: {fps.FPS}, ms/f: {fps.SPF}");
 
             base.Draw(gameTime);
         }

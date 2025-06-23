@@ -13,11 +13,15 @@ float2 GridSize;
 float CellSize;
 float2 GroundTilesTextureSize;
 
+float2 BlueNoiseTextureSize;
 int BlueNoiseDitherChannel;
 float2 BlueNoiseDitherOffset;
 int BlueNoiseVariantChannel;
 float2 BlueNoiseVariantOffset;
-float2 BlueNoiseTextureSize;
+int BlueNoiseSineXChannel;
+float2 BlueNoiseSineXOffset;
+int BlueNoiseSineYChannel;
+float2 BlueNoiseSineYOffset;
 int BlurHalfSize;
 
 float3 AmbientLightColor;
@@ -91,8 +95,17 @@ float getRandomFromBlueNoise(float2 uv, float2 offset, int channel)
 
 int getGroundType(float2 uv)
 {
-    int gridX = int(uv.x * GridSize.x);
-    int gridY = int(uv.y * GridSize.y);
+    float2 gridTexelSize = 1.0 / (GridSize * CellSize);
+    uv = int2(uv / gridTexelSize) * gridTexelSize;
+    
+    float bluenoise1 = getRandomFromBlueNoise(uv / CellSize, BlueNoiseSineXOffset, BlueNoiseSineXChannel);
+    float bluenoise2 = getRandomFromBlueNoise(uv / CellSize, BlueNoiseSineYOffset, BlueNoiseSineYChannel);
+
+    float wavy_x = uv.x + (sin(uv.y * GridSize * 3.1415) / GridSize) * 0.25 * bluenoise1;
+    float wavy_y = uv.y + (sin(uv.x * GridSize * 3.1415) / GridSize) * 0.25 * bluenoise2;
+
+    int gridX = int(wavy_x * GridSize.x);
+    int gridY = int(wavy_y * GridSize.y);
 
     float2 gridTextureUV = float2(gridX / GridSize.x, gridY / GridSize.y);
     int groundType = int(tex2D(TerrainGridTextureSampler, gridTextureUV).r / 256.0 + 0.5);

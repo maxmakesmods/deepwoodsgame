@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace DeepWoods.World.Generators
 {
@@ -18,8 +19,8 @@ namespace DeepWoods.World.Generators
         public LabyrinthGenerator(int width, int height, int seed)
         {
             tiles = new Tile[width, height];
-            this.width = width;
-            this.height = height;
+            this.width = width - 1;
+            this.height = height - 1;
             rng = new Random(seed);
         }
 
@@ -32,6 +33,7 @@ namespace DeepWoods.World.Generators
         {
             Stack<Point> stack = new Stack<Point>();
             stack.Push(new Point(1, 1));
+            tiles[1, 1].isOpen = true;
 
             while (stack.Count > 0)
             {

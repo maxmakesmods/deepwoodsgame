@@ -1,20 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using DeepWoods.Loaders;
+﻿using DeepWoods.Loaders;
 using DeepWoods.World.Generators;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
+using System.Collections.Generic;
 
 namespace DeepWoods.World
 {
     internal class Terrain
     {
         public readonly static int CellSize = 32;
-        private readonly static int DitherSize = 2;
+        private readonly static int DitherSize = 4;
 
         private readonly VertexPositionColorTexture[] drawingQuad;
         private readonly short[] drawingIndices = [0, 1, 2, 0, 2, 3];
@@ -28,6 +24,10 @@ namespace DeepWoods.World
         private readonly Vector2 blueNoiseDitherOffset;
         private readonly int blueNoiseVariantChannel;
         private readonly Vector2 blueNoiseVariantOffset;
+        private readonly int blueNoiseSineXChannel;
+        private readonly Vector2 blueNoiseSineXOffset;
+        private readonly int blueNoiseSineYChannel;
+        private readonly Vector2 blueNoiseSineYOffset;
         private readonly Random rng;
 
         public enum GroundType
@@ -58,10 +58,17 @@ namespace DeepWoods.World
             terrainGridTexture = GenerateTerrainTexture(graphicsDevice, terrainGrid);
             drawingQuad = CreateVertices(width, height);
 
-            blueNoiseDitherChannel = rng.Next(4);
-            blueNoiseVariantChannel = rng.Next(4);
+            List<int> bluenoiseChannels = [0, 1, 2, 3];
+            bluenoiseChannels.Sort((_,_) => rng.Next(-1, 2));
+
+            blueNoiseDitherChannel = rng.Next(bluenoiseChannels[0]);
+            blueNoiseVariantChannel = rng.Next(bluenoiseChannels[1]);
+            blueNoiseSineXChannel = rng.Next(bluenoiseChannels[2]);
+            blueNoiseSineYChannel = rng.Next(bluenoiseChannels[3]);
             blueNoiseDitherOffset = new Vector2(rng.Next(TextureLoader.BluenoiseTexture.Width), rng.Next(TextureLoader.BluenoiseTexture.Height));
             blueNoiseVariantOffset = new Vector2(rng.Next(TextureLoader.BluenoiseTexture.Width), rng.Next(TextureLoader.BluenoiseTexture.Height));
+            blueNoiseSineXOffset = new Vector2(rng.Next(TextureLoader.BluenoiseTexture.Width), rng.Next(TextureLoader.BluenoiseTexture.Height));
+            blueNoiseSineYOffset = new Vector2(rng.Next(TextureLoader.BluenoiseTexture.Width), rng.Next(TextureLoader.BluenoiseTexture.Height));
         }
 
         private void UpdateTerrainFromTiles()
@@ -85,7 +92,7 @@ namespace DeepWoods.World
 
         private GroundType[,] GenerateTerrain(int width, int height, int numPatches)
         {
-            var groundTypes = Enum.GetValues<GroundType>().ToList();
+            var groundTypes = new List<GroundType>(Enum.GetValues<GroundType>());
             groundTypes.Sort((g1, g2) => rng.Next(-1, 2));
 
             int currentGroundTypeIndex = 0;
@@ -180,6 +187,10 @@ namespace DeepWoods.World
             EffectLoader.GroundEffect.Parameters["BlueNoiseDitherOffset"].SetValue(blueNoiseDitherOffset);
             EffectLoader.GroundEffect.Parameters["BlueNoiseVariantChannel"].SetValue(blueNoiseVariantChannel);
             EffectLoader.GroundEffect.Parameters["BlueNoiseVariantOffset"].SetValue(blueNoiseVariantOffset);
+            EffectLoader.GroundEffect.Parameters["BlueNoiseSineXChannel"].SetValue(blueNoiseSineXChannel);
+            EffectLoader.GroundEffect.Parameters["BlueNoiseSineXOffset"].SetValue(blueNoiseSineXOffset);
+            EffectLoader.GroundEffect.Parameters["BlueNoiseSineYChannel"].SetValue(blueNoiseSineYChannel);
+            EffectLoader.GroundEffect.Parameters["BlueNoiseSineYOffset"].SetValue(blueNoiseSineYOffset);
             EffectLoader.GroundEffect.Parameters["BlueNoiseTextureSize"].SetValue(new Vector2(TextureLoader.BluenoiseTexture.Width, TextureLoader.BluenoiseTexture.Height));
             EffectLoader.GroundEffect.Parameters["BlurHalfSize"].SetValue(DitherSize);
             EffectLoader.GroundEffect.Parameters["TerrainGridTexture"].SetValue(terrainGridTexture);

@@ -36,8 +36,8 @@ namespace DeepWoods.Objects
                     {
                         if (rng.NextSingle() < 0.2f)
                         {
-                            var dwobj = objects.Where(o => o.name != "tree").OrderBy(_ => rng.Next()).FirstOrDefault();
-                            sprites.Add(new Sprite(TextureLoader.ObjectsTexture, new Vector2(x, y), new Rectangle(dwobj.x, dwobj.y, dwobj.width, dwobj.height), true));
+                            //var dwobj = objects.Where(o => o.name != "tree").OrderBy(_ => rng.Next()).FirstOrDefault();
+                            //sprites.Add(new Sprite(TextureLoader.ObjectsTexture, new Vector2(x, y), new Rectangle(dwobj.x, dwobj.y, dwobj.width, dwobj.height), true));
                         }
                     }
                     else

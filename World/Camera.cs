@@ -1,11 +1,15 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System;
 
 namespace DeepWoods.World
 {
     internal class Camera
     {
+        private static readonly float NearPlane = 1f;
+        private static readonly float FarPlane = 1000f;
+
         public Vector3 position;
         private float angle = 20f;
         private float fov = 45f;
@@ -15,7 +19,9 @@ namespace DeepWoods.World
         private readonly GraphicsDevice graphicsDevice;
 
         public Matrix View => Matrix.Invert(Matrix.CreateRotationX(MathHelper.ToRadians(angle)) * Matrix.CreateTranslation(position));
-        public Matrix Projection => Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(fov), graphicsDevice.Viewport.AspectRatio, 1f, 1000f);
+        public Matrix Projection => Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(fov), graphicsDevice.Viewport.AspectRatio, NearPlane, FarPlane);
+
+        public Point TilePos { get; private set; }
 
         public Camera(GraphicsDevice graphicsDevice)
         {
@@ -50,6 +56,32 @@ namespace DeepWoods.World
             {
                 position.Z = 1;
             }
+
+            UpdateTileAtCurrentMouse();
+        }
+
+        private void UpdateTileAtCurrentMouse()
+        {
+            var screenPos = Mouse.GetState().Position;
+
+            var worldPosNear = graphicsDevice.Viewport.Unproject(new(screenPos.X, screenPos.Y, NearPlane), Projection, View, Matrix.Identity);
+            var worldPosFar = graphicsDevice.Viewport.Unproject(new(screenPos.X, screenPos.Y, FarPlane), Projection, View, Matrix.Identity);
+
+            var direction = worldPosFar - worldPosNear;
+            direction.Normalize();
+
+            var groundNormal = new Vector3(0, 0, 1);
+
+            float dot = Vector3.Dot(direction, groundNormal);
+            if (Math.Abs(dot) < 1E-05f)
+            {
+                return;
+            }
+
+            float distance = -Vector3.Dot(groundNormal, worldPosNear) / dot;
+            var worldPosGround = worldPosNear + direction * distance;
+
+            TilePos = new((int)Math.Floor(worldPosGround.X), (int)Math.Floor(worldPosGround.Y));
         }
     }
 }
