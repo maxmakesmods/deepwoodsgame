@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
+using System.Collections.Generic;
 
 namespace DeepWoods.Game
 {
@@ -22,6 +23,9 @@ namespace DeepWoods.Game
         private ObjectManager objectManager;
         private TextHelper textHelper;
         private InGameClock clock;
+        private SpriteBatch spriteBatch;
+
+        public static GameWindow window;
 
         private FPSCounter fps = new();
 
@@ -30,11 +34,16 @@ namespace DeepWoods.Game
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
+
+            window = Window;
         }
 
         protected override void Initialize()
         {
             base.Initialize();
+
+            RawInput.Initialize(WindowHelper.GetRealHWNDFromSDL(Window.Handle));
+
             Window.AllowUserResizing = true;
             IsFixedTimeStep = false;
             _graphics.SynchronizeWithVerticalRetrace = false;
@@ -51,6 +60,9 @@ namespace DeepWoods.Game
         {
             EffectLoader.Load(Content);
             TextureLoader.Load(Content);
+
+
+            spriteBatch = new SpriteBatch(GraphicsDevice);
 
             textHelper = new TextHelper(GraphicsDevice, Content);
 
@@ -79,6 +91,16 @@ namespace DeepWoods.Game
                 Exit();
             }
 
+            if (IsActive)
+            {
+                IsMouseVisible = false;
+                Mouse.SetPosition(Window.ClientBounds.Width / 2, Window.ClientBounds.Height / 2);
+            }
+            else
+            {
+                IsMouseVisible = true;
+            }
+
             double deltaTime = gameTime.ElapsedGameTime.TotalSeconds;
 
             fps.CountFrame(deltaTime);
@@ -102,7 +124,36 @@ namespace DeepWoods.Game
             terrain.Draw(GraphicsDevice, view, projection);
             objectManager.Draw(GraphicsDevice, view, projection);
 
-            textHelper.DrawStringOnScreen($"Seed: {terrain.seed}, Time: {clock.Day}:{clock.Hour}:{clock.Minute}, Tile: {camera.TilePos.X},{camera.TilePos.Y}, FPS: {fps.FPS}, ms/f: {fps.SPF}");
+            string debugstring = $"Seed: {terrain.seed}," +
+                $" Time: {clock.Day}:{clock.Hour}:{clock.Minute},";
+
+
+            spriteBatch.Begin();
+
+            List<Color> colors = [
+                Color.Pink,
+                Color.AliceBlue
+                ];
+
+            int i = 0;
+            foreach (var (_, mousePos) in RawInput.mousePositions)
+            {
+                spriteBatch.Draw(TextureLoader.MouseCursor,
+                    new Rectangle(mousePos.X, mousePos.Y, TextureLoader.MouseCursor.Width * 2, TextureLoader.MouseCursor.Height * 2),
+                    colors[i % 2]);
+
+                var tilePos = camera.GetTileAtScreenPos(mousePos);
+                debugstring += $" Tile (Player {i+1}): {tilePos.X},{tilePos.Y},";
+
+                i++;
+            }
+
+            debugstring += $" FPS: {fps.FPS}, ms/f: {fps.SPF}";
+
+            textHelper.DrawStringOnScreen(spriteBatch, debugstring);
+
+
+            spriteBatch.End();
 
             base.Draw(gameTime);
         }

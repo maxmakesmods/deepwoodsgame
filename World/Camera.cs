@@ -21,8 +21,6 @@ namespace DeepWoods.World
         public Matrix View => Matrix.Invert(Matrix.CreateRotationX(MathHelper.ToRadians(angle)) * Matrix.CreateTranslation(position));
         public Matrix Projection => Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(fov), graphicsDevice.Viewport.AspectRatio, NearPlane, FarPlane);
 
-        public Point TilePos { get; private set; }
-
         public Camera(GraphicsDevice graphicsDevice)
         {
             this.graphicsDevice = graphicsDevice;
@@ -56,14 +54,10 @@ namespace DeepWoods.World
             {
                 position.Z = 1;
             }
-
-            UpdateTileAtCurrentMouse();
         }
 
-        private void UpdateTileAtCurrentMouse()
+        public Point GetTileAtScreenPos(Point screenPos)
         {
-            var screenPos = Mouse.GetState().Position;
-
             var worldPosNear = graphicsDevice.Viewport.Unproject(new(screenPos.X, screenPos.Y, NearPlane), Projection, View, Matrix.Identity);
             var worldPosFar = graphicsDevice.Viewport.Unproject(new(screenPos.X, screenPos.Y, FarPlane), Projection, View, Matrix.Identity);
 
@@ -73,15 +67,10 @@ namespace DeepWoods.World
             var groundNormal = new Vector3(0, 0, 1);
 
             float dot = Vector3.Dot(direction, groundNormal);
-            if (Math.Abs(dot) < 1E-05f)
-            {
-                return;
-            }
-
             float distance = -Vector3.Dot(groundNormal, worldPosNear) / dot;
             var worldPosGround = worldPosNear + direction * distance;
 
-            TilePos = new((int)Math.Floor(worldPosGround.X), (int)Math.Floor(worldPosGround.Y));
+            return new((int)Math.Floor(worldPosGround.X), (int)Math.Floor(worldPosGround.Y));
         }
     }
 }
