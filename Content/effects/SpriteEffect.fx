@@ -7,8 +7,7 @@
 	#define PS_SHADERMODEL ps_4_0_level_9_1
 #endif
 
-matrix World;
-matrix WorldViewProjection;
+matrix ViewProjection;
 
 float3 AmbientLightColor;
 float4 Lights[8];
@@ -33,6 +32,13 @@ struct VertexShaderInput
 {
 	float4 Position : POSITION0;
 	float2 TexCoord : TEXCOORD0;
+    
+    float4 WorldRow1 : TEXCOORD1;
+    float4 WorldRow2 : TEXCOORD2;
+    float4 WorldRow3 : TEXCOORD3;
+    float4 WorldRow4 : TEXCOORD4;
+    float4 TexRect : TEXCOORD5;
+    float2 TileSize : TEXCOORD6;
 };
 
 struct VertexShaderOutput
@@ -45,20 +51,35 @@ struct VertexShaderOutput
 VertexShaderOutput MainVS(in VertexShaderInput input)
 {
 	VertexShaderOutput output = (VertexShaderOutput)0;
+    
+    float4x4 world = float4x4(input.WorldRow1, input.WorldRow2, input.WorldRow3, input.WorldRow4);
+    
+    float obj_width = input.TileSize.x;
+    float obj_height = input.TileSize.y;
+    
+    float tex_x = input.TexRect.x;
+    float tex_y = input.TexRect.y;
+    float tex_width = input.TexRect.z;
+    float tex_height = input.TexRect.w;
+    
+    float4 adjustedPos = float4(input.Position.x * obj_width, input.Position.y * obj_height, input.Position.z, input.Position.w);
+    float2 adjustedTexCoord = float2(tex_x + input.TexCoord.x * tex_width, tex_y + input.TexCoord.y * tex_height);
 
+    float4x4 worldViewProjection = mul(world, ViewProjection);
+    
     if (IsShadow)
     {
-        float x = input.Position.x + ShadowSkew * input.Position.y;
-        float y = input.Position.y * 1.25;
-        output.Position = mul(float4(x, y, input.Position.z, input.Position.w), WorldViewProjection);
+        float x = adjustedPos.x + ShadowSkew * adjustedPos.y;
+        float y = adjustedPos.y * 1.25;
+        output.Position = mul(float4(x, y, adjustedPos.z, adjustedPos.w), worldViewProjection);
     }
     else
     {
-        output.Position = mul(input.Position, WorldViewProjection);
+        output.Position = mul(adjustedPos, worldViewProjection);
     }
 
-    output.TexCoord = input.TexCoord;
-    output.WorldPos = mul(input.Position, World).xy;
+    output.TexCoord = adjustedTexCoord;
+    output.WorldPos = mul(adjustedPos, world).xy;
 
 	return output;
 }

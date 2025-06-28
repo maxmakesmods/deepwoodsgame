@@ -14,7 +14,7 @@ namespace DeepWoods.Game
     {
         private GraphicsDeviceManager _graphics;
 
-        private int gridSize = 128;
+        private int gridSize = 32;
         private int numPatches = 10;
 
         private Camera camera;
@@ -81,7 +81,7 @@ namespace DeepWoods.Game
             terrain.Apply();
 
             lightManager = new LightManager(rng.Next(), gridSize, gridSize);
-            objectManager = new ObjectManager(Content, rng.Next(), gridSize, gridSize, terrain);
+            objectManager = new ObjectManager(Content, GraphicsDevice, rng.Next(), gridSize, gridSize, terrain);
         }
 
         protected override void Update(GameTime gameTime)

@@ -2,6 +2,7 @@
 using DeepWoods.World.Generators;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using MonoGame.Extended.Collections;
 using System;
 using System.Collections.Generic;
 
@@ -59,7 +60,7 @@ namespace DeepWoods.World
             drawingQuad = CreateVertices(width, height);
 
             List<int> bluenoiseChannels = [0, 1, 2, 3];
-            bluenoiseChannels.Sort((_,_) => rng.Next(-1, 2));
+            bluenoiseChannels.Shuffle(rng);
 
             blueNoiseDitherChannel = rng.Next(bluenoiseChannels[0]);
             blueNoiseVariantChannel = rng.Next(bluenoiseChannels[1]);
@@ -93,7 +94,7 @@ namespace DeepWoods.World
         private GroundType[,] GenerateTerrain(int width, int height, int numPatches)
         {
             var groundTypes = new List<GroundType>(Enum.GetValues<GroundType>());
-            groundTypes.Sort((g1, g2) => rng.Next(-1, 2));
+            groundTypes.Shuffle(rng);
 
             int currentGroundTypeIndex = 0;
 
