@@ -8,5 +8,7 @@ namespace DeepWoods.Objects
         public int y { get; set; }
         public int width { get; set; }
         public int height { get; set; }
+        public bool standing { get; set; }
+        public bool glowing { get; set; }
     }
 }

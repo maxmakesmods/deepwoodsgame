@@ -68,8 +68,8 @@ namespace DeepWoods.Game
 
 
             clock = new InGameClock();
-            //clock.TimeScale = 60;
-            clock.SetTime(1, 12, 0);
+            clock.TimeScale = 0;
+            clock.SetTime(1, 17, 0);
 
 
             camera = new Camera(GraphicsDevice);

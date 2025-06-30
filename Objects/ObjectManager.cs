@@ -24,23 +24,16 @@ namespace DeepWoods.Objects
 
         private struct InstanceData : IVertexType
         {
-            public Vector4 WorldRow1;
-            public Vector4 WorldRow2;
-            public Vector4 WorldRow3;
-            public Vector4 WorldRow4;
+            public Vector2 WorldPos;
             public Vector4 TexRect;
-            public Vector2 TileSize;
+            public float IsStanding;
+            public float IsGlowing;
 
             public static readonly VertexDeclaration vertexDeclaration = new(
-                // world matrix
-                new VertexElement(0, VertexElementFormat.Vector4, VertexElementUsage.TextureCoordinate, 1),
-                new VertexElement(16, VertexElementFormat.Vector4, VertexElementUsage.TextureCoordinate, 2),
-                new VertexElement(32, VertexElementFormat.Vector4, VertexElementUsage.TextureCoordinate, 3),
-                new VertexElement(48, VertexElementFormat.Vector4, VertexElementUsage.TextureCoordinate, 4),
-                // tex rect
-                new VertexElement(64, VertexElementFormat.Vector4, VertexElementUsage.TextureCoordinate, 5),
-                // tile size
-                new VertexElement(80, VertexElementFormat.Vector2, VertexElementUsage.TextureCoordinate, 6)
+                new VertexElement(0, VertexElementFormat.Vector2, VertexElementUsage.TextureCoordinate, 1),
+                new VertexElement(8, VertexElementFormat.Vector4, VertexElementUsage.TextureCoordinate, 2),
+                new VertexElement(24, VertexElementFormat.Single, VertexElementUsage.TextureCoordinate, 3),
+                new VertexElement(28, VertexElementFormat.Single, VertexElementUsage.TextureCoordinate, 4)
             );
 
             public readonly VertexDeclaration VertexDeclaration => vertexDeclaration;
@@ -62,15 +55,12 @@ namespace DeepWoods.Objects
             InstanceData[] instances = new InstanceData[sprites.Count];
             for (int i = 0; i < sprites.Count; i++)
             {
-                Matrix world = sprites[i].World;
                 instances[i] = new InstanceData()
                 {
-                    WorldRow1 = new(world.M11, world.M12, world.M13, world.M14),
-                    WorldRow2 = new(world.M21, world.M22, world.M23, world.M24),
-                    WorldRow3 = new(world.M31, world.M32, world.M33, world.M34),
-                    WorldRow4 = new(world.M41, world.M42, world.M43, world.M44),
-                    TexRect = sprites[i].TexRect,
-                    TileSize = sprites[i].TileSize
+                    WorldPos = sprites[i].WorldPos,
+                    TexRect = new(sprites[i].TexRect.X, sprites[i].TexRect.Y, sprites[i].TexRect.Width, sprites[i].TexRect.Height),
+                    IsStanding = sprites[i].IsStanding ? 1f : 0f,
+                    IsGlowing = sprites[i].IsGlowing ? 1f : 0f
                 };
             }
 
@@ -90,13 +80,13 @@ namespace DeepWoods.Objects
                         if (rng.NextSingle() < 0.2f)
                         {
                             var dwobj = objectTypes.Where(o => o.name != "tree").OrderBy(_ => rng.Next()).FirstOrDefault();
-                            sprites.Add(new Sprite(TextureLoader.ObjectsTexture, new Vector2(x, y), new Rectangle(dwobj.x, dwobj.y, dwobj.width, dwobj.height), true));
+                            sprites.Add(new Sprite(new Vector2(x, y), new Rectangle(dwobj.x, dwobj.y, dwobj.width, dwobj.height), dwobj.standing, dwobj.glowing));
                         }
                     }
                     else
                     {
-                        //var dwobj = objectTypes.Where(o => o.name == "tree").FirstOrDefault();
-                        //sprites.Add(new Sprite(TextureLoader.ObjectsTexture, new Vector2(x, y), new Rectangle(dwobj.x, dwobj.y, dwobj.width, dwobj.height), true));
+                        var dwobj = objectTypes.Where(o => o.name == "tree").FirstOrDefault();
+                        sprites.Add(new Sprite(new Vector2(x, y), new Rectangle(dwobj.x, dwobj.y, dwobj.width, dwobj.height), dwobj.standing, dwobj.glowing));
                     }
                 }
             }
@@ -124,12 +114,22 @@ namespace DeepWoods.Objects
             var spriteEffect = EffectLoader.SpriteEffect;
 
             graphicsDevice.SetVertexBuffers(
-                new VertexBufferBinding(vertexBuffer),
-                new VertexBufferBinding(instanceBuffer));
+                new VertexBufferBinding(vertexBuffer, 0, 0),
+                new VertexBufferBinding(instanceBuffer, 0, 1));
             graphicsDevice.Indices = indexBuffer;
 
+            spriteEffect.Parameters["ObjectTextureSize"].SetValue(new Vector2(TextureLoader.ObjectsTexture.Width, TextureLoader.ObjectsTexture.Height));
+            spriteEffect.Parameters["CellSize"].SetValue(Terrain.CellSize);
             spriteEffect.Parameters["ViewProjection"].SetValue(view * projection);
             spriteEffect.Parameters["SpriteTexture"].SetValue(TextureLoader.ObjectsTexture);
+
+            spriteEffect.Parameters["IsShadow"].SetValue(1);
+            foreach (EffectPass pass in spriteEffect.CurrentTechnique.Passes)
+            {
+                pass.Apply();
+                graphicsDevice.DrawInstancedPrimitives(PrimitiveType.TriangleList, 0, 0, 2, sprites.Count);
+            }
+
             spriteEffect.Parameters["IsShadow"].SetValue(0);
             foreach (EffectPass pass in spriteEffect.CurrentTechnique.Passes)
             {

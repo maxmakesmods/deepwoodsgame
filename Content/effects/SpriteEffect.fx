@@ -18,6 +18,9 @@ int IsShadow;
 float ShadowSkew;
 float ShadowStrength;
 
+float2 ObjectTextureSize;
+float CellSize;
+
 sampler2D SpriteTextureSampler = sampler_state
 {
     Texture = <SpriteTexture>;
@@ -32,13 +35,11 @@ struct VertexShaderInput
 {
 	float4 Position : POSITION0;
 	float2 TexCoord : TEXCOORD0;
-    
-    float4 WorldRow1 : TEXCOORD1;
-    float4 WorldRow2 : TEXCOORD2;
-    float4 WorldRow3 : TEXCOORD3;
-    float4 WorldRow4 : TEXCOORD4;
-    float4 TexRect : TEXCOORD5;
-    float2 TileSize : TEXCOORD6;
+
+    float2 WorldPos : TEXCOORD1;
+    float4 TexRect : TEXCOORD2;
+    float IsStanding : TEXCOORD3;
+    float IsGlowing : TEXCOORD4;
 };
 
 struct VertexShaderOutput
@@ -46,21 +47,47 @@ struct VertexShaderOutput
     float4 Position : SV_POSITION;
     float2 TexCoord : TEXCOORD0;
     float2 WorldPos : TEXCOORD1;
+    float IsGlowing : TEXCOORD2;
 };
 
 VertexShaderOutput MainVS(in VertexShaderInput input)
 {
 	VertexShaderOutput output = (VertexShaderOutput)0;
+
+    float c = cos(20.0 * 3.1415 / 180.0);
+    float s = sin(20.0 * 3.1415 / 180.0);
     
-    float4x4 world = float4x4(input.WorldRow1, input.WorldRow2, input.WorldRow3, input.WorldRow4);
-    
-    float obj_width = input.TileSize.x;
-    float obj_height = input.TileSize.y;
-    
-    float tex_x = input.TexRect.x;
-    float tex_y = input.TexRect.y;
-    float tex_width = input.TexRect.z;
-    float tex_height = input.TexRect.w;
+    float4x4 rotation = float4x4(
+        1.0, 0.0, 0.0, 0.0,
+        0.0,   c,   s, 0.0,
+        0.0,  -s,   c, 0.0,
+        0.0, 0.0, 0.0, 1.0
+    );
+
+    float4x4 translation = float4x4(
+        1.0, 0.0, 0.0, 0.0,
+        0.0, 1.0, 0.0, 0.0,
+        0.0, 0.0, 1.0, 0.0,
+        input.WorldPos.x, input.WorldPos.y, 0.0, 1.0
+    );
+
+    float4x4 world;
+    if (IsShadow || !input.IsStanding)
+    {
+        world = translation;
+    }
+    else
+    {
+        world = mul(rotation, translation);
+    }
+
+    float tex_x = input.TexRect.x / ObjectTextureSize.x;
+    float tex_y = input.TexRect.y / ObjectTextureSize.y;
+    float tex_width = input.TexRect.z / ObjectTextureSize.x;
+    float tex_height = input.TexRect.w / ObjectTextureSize.y;
+
+    float obj_width = input.TexRect.z / CellSize;
+    float obj_height = input.TexRect.w / CellSize;
     
     float4 adjustedPos = float4(input.Position.x * obj_width, input.Position.y * obj_height, input.Position.z, input.Position.w);
     float2 adjustedTexCoord = float2(tex_x + input.TexCoord.x * tex_width, tex_y + input.TexCoord.y * tex_height);
@@ -80,6 +107,7 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
 
     output.TexCoord = adjustedTexCoord;
     output.WorldPos = mul(adjustedPos, world).xy;
+    output.IsGlowing = input.IsGlowing;
 
 	return output;
 }
@@ -110,6 +138,10 @@ float4 MainPS(VertexShaderOutput input) : COLOR
     if (IsShadow)
     {
         return float4(0.0, 0.0, 0.0, 0.5 * color.a * ShadowStrength);
+    }
+    else if (input.IsGlowing)
+    {
+        return float4(color.rgb * 1.5, color.a);
     }
     else
     {
