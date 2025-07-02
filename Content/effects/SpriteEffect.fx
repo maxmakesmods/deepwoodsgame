@@ -21,9 +21,22 @@ float ShadowStrength;
 float2 ObjectTextureSize;
 float CellSize;
 
+float4 ShadowMapBounds;
+float2 ShadowMapTileSize;
+
 sampler2D SpriteTextureSampler = sampler_state
 {
     Texture = <SpriteTexture>;
+    MinFilter = POINT;
+    MagFilter = POINT;
+    MipFilter = POINT;
+    AddressU = CLAMP;
+    AddressV = CLAMP;
+};
+
+sampler2D ShadowMapSampler = sampler_state
+{
+    Texture = <ShadowMap>;
     MinFilter = POINT;
     MagFilter = POINT;
     MipFilter = POINT;
@@ -132,12 +145,33 @@ float3 applyLights(float2 pos, float3 color)
     return color * light;
 }
 
+float3 applyShadows(float2 pos, float3 color)
+{
+    /*
+    if (pos.x < ShadowMapBounds.x || pos.x > ShadowMapBounds.z
+        || pos.y < ShadowMapBounds.y || pos.y > ShadowMapBounds.y)
+    {
+        //return color;
+        return color * 0.0001 + float3(0.0, 0.0, 1.0);
+    }
+    */
+
+    float shadow = tex2D(ShadowMapSampler, 1.0 - (pos - ShadowMapBounds.xy) / ShadowMapTileSize).r;
+    if (shadow)
+        return color * 0.0001 + float3(0.5, 0.5, 0.0);
+
+    //return color * (1.0 - (shadow * 0.5 * ShadowStrength));
+    
+    return color * 0.0001 + float3(0.0, 0.5, 0.0);
+}
+
 float4 MainPS(VertexShaderOutput input) : COLOR
 {
     float4 color = tex2D(SpriteTextureSampler, input.TexCoord);
+    clip(-step(color.a, 0.9));
     if (IsShadow)
     {
-        return float4(0.0, 0.0, 0.0, 0.5 * color.a * ShadowStrength);
+        return float4(1.0, 1.0, 1.0, step(0.9, color.a));
     }
     else if (input.IsGlowing)
     {
@@ -145,7 +179,7 @@ float4 MainPS(VertexShaderOutput input) : COLOR
     }
     else
     {
-        return float4(applyLights(input.WorldPos, color.rgb), color.a);
+        return float4(applyShadows(input.WorldPos, applyLights(input.WorldPos, color.rgb)), color.a);
     }
 }
 

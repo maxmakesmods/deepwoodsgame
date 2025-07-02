@@ -229,8 +229,32 @@
     "standing": true
   },
   {
-    "name": "tree",
-    "x": 96,
+    "name": "tree1",
+    "x": 128,
+    "y": 96,
+    "width": 32,
+    "height": 64,
+    "standing": true
+  },
+  {
+    "name": "tree2",
+    "x": 160,
+    "y": 96,
+    "width": 32,
+    "height": 64,
+    "standing": true
+  },
+  {
+    "name": "tree3",
+    "x": 192,
+    "y": 96,
+    "width": 32,
+    "height": 64,
+    "standing": true
+  },
+  {
+    "name": "tree4",
+    "x": 224,
     "y": 96,
     "width": 32,
     "height": 64,
@@ -246,8 +270,8 @@
   },
   {
     "name": "whitecrystal",
-    "x": 128,
-    "y": 96,
+    "x": 32,
+    "y": 160,
     "width": 32,
     "height": 32,
     "standing": true,
@@ -255,8 +279,8 @@
   },
   {
     "name": "wizardhat",
-    "x": 160,
-    "y": 96,
+    "x": 64,
+    "y": 160,
     "width": 32,
     "height": 32,
     "standing": true,
@@ -264,8 +288,8 @@
   },
   {
     "name": "woodpile",
-    "x": 192,
-    "y": 96,
+    "x": 96,
+    "y": 160,
     "width": 32,
     "height": 32,
     "standing": true,
@@ -273,8 +297,8 @@
   },
   {
     "name": "yellowcrystal",
-    "x": 224,
-    "y": 96,
+    "x": 128,
+    "y": 160,
     "width": 32,
     "height": 32,
     "standing": true,

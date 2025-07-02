@@ -67,10 +67,10 @@ namespace DeepWoods.World
 
             float shadowSkew = (float)(dayTimeDelta * 2.0 - 1.0);
 
-            float shadowStrength = (float)(1.0 - Math.Abs(dayTimeDelta * 2.0 - 1.0));
+            float shadowStrength = 1.0f;// (float)(1.0 - Math.Abs(dayTimeDelta * 2.0 - 1.0));
 
             EffectLoader.SpriteEffect.Parameters["ShadowSkew"].SetValue(shadowSkew);
-            EffectLoader.SpriteEffect.Parameters["ShadowStrength"].SetValue(shadowStrength);
+            //EffectLoader.SpriteEffect.Parameters["ShadowStrength"].SetValue(shadowStrength);
 
             MoveLightsForFun(deltaTime);
         }

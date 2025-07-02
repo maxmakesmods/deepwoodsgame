@@ -69,7 +69,7 @@ namespace DeepWoods.Game
 
             clock = new InGameClock();
             clock.TimeScale = 0;
-            clock.SetTime(1, 17, 0);
+            clock.SetTime(1, 6, 0);
 
 
             camera = new Camera(GraphicsDevice);
@@ -113,16 +113,14 @@ namespace DeepWoods.Game
         {
             float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-            GraphicsDevice.Clear(Color.CornflowerBlue);
-
             lightManager.Update(clock.DayDelta, deltaTime);
             lightManager.Apply();
 
-            Matrix view = camera.View;
-            Matrix projection = camera.Projection;
+            objectManager.DrawShadowMap(GraphicsDevice, camera);
 
-            terrain.Draw(GraphicsDevice, view, projection);
-            objectManager.Draw(GraphicsDevice, view, projection);
+            GraphicsDevice.Clear(Color.CornflowerBlue);
+            terrain.Draw(GraphicsDevice, camera);
+            objectManager.Draw(GraphicsDevice, camera);
 
             string debugstring = $"Seed: {terrain.seed}," +
                 $" Time: {clock.Day}:{clock.Hour}:{clock.Minute},";
@@ -152,6 +150,8 @@ namespace DeepWoods.Game
 
             textHelper.DrawStringOnScreen(spriteBatch, debugstring);
 
+
+            spriteBatch.Draw(objectManager.shadowMap, new Rectangle(0, 0, 512, 512), Color.White);
 
             spriteBatch.End();
 

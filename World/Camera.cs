@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using DeepWoods.Helpers;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
@@ -18,8 +19,13 @@ namespace DeepWoods.World
         private int lastMouseWheel = 0;
         private readonly GraphicsDevice graphicsDevice;
 
+        public Rectangle ShadowRectangle { get; private set; }
+
         public Matrix View => Matrix.Invert(Matrix.CreateRotationX(MathHelper.ToRadians(angle)) * Matrix.CreateTranslation(position));
         public Matrix Projection => Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(fov), graphicsDevice.Viewport.AspectRatio, NearPlane, FarPlane);
+
+        public Matrix ShadowView => Matrix.Invert(Matrix.CreateTranslation(ShadowRectangle.CenterV3(10f)));
+        public Matrix ShadowProjection => Matrix.CreateOrthographic(ShadowRectangle.Width, ShadowRectangle.Height, NearPlane, FarPlane);
 
         public Camera(GraphicsDevice graphicsDevice)
         {
@@ -54,6 +60,16 @@ namespace DeepWoods.World
             {
                 position.Z = 1;
             }
+
+            RecalculateShadowRectangle();
+        }
+
+        private void RecalculateShadowRectangle()
+        {
+            Point topleft = GetTileAtScreenPos(new Point(0, 0));
+            Point topright = GetTileAtScreenPos(new Point(graphicsDevice.Viewport.Width, 0));
+            Point bottomleft = GetTileAtScreenPos(new Point(0, graphicsDevice.Viewport.Height));
+            ShadowRectangle = new Rectangle(topleft.X, bottomleft.Y, topright.X - topleft.X, topleft.Y - bottomleft.Y);
         }
 
         public Point GetTileAtScreenPos(Point screenPos)

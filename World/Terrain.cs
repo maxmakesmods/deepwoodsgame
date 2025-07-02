@@ -33,7 +33,7 @@ namespace DeepWoods.World
 
         public enum GroundType
         {
-            Grass, Sand, Mud, Gravel
+            Grass, Sand, Mud, Gravel, ForestFloor
         }
 
         private class PatchCenter
@@ -51,7 +51,8 @@ namespace DeepWoods.World
             this.height = height;
 
 
-            Generator generator = new LabyrinthGenerator(width, height, rng.Next());
+            //Generator generator = new LabyrinthGenerator(width, height, rng.Next());
+            Generator generator = new ForestGenerator(width, height, rng.Next());
             tiles = generator.Generate();
 
             terrainGrid = GenerateTerrain(width, height, numPatches);
@@ -78,9 +79,13 @@ namespace DeepWoods.World
             {
                 for (int y = 0; y < height; y++)
                 {
-                    if (!tiles[x, y].isOpen)
+                    if (tiles[x, y].isOpen)
                     {
                         terrainGrid[x, y] = GroundType.Grass;
+                    }
+                    else
+                    {
+                        terrainGrid[x, y] = GroundType.ForestFloor;
                     }
                 }
             }
@@ -167,8 +172,11 @@ namespace DeepWoods.World
             return drawingQuad;
         }
 
-        public void Draw(GraphicsDevice graphicsDevice, Matrix view, Matrix projection)
+        public void Draw(GraphicsDevice graphicsDevice, Camera camera)
         {
+            Matrix view = camera.View;
+            Matrix projection = camera.Projection;
+
             EffectLoader.GroundEffect.Parameters["WorldViewProjection"].SetValue(view * projection);
             foreach (EffectPass pass in EffectLoader.GroundEffect.CurrentTechnique.Passes)
             {

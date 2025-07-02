@@ -1,8 +1,10 @@
-﻿using DeepWoods.Loaders;
+﻿using DeepWoods.Helpers;
+using DeepWoods.Loaders;
 using DeepWoods.World;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using MonoGame.Extended;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,6 +23,8 @@ namespace DeepWoods.Objects
         private VertexBuffer vertexBuffer;
         private IndexBuffer indexBuffer;
         private DynamicVertexBuffer instanceBuffer;
+
+        public RenderTarget2D shadowMap;
 
         private struct InstanceData : IVertexType
         {
@@ -41,6 +45,13 @@ namespace DeepWoods.Objects
 
         public ObjectManager(ContentManager content, GraphicsDevice graphicsDevice, int seed, int width, int height, Terrain terrain)
         {
+            shadowMap = new RenderTarget2D(graphicsDevice,
+                1024, 1024,
+                false,
+                SurfaceFormat.Color,
+                DepthFormat.None,
+                0, RenderTargetUsage.DiscardContents, false);
+
             rng = new Random(seed);
             objectTypes = content.Load<List<DWObject>>("objects/objects");
             sprites = new List<Sprite>();
@@ -79,13 +90,13 @@ namespace DeepWoods.Objects
                     {
                         if (rng.NextSingle() < 0.2f)
                         {
-                            var dwobj = objectTypes.Where(o => o.name != "tree").OrderBy(_ => rng.Next()).FirstOrDefault();
+                            var dwobj = objectTypes.Where(o => !o.name.StartsWith("tree")).OrderBy(_ => rng.Next()).FirstOrDefault();
                             sprites.Add(new Sprite(new Vector2(x, y), new Rectangle(dwobj.x, dwobj.y, dwobj.width, dwobj.height), dwobj.standing, dwobj.glowing));
                         }
                     }
                     else
                     {
-                        var dwobj = objectTypes.Where(o => o.name == "tree").FirstOrDefault();
+                        var dwobj = objectTypes.Where(o => o.name.StartsWith("tree")).OrderBy(_ => rng.Next()).FirstOrDefault();
                         sprites.Add(new Sprite(new Vector2(x, y), new Rectangle(dwobj.x, dwobj.y, dwobj.width, dwobj.height), dwobj.standing, dwobj.glowing));
                     }
                 }
@@ -109,8 +120,14 @@ namespace DeepWoods.Objects
         }
 
 
-        internal void Draw(GraphicsDevice graphicsDevice, Matrix view, Matrix projection)
+        internal void DrawShadowMap(GraphicsDevice graphicsDevice, Camera camera)
         {
+            Matrix view = camera.ShadowView;
+            Matrix projection = camera.ShadowProjection;
+
+            graphicsDevice.SetRenderTarget(shadowMap);
+            graphicsDevice.Clear(Color.Black);
+
             var spriteEffect = EffectLoader.SpriteEffect;
 
             graphicsDevice.SetVertexBuffers(
@@ -130,12 +147,38 @@ namespace DeepWoods.Objects
                 graphicsDevice.DrawInstancedPrimitives(PrimitiveType.TriangleList, 0, 0, 2, sprites.Count);
             }
 
+            graphicsDevice.SetRenderTarget(null);
+        }
+
+
+        internal void Draw(GraphicsDevice graphicsDevice, Camera camera)
+        {
+            Matrix view = camera.View;
+            Matrix projection = camera.Projection;
+
+            var spriteEffect = EffectLoader.SpriteEffect;
+
+            graphicsDevice.SetVertexBuffers(
+                new VertexBufferBinding(vertexBuffer, 0, 0),
+                new VertexBufferBinding(instanceBuffer, 0, 1));
+            graphicsDevice.Indices = indexBuffer;
+
+            spriteEffect.Parameters["ObjectTextureSize"].SetValue(new Vector2(TextureLoader.ObjectsTexture.Width, TextureLoader.ObjectsTexture.Height));
+            spriteEffect.Parameters["CellSize"].SetValue(Terrain.CellSize);
+            spriteEffect.Parameters["ViewProjection"].SetValue(view * projection);
+            spriteEffect.Parameters["SpriteTexture"].SetValue(TextureLoader.ObjectsTexture);
             spriteEffect.Parameters["IsShadow"].SetValue(0);
+            spriteEffect.Parameters["ShadowMap"].SetValue(shadowMap);
+            spriteEffect.Parameters["ShadowMapBounds"].SetValue(camera.ShadowRectangle.GetBoundsV4());
+            spriteEffect.Parameters["ShadowMapTileSize"].SetValue(camera.ShadowRectangle.GetSizeV2());
+
             foreach (EffectPass pass in spriteEffect.CurrentTechnique.Passes)
             {
                 pass.Apply();
                 graphicsDevice.DrawInstancedPrimitives(PrimitiveType.TriangleList, 0, 0, 2, sprites.Count);
             }
+
+
         }
     }
 }
