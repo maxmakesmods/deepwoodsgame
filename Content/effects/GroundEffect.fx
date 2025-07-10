@@ -29,6 +29,10 @@ float4 Lights[8];
 float2 LightPositions[8];
 int NumLights;
 
+float4 ShadowMapBounds;
+float2 ShadowMapTileSize;
+float ShadowStrength;
+
 sampler2D GroundTilesTextureSampler = sampler_state
 {
     Texture = <GroundTilesTexture>;
@@ -57,6 +61,16 @@ sampler2D BlueNoiseTextureSampler = sampler_state
     MipFilter = POINT;
     AddressU = WRAP;
     AddressV = WRAP;
+};
+
+sampler2D ShadowMapSampler = sampler_state
+{
+    Texture = <ShadowMap>;
+    MinFilter = POINT;
+    MagFilter = POINT;
+    MipFilter = POINT;
+    AddressU = CLAMP;
+    AddressV = CLAMP;
 };
 
 struct VertexShaderInput
@@ -101,8 +115,8 @@ int getGroundType(float2 uv)
     float bluenoise1 = getRandomFromBlueNoise(uv / CellSize, BlueNoiseSineXOffset, BlueNoiseSineXChannel);
     float bluenoise2 = getRandomFromBlueNoise(uv / CellSize, BlueNoiseSineYOffset, BlueNoiseSineYChannel);
 
-    float wavy_x = uv.x + (sin(uv.y * GridSize * 3.1415) / GridSize) * 0.25 * bluenoise1;
-    float wavy_y = uv.y + (sin(uv.x * GridSize * 3.1415) / GridSize) * 0.25 * bluenoise2;
+    float wavy_x = uv.x + (sin(uv.y * GridSize.x * 3.1415) / GridSize.x) * 0.25 * bluenoise1;
+    float wavy_y = uv.y + (sin(uv.x * GridSize.y * 3.1415) / GridSize.y) * 0.25 * bluenoise2;
 
     int gridX = int(wavy_x * GridSize.x);
     int gridY = int(wavy_y * GridSize.y);
@@ -151,6 +165,20 @@ float3 applyLights(float2 pos, float3 color)
     return color * light;
 }
 
+float3 applyShadows(float2 pos, float3 color)
+{
+    if (pos.x < ShadowMapBounds.x || pos.x > ShadowMapBounds.z
+        || pos.y < ShadowMapBounds.y || pos.y > ShadowMapBounds.w)
+    {
+        return color;
+    }
+
+    float2 shadowMapUV = (pos - ShadowMapBounds.xy) / ShadowMapTileSize;
+    float shadow = tex2D(ShadowMapSampler, float2(shadowMapUV.x, 1.0 - shadowMapUV.y)).r;
+
+    return color * (1.0 - shadow * ShadowStrength);
+}
+
 float4 MainPS(VertexShaderOutput input) : COLOR
 {
     float2 gridTexelSize = 1.0 / (GridSize * CellSize);
@@ -165,8 +193,10 @@ float4 MainPS(VertexShaderOutput input) : COLOR
 
     int groundType = getGroundType(input.Tex + float2(pixelX - BlurHalfSize, pixelY - BlurHalfSize) * gridTexelSize);
     float3 color = getGroundTypeColor(input.Tex, groundType);
-    
-    return float4(applyLights(input.WorldPos, color), 1.0);
+
+    float3 litColor = applyLights(input.WorldPos, color);
+    float3 shadowedLitColor = applyShadows(input.WorldPos, litColor);
+    return float4(shadowedLitColor, 1.0);
 }
 
 technique BasicColorDrawing

@@ -149,7 +149,7 @@ float3 applyShadows(float2 pos, float3 color)
 {
     /*
     if (pos.x < ShadowMapBounds.x || pos.x > ShadowMapBounds.z
-        || pos.y < ShadowMapBounds.y || pos.y > ShadowMapBounds.y)
+        || pos.y < ShadowMapBounds.y || pos.y > ShadowMapBounds.w)
     {
         //return color;
         return color * 0.0001 + float3(0.0, 0.0, 1.0);
@@ -157,12 +157,14 @@ float3 applyShadows(float2 pos, float3 color)
     */
 
     float shadow = tex2D(ShadowMapSampler, 1.0 - (pos - ShadowMapBounds.xy) / ShadowMapTileSize).r;
-    if (shadow)
-        return color * 0.0001 + float3(0.5, 0.5, 0.0);
+    //if (shadow)
+    //    return color * 0.0001 + float3(0.5, 0.5, 0.0);
 
     //return color * (1.0 - (shadow * 0.5 * ShadowStrength));
     
-    return color * 0.0001 + float3(0.0, 0.5, 0.0);
+    //return color * 0.0001 + float3(0.0, 0.5, 0.0);
+
+    return color + shadow * 0.0001;
 }
 
 float4 MainPS(VertexShaderOutput input) : COLOR
@@ -179,7 +181,9 @@ float4 MainPS(VertexShaderOutput input) : COLOR
     }
     else
     {
-        return float4(applyShadows(input.WorldPos, applyLights(input.WorldPos, color.rgb)), color.a);
+        float3 litColor = applyLights(input.WorldPos, color.rgb);
+        float3 shadowedLitColor = applyShadows(input.WorldPos, litColor);
+        return float4(shadowedLitColor, color.a);
     }
 }
 

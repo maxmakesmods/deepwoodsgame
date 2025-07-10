@@ -24,8 +24,6 @@ namespace DeepWoods.Objects
         private IndexBuffer indexBuffer;
         private DynamicVertexBuffer instanceBuffer;
 
-        public RenderTarget2D shadowMap;
-
         private struct InstanceData : IVertexType
         {
             public Vector2 WorldPos;
@@ -45,13 +43,6 @@ namespace DeepWoods.Objects
 
         public ObjectManager(ContentManager content, GraphicsDevice graphicsDevice, int seed, int width, int height, Terrain terrain)
         {
-            shadowMap = new RenderTarget2D(graphicsDevice,
-                1024, 1024,
-                false,
-                SurfaceFormat.Color,
-                DepthFormat.None,
-                0, RenderTargetUsage.DiscardContents, false);
-
             rng = new Random(seed);
             objectTypes = content.Load<List<DWObject>>("objects/objects");
             sprites = new List<Sprite>();
@@ -125,7 +116,7 @@ namespace DeepWoods.Objects
             Matrix view = camera.ShadowView;
             Matrix projection = camera.ShadowProjection;
 
-            graphicsDevice.SetRenderTarget(shadowMap);
+            graphicsDevice.SetRenderTarget(TextureLoader.ShadowMap);
             graphicsDevice.Clear(Color.Black);
 
             var spriteEffect = EffectLoader.SpriteEffect;
@@ -168,7 +159,8 @@ namespace DeepWoods.Objects
             spriteEffect.Parameters["ViewProjection"].SetValue(view * projection);
             spriteEffect.Parameters["SpriteTexture"].SetValue(TextureLoader.ObjectsTexture);
             spriteEffect.Parameters["IsShadow"].SetValue(0);
-            spriteEffect.Parameters["ShadowMap"].SetValue(shadowMap);
+
+            spriteEffect.Parameters["ShadowMap"].SetValue(TextureLoader.ShadowMap);
             spriteEffect.Parameters["ShadowMapBounds"].SetValue(camera.ShadowRectangle.GetBoundsV4());
             spriteEffect.Parameters["ShadowMapTileSize"].SetValue(camera.ShadowRectangle.GetSizeV2());
 

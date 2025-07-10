@@ -7,7 +7,7 @@ namespace DeepWoods.Helpers
     {
         public static Vector3 CenterV3(this Rectangle rect, float z = 0f)
         {
-            return new Vector3(rect.X + rect.Width / 2, rect.Y + rect.Height / 2, z);
+            return new Vector3(rect.X + rect.Width / 2f, rect.Y + rect.Height / 2f, z);
         }
 
         public static Vector4 GetBoundsV4(this Rectangle rect)

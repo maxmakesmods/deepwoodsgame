@@ -9,7 +9,7 @@ namespace DeepWoods.World
     internal class Camera
     {
         private static readonly float NearPlane = 1f;
-        private static readonly float FarPlane = 1000f;
+        private static readonly float FarPlane = 10000f;
 
         public Vector3 position;
         private float angle = 20f;
@@ -66,10 +66,17 @@ namespace DeepWoods.World
 
         private void RecalculateShadowRectangle()
         {
+            int margin = 2;
+
             Point topleft = GetTileAtScreenPos(new Point(0, 0));
             Point topright = GetTileAtScreenPos(new Point(graphicsDevice.Viewport.Width, 0));
             Point bottomleft = GetTileAtScreenPos(new Point(0, graphicsDevice.Viewport.Height));
-            ShadowRectangle = new Rectangle(topleft.X, bottomleft.Y, topright.X - topleft.X, topleft.Y - bottomleft.Y);
+
+            ShadowRectangle = new Rectangle(
+                topleft.X - margin,
+                bottomleft.Y - margin,
+                topright.X - topleft.X + margin * 2,
+                topleft.Y - bottomleft.Y + margin * 2);
         }
 
         public Point GetTileAtScreenPos(Point screenPos)

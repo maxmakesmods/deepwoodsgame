@@ -1,4 +1,5 @@
-﻿using DeepWoods.Loaders;
+﻿using DeepWoods.Helpers;
+using DeepWoods.Loaders;
 using DeepWoods.World.Generators;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -176,6 +177,10 @@ namespace DeepWoods.World
         {
             Matrix view = camera.View;
             Matrix projection = camera.Projection;
+
+            EffectLoader.GroundEffect.Parameters["ShadowMap"].SetValue(TextureLoader.ShadowMap);
+            EffectLoader.GroundEffect.Parameters["ShadowMapBounds"].SetValue(camera.ShadowRectangle.GetBoundsV4());
+            EffectLoader.GroundEffect.Parameters["ShadowMapTileSize"].SetValue(camera.ShadowRectangle.GetSizeV2());
 
             EffectLoader.GroundEffect.Parameters["WorldViewProjection"].SetValue(view * projection);
             foreach (EffectPass pass in EffectLoader.GroundEffect.CurrentTechnique.Passes)

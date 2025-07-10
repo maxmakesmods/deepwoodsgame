@@ -11,12 +11,22 @@ namespace DeepWoods.Loaders
         public static Texture2D ObjectsTexture { get; private set; }
         public static Texture2D MouseCursor { get; private set; }
 
-        public static void Load(ContentManager content)
+        public static RenderTarget2D ShadowMap { get; private set; }
+
+        public static void Load(ContentManager content, GraphicsDevice graphicsDevice)
         {
             GroundTilesTexture = content.Load<Texture2D>("textures/groundtiles");
             BluenoiseTexture = content.Load<Texture2D>("textures/bluenoise_rgba");
             ObjectsTexture = content.Load<Texture2D>("objects/objects_tileset");
             MouseCursor = content.Load<Texture2D>("icons/cursor");
+
+            ShadowMap = new RenderTarget2D(graphicsDevice,
+                1024, 1024,
+                false,
+                SurfaceFormat.Color,
+                DepthFormat.None,
+                0, RenderTargetUsage.DiscardContents, false);
+
         }
     }
 }

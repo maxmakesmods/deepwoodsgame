@@ -20,6 +20,8 @@ namespace DeepWoods.World
         private static readonly Vector3 AMBIENT_NIGHT = new(0.3f, 0.3f, 0.4f);
         private static readonly Vector3 AMBIENT_DUSK = new(0.5f, 0.4f, 0.4f);
 
+        private static readonly float MaxShadowStrength = 0.5f;
+
         Vector3 ambientLightColor = AMBIENT_DAY;
 
         public LightManager(int seed, int width, int height)
@@ -67,10 +69,12 @@ namespace DeepWoods.World
 
             float shadowSkew = (float)(dayTimeDelta * 2.0 - 1.0);
 
-            float shadowStrength = 1.0f;// (float)(1.0 - Math.Abs(dayTimeDelta * 2.0 - 1.0));
+            float shadowStrength = MaxShadowStrength * (float)(1.0 - Math.Abs(dayTimeDelta * 2.0 - 1.0));
 
             EffectLoader.SpriteEffect.Parameters["ShadowSkew"].SetValue(shadowSkew);
             //EffectLoader.SpriteEffect.Parameters["ShadowStrength"].SetValue(shadowStrength);
+
+            EffectLoader.GroundEffect.Parameters["ShadowStrength"].SetValue(shadowStrength);
 
             MoveLightsForFun(deltaTime);
         }

@@ -59,7 +59,7 @@ namespace DeepWoods.Game
         protected override void LoadContent()
         {
             EffectLoader.Load(Content);
-            TextureLoader.Load(Content);
+            TextureLoader.Load(Content, GraphicsDevice);
 
 
             spriteBatch = new SpriteBatch(GraphicsDevice);
@@ -68,7 +68,7 @@ namespace DeepWoods.Game
 
 
             clock = new InGameClock();
-            clock.TimeScale = 0;
+            clock.TimeScale = 120;
             clock.SetTime(1, 6, 0);
 
 
@@ -128,6 +128,11 @@ namespace DeepWoods.Game
 
             spriteBatch.Begin();
 
+
+            spriteBatch.Draw(TextureLoader.ShadowMap, new Rectangle(32, 128, 256, 256), Color.White);
+
+
+
             List<Color> colors = [
                 Color.Pink,
                 Color.AliceBlue
@@ -146,12 +151,12 @@ namespace DeepWoods.Game
                 i++;
             }
 
-            debugstring += $" FPS: {fps.FPS}, ms/f: {fps.SPF}";
+            debugstring += $" FPS: {fps.FPS}, ms/f: {fps.SPF}\nShadowRect: {camera.ShadowRectangle}";
+
+           
 
             textHelper.DrawStringOnScreen(spriteBatch, debugstring);
 
-
-            spriteBatch.Draw(objectManager.shadowMap, new Rectangle(0, 0, 512, 512), Color.White);
 
             spriteBatch.End();
 
