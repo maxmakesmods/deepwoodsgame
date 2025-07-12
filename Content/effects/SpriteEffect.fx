@@ -61,6 +61,7 @@ struct VertexShaderOutput
     float2 TexCoord : TEXCOORD0;
     float2 WorldPos : TEXCOORD1;
     float IsGlowing : TEXCOORD2;
+    float RowIndex : TEXCOORD3;
 };
 
 VertexShaderOutput MainVS(in VertexShaderInput input)
@@ -109,8 +110,8 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
     
     if (IsShadow)
     {
-        float x = adjustedPos.x + ShadowSkew * adjustedPos.y;
         float y = adjustedPos.y * 1.25;
+        float x = adjustedPos.x + ShadowSkew * y;
         output.Position = mul(float4(x, y, adjustedPos.z, adjustedPos.w), worldViewProjection);
     }
     else
@@ -121,6 +122,7 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
     output.TexCoord = adjustedTexCoord;
     output.WorldPos = mul(adjustedPos, world).xy;
     output.IsGlowing = input.IsGlowing;
+    output.RowIndex = input.WorldPos.y;
 
 	return output;
 }
@@ -145,35 +147,41 @@ float3 applyLights(float2 pos, float3 color)
     return color * light;
 }
 
-float3 applyShadows(float2 pos, float3 color)
+float3 applyShadows(float2 pos, float rowIndex, float3 color)
 {
-    /*
+    pos.x = pos.x + ShadowSkew * (pos.y - rowIndex);
+
     if (pos.x < ShadowMapBounds.x || pos.x > ShadowMapBounds.z
         || pos.y < ShadowMapBounds.y || pos.y > ShadowMapBounds.w)
     {
-        //return color;
-        return color * 0.0001 + float3(0.0, 0.0, 1.0);
+        return color;
     }
-    */
 
-    float shadow = tex2D(ShadowMapSampler, 1.0 - (pos - ShadowMapBounds.xy) / ShadowMapTileSize).r;
-    //if (shadow)
-    //    return color * 0.0001 + float3(0.5, 0.5, 0.0);
+    float2 shadowMapUV = (pos - ShadowMapBounds.xy) / ShadowMapTileSize;
+    float shadow = tex2D(ShadowMapSampler, float2(shadowMapUV.x, 1.0 - shadowMapUV.y)).r;
 
-    //return color * (1.0 - (shadow * 0.5 * ShadowStrength));
+    if (!shadow)
+    {
+        return color;
+    }
     
-    //return color * 0.0001 + float3(0.0, 0.5, 0.0);
+    float shadowRowIndex = shadow - 1.0;
+    if (rowIndex < shadowRowIndex + 0.5)
+    {
+        return color;
+    }
 
-    return color + shadow * 0.0001;
+    return color * (1.0 - ShadowStrength);
 }
 
 float4 MainPS(VertexShaderOutput input) : COLOR
 {
     float4 color = tex2D(SpriteTextureSampler, input.TexCoord);
-    clip(-step(color.a, 0.9));
+    clip(-step(color.a, 0.1));
     if (IsShadow)
     {
-        return float4(1.0, 1.0, 1.0, step(0.9, color.a));
+        clip(-step(color.a, 0.9));
+        return float4(input.RowIndex + 1.0, 0.0, 0.0, 1.0);
     }
     else if (input.IsGlowing)
     {
@@ -182,7 +190,7 @@ float4 MainPS(VertexShaderOutput input) : COLOR
     else
     {
         float3 litColor = applyLights(input.WorldPos, color.rgb);
-        float3 shadowedLitColor = applyShadows(input.WorldPos, litColor);
+        float3 shadowedLitColor = applyShadows(input.WorldPos, input.RowIndex, litColor);
         return float4(shadowedLitColor, color.a);
     }
 }

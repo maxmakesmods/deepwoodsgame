@@ -1,4 +1,5 @@
 ﻿using DeepWoods.Game;
+using DeepWoods.Players;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -124,6 +125,27 @@ namespace DeepWoods.UI
 
 
         public static Dictionary<IntPtr, Point> mousePositions = new();
+
+        private struct DevicePointers
+        {
+            public IntPtr keyboard;
+            public IntPtr mouse;
+        }
+
+        private static Dictionary<Player, DevicePointers> playerDeviceMappings = new();
+
+
+        /*
+        public KeyboardState GetState(Player player)
+        {
+            if (!playerDeviceMappings.TryGetValue(player, out var devicePointers))
+            {
+                playerDeviceMappings.Add(player, devicePointers = new DevicePointers());
+            }
+
+            return 
+        }
+        */
 
 
         public static Point AddMousePos(Point prevPos, int x, int y)

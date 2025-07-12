@@ -72,8 +72,7 @@ namespace DeepWoods.World
             float shadowStrength = MaxShadowStrength * (float)(1.0 - Math.Abs(dayTimeDelta * 2.0 - 1.0));
 
             EffectLoader.SpriteEffect.Parameters["ShadowSkew"].SetValue(shadowSkew);
-            //EffectLoader.SpriteEffect.Parameters["ShadowStrength"].SetValue(shadowStrength);
-
+            EffectLoader.SpriteEffect.Parameters["ShadowStrength"].SetValue(shadowStrength);
             EffectLoader.GroundEffect.Parameters["ShadowStrength"].SetValue(shadowStrength);
 
             MoveLightsForFun(deltaTime);

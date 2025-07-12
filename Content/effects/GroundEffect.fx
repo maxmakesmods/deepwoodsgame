@@ -176,7 +176,12 @@ float3 applyShadows(float2 pos, float3 color)
     float2 shadowMapUV = (pos - ShadowMapBounds.xy) / ShadowMapTileSize;
     float shadow = tex2D(ShadowMapSampler, float2(shadowMapUV.x, 1.0 - shadowMapUV.y)).r;
 
-    return color * (1.0 - shadow * ShadowStrength);
+    if (!shadow)
+    {
+        return color;
+    }
+
+    return color * (1.0 - ShadowStrength);
 }
 
 float4 MainPS(VertexShaderOutput input) : COLOR

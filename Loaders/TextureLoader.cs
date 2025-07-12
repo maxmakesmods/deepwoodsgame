@@ -23,7 +23,7 @@ namespace DeepWoods.Loaders
             ShadowMap = new RenderTarget2D(graphicsDevice,
                 1024, 1024,
                 false,
-                SurfaceFormat.Color,
+                SurfaceFormat.Single,
                 DepthFormat.None,
                 0, RenderTargetUsage.DiscardContents, false);
 

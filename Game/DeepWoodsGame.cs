@@ -1,5 +1,6 @@
 ﻿using DeepWoods.Loaders;
 using DeepWoods.Objects;
+using DeepWoods.Players;
 using DeepWoods.UI;
 using DeepWoods.World;
 using Microsoft.Xna.Framework;
@@ -17,7 +18,7 @@ namespace DeepWoods.Game
         private int gridSize = 32;
         private int numPatches = 10;
 
-        private Camera camera;
+        private Player player;
         private Terrain terrain;
         private LightManager lightManager;
         private ObjectManager objectManager;
@@ -69,11 +70,11 @@ namespace DeepWoods.Game
 
             clock = new InGameClock();
             clock.TimeScale = 120;
-            clock.SetTime(1, 6, 0);
+            clock.SetTime(1, 12, 0);
 
 
-            camera = new Camera(GraphicsDevice);
-            camera.position = new Vector3(gridSize / 2, 0, gridSize / 2);
+            player = new Player(GraphicsDevice);
+            player.position = new Vector2(gridSize / 2, gridSize / 2);
 
 
             Random rng = new Random();
@@ -104,7 +105,7 @@ namespace DeepWoods.Game
             double deltaTime = gameTime.ElapsedGameTime.TotalSeconds;
 
             fps.CountFrame(deltaTime);
-            camera.Update((float)deltaTime);
+            player.Update(terrain, (float)deltaTime);
             clock.Update(deltaTime);
             base.Update(gameTime);
         }
@@ -116,11 +117,11 @@ namespace DeepWoods.Game
             lightManager.Update(clock.DayDelta, deltaTime);
             lightManager.Apply();
 
-            objectManager.DrawShadowMap(GraphicsDevice, camera);
+            objectManager.DrawShadowMap(GraphicsDevice, player.camera);
 
             GraphicsDevice.Clear(Color.CornflowerBlue);
-            terrain.Draw(GraphicsDevice, camera);
-            objectManager.Draw(GraphicsDevice, camera);
+            terrain.Draw(GraphicsDevice, player.camera);
+            objectManager.Draw(GraphicsDevice, player.camera);
 
             string debugstring = $"Seed: {terrain.seed}," +
                 $" Time: {clock.Day}:{clock.Hour}:{clock.Minute},";
@@ -129,7 +130,10 @@ namespace DeepWoods.Game
             spriteBatch.Begin();
 
 
-            spriteBatch.Draw(TextureLoader.ShadowMap, new Rectangle(32, 128, 256, 256), Color.White);
+            player.Draw(GraphicsDevice, spriteBatch);
+
+
+            //spriteBatch.Draw(TextureLoader.ShadowMap, new Rectangle(32, 128, 256, 256), Color.White);
 
 
 
@@ -145,13 +149,13 @@ namespace DeepWoods.Game
                     new Rectangle(mousePos.X, mousePos.Y, TextureLoader.MouseCursor.Width * 2, TextureLoader.MouseCursor.Height * 2),
                     colors[i % 2]);
 
-                var tilePos = camera.GetTileAtScreenPos(mousePos);
+                var tilePos = player.camera.GetTileAtScreenPos(mousePos);
                 debugstring += $" Tile (Player {i+1}): {tilePos.X},{tilePos.Y},";
 
                 i++;
             }
 
-            debugstring += $" FPS: {fps.FPS}, ms/f: {fps.SPF}\nShadowRect: {camera.ShadowRectangle}";
+            debugstring += $" FPS: {fps.FPS}, ms/f: {fps.SPF}\nShadowRect: {player.camera.ShadowRectangle}";
 
            
 

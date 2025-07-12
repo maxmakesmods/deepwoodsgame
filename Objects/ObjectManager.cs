@@ -92,6 +92,26 @@ namespace DeepWoods.Objects
                     }
                 }
             }
+
+            /*
+            SpawnObject("tree1", 2, 7);
+            SpawnObject("tree1", 3, 7);
+            SpawnObject("tree1", 4, 7);
+            SpawnObject("tree1", 5, 7);
+            SpawnObject("tree1", 6, 7);
+            SpawnObject("tree1", 7, 7);
+            SpawnObject("tree1", 8, 7);
+            SpawnObject("tower", 5, 5);
+            */
+        }
+
+        private void SpawnObject(string name, int x, int y)
+        {
+            var dwobj = objectTypes.Where(o => o.name == name).FirstOrDefault();
+            if (dwobj != null)
+            {
+                sprites.Add(new Sprite(new Vector2(x, y), new Rectangle(dwobj.x, dwobj.y, dwobj.width, dwobj.height), dwobj.standing, dwobj.glowing));
+            }
         }
 
         private void CreateBasicBuffers(GraphicsDevice graphicsDevice)
