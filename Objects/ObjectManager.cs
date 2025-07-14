@@ -1,5 +1,6 @@
 ﻿using DeepWoods.Helpers;
 using DeepWoods.Loaders;
+using DeepWoods.Players;
 using DeepWoods.World;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
@@ -131,12 +132,13 @@ namespace DeepWoods.Objects
         }
 
 
-        internal void DrawShadowMap(GraphicsDevice graphicsDevice, Camera camera)
+        internal void DrawShadowMap(GraphicsDevice graphicsDevice, Player player, Camera camera)
         {
             Matrix view = camera.ShadowView;
             Matrix projection = camera.ShadowProjection;
 
             graphicsDevice.SetRenderTarget(TextureLoader.ShadowMap);
+            graphicsDevice.DepthStencilState = DepthStencilState.Default;
             graphicsDevice.Clear(Color.Black);
 
             var spriteEffect = EffectLoader.SpriteEffect;
@@ -157,6 +159,8 @@ namespace DeepWoods.Objects
                 pass.Apply();
                 graphicsDevice.DrawInstancedPrimitives(PrimitiveType.TriangleList, 0, 0, 2, sprites.Count);
             }
+
+            player.DrawShadow(graphicsDevice);
 
             graphicsDevice.SetRenderTarget(null);
         }

@@ -29,6 +29,7 @@ namespace DeepWoods.World
         public Camera(GraphicsDevice graphicsDevice)
         {
             this.graphicsDevice = graphicsDevice;
+            position.Z = 16;
         }
 
         public void Update(Vector2 playerPos, float timeDelta)

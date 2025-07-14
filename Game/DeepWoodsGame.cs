@@ -69,12 +69,11 @@ namespace DeepWoods.Game
 
 
             clock = new InGameClock();
-            clock.TimeScale = 120;
-            clock.SetTime(1, 12, 0);
+            clock.TimeScale = 0;
+            clock.SetTime(1, 10, 0);
 
 
-            player = new Player(GraphicsDevice);
-            player.position = new Vector2(gridSize / 2, gridSize / 2);
+            player = new Player(GraphicsDevice, new Vector2(gridSize / 2, gridSize / 2));
 
 
             Random rng = new Random();
@@ -117,10 +116,12 @@ namespace DeepWoods.Game
             lightManager.Update(clock.DayDelta, deltaTime);
             lightManager.Apply();
 
-            objectManager.DrawShadowMap(GraphicsDevice, player.camera);
+            objectManager.DrawShadowMap(GraphicsDevice, player, player.camera);
 
             GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.DepthStencilState = DepthStencilState.None;
             terrain.Draw(GraphicsDevice, player.camera);
+            GraphicsDevice.DepthStencilState = DepthStencilState.Default;
             objectManager.Draw(GraphicsDevice, player.camera);
 
             string debugstring = $"Seed: {terrain.seed}," +
@@ -130,7 +131,7 @@ namespace DeepWoods.Game
             spriteBatch.Begin();
 
 
-            player.Draw(GraphicsDevice, spriteBatch);
+            player.Draw(GraphicsDevice);
 
 
             //spriteBatch.Draw(TextureLoader.ShadowMap, new Rectangle(32, 128, 256, 256), Color.White);

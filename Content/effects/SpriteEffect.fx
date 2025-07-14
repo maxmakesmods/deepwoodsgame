@@ -112,7 +112,8 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
     {
         float y = adjustedPos.y * 1.25;
         float x = adjustedPos.x + ShadowSkew * y;
-        output.Position = mul(float4(x, y, adjustedPos.z, adjustedPos.w), worldViewProjection);
+        float z = -0.01 * input.WorldPos.y;
+        output.Position = mul(float4(x, y, z, 1.0), worldViewProjection);
     }
     else
     {
