@@ -27,7 +27,7 @@ namespace DeepWoods.Loaders
                 1024, 1024,
                 false,
                 SurfaceFormat.Single,
-                DepthFormat.None,
+                DepthFormat.Depth24,
                 0, RenderTargetUsage.DiscardContents, false);
 
         }

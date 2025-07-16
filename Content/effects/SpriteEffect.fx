@@ -108,11 +108,15 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
 
     float4x4 worldViewProjection = mul(world, ViewProjection);
     
+    
+    float rowIndex = input.WorldPos.y;
+    
+    
     if (IsShadow)
     {
         float y = adjustedPos.y * 1.25;
         float x = adjustedPos.x + ShadowSkew * y;
-        float z = -0.01 * input.WorldPos.y;
+        float z = -0.01 * rowIndex;
         output.Position = mul(float4(x, y, z, 1.0), worldViewProjection);
     }
     else
@@ -123,7 +127,7 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
     output.TexCoord = adjustedTexCoord;
     output.WorldPos = mul(adjustedPos, world).xy;
     output.IsGlowing = input.IsGlowing;
-    output.RowIndex = input.WorldPos.y;
+    output.RowIndex = rowIndex;
 
 	return output;
 }
@@ -167,7 +171,7 @@ float3 applyShadows(float2 pos, float rowIndex, float3 color)
     }
     
     float shadowRowIndex = shadow - 1.0;
-    if (rowIndex < shadowRowIndex + 0.5)
+    if (rowIndex < shadowRowIndex + 0.01)
     {
         return color;
     }

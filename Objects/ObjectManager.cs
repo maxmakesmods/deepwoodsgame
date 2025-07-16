@@ -95,14 +95,13 @@ namespace DeepWoods.Objects
             }
 
             /*
-            SpawnObject("tree1", 2, 7);
-            SpawnObject("tree1", 3, 7);
-            SpawnObject("tree1", 4, 7);
-            SpawnObject("tree1", 5, 7);
-            SpawnObject("tree1", 6, 7);
-            SpawnObject("tree1", 7, 7);
-            SpawnObject("tree1", 8, 7);
-            SpawnObject("tower", 5, 5);
+            SpawnObject("tree1", 2, 3);
+            SpawnObject("tree1", 3, 3);
+            SpawnObject("tree1", 4, 3);
+            SpawnObject("tree1", 5, 3);
+            SpawnObject("tree1", 6, 3);
+            SpawnObject("tree1", 7, 3);
+            SpawnObject("tower", 5, 2);
             */
         }
 
@@ -138,29 +137,29 @@ namespace DeepWoods.Objects
             Matrix projection = camera.ShadowProjection;
 
             graphicsDevice.SetRenderTarget(TextureLoader.ShadowMap);
-            graphicsDevice.DepthStencilState = DepthStencilState.Default;
             graphicsDevice.Clear(Color.Black);
+            graphicsDevice.DepthStencilState = DepthStencilState.Default;
 
-            var spriteEffect = EffectLoader.SpriteEffect;
 
-            graphicsDevice.SetVertexBuffers(
-                new VertexBufferBinding(vertexBuffer, 0, 0),
-                new VertexBufferBinding(instanceBuffer, 0, 1));
+
+            graphicsDevice.SetVertexBuffers(new VertexBufferBinding(vertexBuffer, 0, 0), new VertexBufferBinding(instanceBuffer, 0, 1));
             graphicsDevice.Indices = indexBuffer;
-
-            spriteEffect.Parameters["ObjectTextureSize"].SetValue(new Vector2(TextureLoader.ObjectsTexture.Width, TextureLoader.ObjectsTexture.Height));
-            spriteEffect.Parameters["CellSize"].SetValue(Terrain.CellSize);
-            spriteEffect.Parameters["ViewProjection"].SetValue(view * projection);
-            spriteEffect.Parameters["SpriteTexture"].SetValue(TextureLoader.ObjectsTexture);
-
-            spriteEffect.Parameters["IsShadow"].SetValue(1);
-            foreach (EffectPass pass in spriteEffect.CurrentTechnique.Passes)
+            EffectLoader.SpriteEffect.Parameters["ObjectTextureSize"].SetValue(new Vector2(TextureLoader.ObjectsTexture.Width, TextureLoader.ObjectsTexture.Height));
+            EffectLoader.SpriteEffect.Parameters["CellSize"].SetValue(Terrain.CellSize);
+            EffectLoader.SpriteEffect.Parameters["ViewProjection"].SetValue(view * projection);
+            EffectLoader.SpriteEffect.Parameters["SpriteTexture"].SetValue(TextureLoader.ObjectsTexture);
+            EffectLoader.SpriteEffect.Parameters["IsShadow"].SetValue(1);
+            graphicsDevice.DepthStencilState = DepthStencilState.Default;
+            foreach (EffectPass pass in EffectLoader.SpriteEffect.CurrentTechnique.Passes)
             {
                 pass.Apply();
                 graphicsDevice.DrawInstancedPrimitives(PrimitiveType.TriangleList, 0, 0, 2, sprites.Count);
             }
 
+
             player.DrawShadow(graphicsDevice);
+
+
 
             graphicsDevice.SetRenderTarget(null);
         }

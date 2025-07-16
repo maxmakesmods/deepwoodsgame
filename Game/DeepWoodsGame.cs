@@ -15,7 +15,7 @@ namespace DeepWoods.Game
     {
         private GraphicsDeviceManager _graphics;
 
-        private int gridSize = 32;
+        private int gridSize = 128;
         private int numPatches = 10;
 
         private Player player;
@@ -69,11 +69,8 @@ namespace DeepWoods.Game
 
 
             clock = new InGameClock();
-            clock.TimeScale = 0;
+            clock.TimeScale = 120;
             clock.SetTime(1, 10, 0);
-
-
-            player = new Player(GraphicsDevice, new Vector2(gridSize / 2, gridSize / 2));
 
 
             Random rng = new Random();
@@ -82,6 +79,16 @@ namespace DeepWoods.Game
 
             lightManager = new LightManager(rng.Next(), gridSize, gridSize);
             objectManager = new ObjectManager(Content, GraphicsDevice, rng.Next(), gridSize, gridSize, terrain);
+
+            int spawnX = gridSize / 2;
+            int spawnY = gridSize / 2;
+            while (!terrain.tiles[spawnX, spawnY].isOpen)
+            {
+                spawnX = rng.Next(gridSize);
+                spawnY = rng.Next(gridSize);
+            }
+
+            player = new Player(GraphicsDevice, new Vector2(spawnX, spawnY));
         }
 
         protected override void Update(GameTime gameTime)

@@ -10,6 +10,8 @@ namespace DeepWoods.World
     {
         private static readonly float NearPlane = 1f;
         private static readonly float FarPlane = 10000f;
+        private static readonly float MinimumCameraZ = 2f;
+        private static readonly float MaximumCameraZ = 64f;
 
         public Vector3 position;
         private float angle = 20f;
@@ -34,8 +36,8 @@ namespace DeepWoods.World
 
         public void Update(Vector2 playerPos, float timeDelta)
         {
-            position.X = playerPos.X;
-            position.Y = playerPos.Y - position.Z / 2;
+            position.X = playerPos.X + 0.5f;
+            position.Y = playerPos.Y + 0.5f - position.Z / 2;
 
             int mouseWheel = Mouse.GetState().ScrollWheelValue;
             int mouseWheelDelta = mouseWheel - lastMouseWheel;
@@ -54,9 +56,13 @@ namespace DeepWoods.World
             {
                 position.Z *= -mouseWheelDelta * cameraZoomSpeed;
             }
-            if (position.Z < 1)
+            if (position.Z < MinimumCameraZ)
             {
-                position.Z = 1;
+                position.Z = MinimumCameraZ;
+            }
+            if (position.Z > MaximumCameraZ)
+            {
+                position.Z = MaximumCameraZ;
             }
 
             RecalculateShadowRectangle();

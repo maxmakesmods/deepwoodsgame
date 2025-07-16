@@ -5,6 +5,7 @@ using DeepWoods.World;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using MonoGame.Extended;
 using MonoGame.Extended.Animations;
 using System;
 using System.Runtime.InteropServices;
@@ -117,18 +118,26 @@ namespace DeepWoods.Players
             return new Vector4(16 + animationFrame * 64, 16 + animationRow * 64, 32, 32);
         }
 
+
         public void Update(Terrain terrain, float timeDelta)
         {
             var oldPosition = position;
 
+            // get input velocity
             Vector2 velocity = getVelocity();
 
-
+            // run animation based on velocity
             animationRow = getAnimationRow(velocity);
-
             if (velocity != Vector2.Zero)
             {
-                frameTimeCounter += timeDelta;
+                if (Keyboard.GetState().IsKeyDown(Keys.LeftShift))
+                {
+                    frameTimeCounter += timeDelta * 2f;
+                }
+                else
+                {
+                    frameTimeCounter += timeDelta;
+                }
                 if (frameTimeCounter >= 1f / animationFPS)
                 {
                     frameTimeCounter = 0f;
@@ -136,6 +145,10 @@ namespace DeepWoods.Players
                 }
             }
 
+            // clip velocity against terrain
+            velocity = clipVelocity(terrain, velocity, timeDelta);
+
+            // apply velocity
             position += velocity * timeDelta;
 
             for (int i = 0; i < vertices.Length; i++)
@@ -144,15 +157,62 @@ namespace DeepWoods.Players
                 vertices[i].TexRect = getTexRect();
             }
 
-            int x = (int)position.X;
-            int y = (int)position.Y;
+            camera.Update(position, timeDelta);
+        }
 
-            if (!terrain.tiles[x, y].isOpen)
+        private Vector2 clipVelocity(Terrain terrain, Vector2 velocity, float timeDelta)
+        {
+            Vector2 nextPosition = position + velocity * timeDelta;
+
+            int currentTileX = (int)position.X;
+            int currentTileY = (int)position.Y;
+
+            if (velocity.X != 0)
             {
-                position = oldPosition;
+                RectangleF nextRectangleX = new RectangleF(nextPosition.X, position.Y, 0.6f, 0.4f);
+                for (int x = -1; x <= 1; x++)
+                {
+                    for (int y = -1; y <= 1; y++)
+                    {
+                        int checkX = currentTileX + x;
+                        int checkY = currentTileY + y;
+
+                        if (!terrain.tiles[checkX, checkY].isOpen)
+                        {
+                            RectangleF tileRectangle = new RectangleF(checkX, checkY, 0.9f, 0.9f);
+                            if (nextRectangleX.Intersects(tileRectangle))
+                            {
+                                velocity.X = 0;
+                            }
+                        }
+                    }
+                }
             }
 
-            camera.Update(position, timeDelta);
+            if (velocity.Y != 0)
+            {
+                RectangleF nextRectangleY = new RectangleF(position.X, nextPosition.Y, 0.6f, 0.4f);
+                for (int x = -1; x <= 1; x++)
+                {
+                    for (int y = -1; y <= 1; y++)
+                    {
+                        int checkX = currentTileX + x;
+                        int checkY = currentTileY + y;
+
+                        if (!terrain.tiles[checkX, checkY].isOpen)
+                        {
+                            RectangleF tileRectangle = new RectangleF(checkX, checkY, 0.9f, 0.9f);
+                            if (nextRectangleY.Intersects(tileRectangle))
+                            {
+                                velocity.Y = 0;
+                            }
+                        }
+                    }
+                }
+            }
+
+
+            return velocity;
         }
 
         private int getAnimationRow(Vector2 velocity)
@@ -208,12 +268,13 @@ namespace DeepWoods.Players
             if (Keyboard.GetState().IsKeyDown(Keys.S)) velocity.Y -= WalkSpeed;
             if (Keyboard.GetState().IsKeyDown(Keys.A)) velocity.X -= WalkSpeed;
             if (Keyboard.GetState().IsKeyDown(Keys.D)) velocity.X += WalkSpeed;
+            if (Keyboard.GetState().IsKeyDown(Keys.LeftShift)) velocity *= 2f;
             return velocity;
         }
 
         public void DrawShadow(GraphicsDevice graphicsDevice)
         {
-            DoDraw(graphicsDevice, EffectLoader.SpriteEffect, camera.View, camera.Projection, true);
+            DoDraw(graphicsDevice, EffectLoader.SpriteEffect, camera.ShadowView, camera.ShadowProjection, true);
         }
 
         public void Draw(GraphicsDevice graphicsDevice)
