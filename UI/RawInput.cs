@@ -1,11 +1,10 @@
-﻿using DeepWoods.Game;
-using DeepWoods.Players;
+﻿using DeepWoods.Helpers;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace DeepWoods.UI
@@ -18,6 +17,45 @@ namespace DeepWoods.UI
         private const int RIDEV_INPUTSINK = 0x00000100;
         private const int WH_GETMESSAGE = 3;
         private const int WM_INPUT = 0x00FF;
+
+        private const ushort MOUSE_MOVE_RELATIVE = 0x00;
+        private const ushort MOUSE_MOVE_ABSOLUTE = 0x01;
+        private const ushort MOUSE_VIRTUAL_DESKTOP = 0x02;
+        private const ushort MOUSE_ATTRIBUTES_CHANGED = 0x04;
+        private const ushort MOUSE_MOVE_NOCOALESCE = 0x08;
+
+        private const ushort RI_MOUSE_BUTTON_1_DOWN = 0x0001;
+        private const ushort RI_MOUSE_BUTTON_1_UP = 0x0002;
+        private const ushort RI_MOUSE_BUTTON_2_DOWN = 0x0004;
+        private const ushort RI_MOUSE_BUTTON_2_UP = 0x0008;
+        private const ushort RI_MOUSE_BUTTON_3_DOWN = 0x0010;
+        private const ushort RI_MOUSE_BUTTON_3_UP = 0x0020;
+        private const ushort RI_MOUSE_BUTTON_4_DOWN = 0x0040;
+        private const ushort RI_MOUSE_BUTTON_4_UP = 0x0080;
+        private const ushort RI_MOUSE_BUTTON_5_DOWN = 0x0100;
+        private const ushort RI_MOUSE_BUTTON_5_UP = 0x0200;
+        private const ushort RI_MOUSE_WHEEL = 0x0400;
+        private const ushort RI_MOUSE_HWHEEL = 0x0800;
+
+        private const ushort VK_CAPITAL = 0x14;
+        private const ushort VK_NUMLOCK = 0x90;
+        private const ushort RI_KEY_MAKE = 0;
+        private const ushort RI_KEY_BREAK = 1;
+        private const ushort RI_KEY_E0 = 2;
+        private const ushort RI_KEY_E1 = 4;
+
+        private const ushort VK_SHIFT = 0x10;
+        private const ushort VK_CONTROL = 0x11;
+        private const ushort VK_MENU = 0x12;
+
+        private const ushort SCANCODE_LSHIFT = 42;
+        private const ushort SCANCODE_RSHIFT = 54;
+        private const ushort SCANCODE_LCONTROL = 29;
+        private const ushort SCANCODE_RCONTROL = 57373;
+        private const ushort SCANCODE_LMENU = 56;
+        private const ushort SCANCODE_RMENU = 57400;
+
+        private const ushort KEYBOARD_OVERRUN_MAKE_CODE = 0xFF;
 
         private delegate IntPtr HookProc(int nCode, IntPtr wParam, IntPtr lParam);
         private static IntPtr hookHandle;
@@ -124,40 +162,133 @@ namespace DeepWoods.UI
         }
 
 
-        public static Dictionary<IntPtr, Point> mousePositions = new();
+        private static Dictionary<IntPtr, MouseState> mouseStates = new();
+        private static List<IntPtr> mouseHandles = new();
+        private static Dictionary<IntPtr, HashSet<Keys>> keyboardStates = new();
+        private static List<IntPtr> keyboardHandles = new();
 
-        private struct DevicePointers
+
+        public static KeyboardState GetKeyboardState(PlayerIndex playerIndex)
         {
-            public IntPtr keyboard;
-            public IntPtr mouse;
+            if (keyboardHandles.Count > (int)playerIndex
+                && keyboardStates.TryGetValue(keyboardHandles[(int)playerIndex], out var value))
+            {
+                return new KeyboardState(value.ToArray(),
+                    value.Contains(Keys.CapsLock),
+                    value.Contains(Keys.NumLock));
+            }
+            return default;
         }
 
-        private static Dictionary<Player, DevicePointers> playerDeviceMappings = new();
-
-
-        /*
-        public KeyboardState GetState(Player player)
+        public static MouseState GetMouseState(PlayerIndex playerIndex)
         {
-            if (!playerDeviceMappings.TryGetValue(player, out var devicePointers))
+            if (mouseHandles.Count > (int)playerIndex
+                && mouseStates.TryGetValue(mouseHandles[(int)playerIndex], out var value))
             {
-                playerDeviceMappings.Add(player, devicePointers = new DevicePointers());
+                return value;
+            }
+            return default;
+        }
+
+        internal static List<MouseState> GetMouseStates()
+        {
+            return mouseStates.Values.ToList();
+        }
+
+        private static void UpdateKeyboardKeys(HashSet<Keys> keys, RAWKEYBOARD keyboard)
+        {
+            if (keyboard.MakeCode == KEYBOARD_OVERRUN_MAKE_CODE)
+                return;
+
+            if (keyboard.VKey >= 0xff)
+                return;
+
+            if (keyboard.Flags.IsBitFlagSet(RI_KEY_BREAK))
+            {
+                keys.Remove(GetKeys(keyboard));
+            }
+            else
+            {
+                keys.Add(GetKeys(keyboard));
+            }
+        }
+
+        private static Keys GetKeys(RAWKEYBOARD keyboard)
+        { 
+            ushort scanCode = keyboard.MakeCode;
+            if (keyboard.Flags.IsBitFlagSet(RI_KEY_E0))
+            {
+                scanCode = (ushort)(scanCode | 0xe000);
+            }
+            if (keyboard.Flags.IsBitFlagSet(RI_KEY_E1))
+            {
+                scanCode = (ushort)(scanCode | 0xe100);
             }
 
-            return 
+            var vkeys = scanCode switch
+            {
+                SCANCODE_LSHIFT => Keys.LeftShift,
+                SCANCODE_RSHIFT => Keys.RightShift,
+                SCANCODE_LCONTROL => Keys.LeftControl,
+                SCANCODE_RCONTROL => Keys.RightControl,
+                SCANCODE_LMENU => Keys.LeftAlt,
+                SCANCODE_RMENU => Keys.RightAlt,
+                _ => (Keys)keyboard.VKey,
+            };
+            return vkeys;
         }
-        */
 
-
-        public static Point AddMousePos(Point prevPos, int x, int y)
+        private static MouseState CalculateNextMouseState(MouseState prevState, RAWMOUSE mouseData)
         {
-            float mouseSpeed = 2f;
+            int mouseSpeed = 2;
 
-            return new(
-                Math.Clamp((int)(prevPos.X + x * mouseSpeed), 0, DeepWoodsGame.window.ClientBounds.Width - 10),
-                Math.Clamp((int)(prevPos.Y + y * mouseSpeed), 0, DeepWoodsGame.window.ClientBounds.Height - 10)
-                );
+            int x = 0;
+            int y = 0;
+            if (mouseData.ButtonFlags.IsBitFlagSet(MOUSE_MOVE_ABSOLUTE))
+            {
+                x = mouseData.LastX;
+                y = mouseData.LastY;
+            }
+            else
+            {
+                x = prevState.X + mouseData.LastX * mouseSpeed;
+                y = prevState.Y + mouseData.LastY * mouseSpeed;
+            }
+
+            int scrollWheelValue = 0;
+            int horizontalScrollWheelValue = 0;
+            if (mouseData.ButtonFlags.IsBitFlagSet(RI_MOUSE_WHEEL))
+            {
+                scrollWheelValue = mouseData.ButtonData;
+            }
+            else if (mouseData.ButtonFlags.IsBitFlagSet(RI_MOUSE_HWHEEL))
+            {
+                horizontalScrollWheelValue = mouseData.ButtonData;
+            }
+
+            return new MouseState(x, y,
+                scrollWheelValue,
+                GetButtonState(prevState.LeftButton, mouseData.ButtonFlags, RI_MOUSE_BUTTON_1_DOWN, RI_MOUSE_BUTTON_1_UP),
+                GetButtonState(prevState.RightButton, mouseData.ButtonFlags, RI_MOUSE_BUTTON_2_DOWN, RI_MOUSE_BUTTON_2_UP),
+                GetButtonState(prevState.MiddleButton, mouseData.ButtonFlags, RI_MOUSE_BUTTON_3_DOWN, RI_MOUSE_BUTTON_3_UP),
+                GetButtonState(prevState.XButton1, mouseData.ButtonFlags, RI_MOUSE_BUTTON_4_DOWN, RI_MOUSE_BUTTON_4_UP),
+                GetButtonState(prevState.XButton2, mouseData.ButtonFlags, RI_MOUSE_BUTTON_5_DOWN, RI_MOUSE_BUTTON_5_UP),
+                horizontalScrollWheelValue
+            );
         }
 
+        private static ButtonState GetButtonState(ButtonState prevState, ushort buttonFlags, ushort downFlag, ushort upFlag)
+        {
+            if (buttonFlags.IsBitFlagSet(downFlag))
+            {
+                return ButtonState.Pressed;
+            }
+            if (buttonFlags.IsBitFlagSet(upFlag))
+            {
+                return ButtonState.Released;
+            }
+            return prevState;
+        }
 
         private static void HandleRawInput(MSG msg)
         {
@@ -171,31 +302,23 @@ namespace DeepWoods.UI
                     RAWINPUT raw = Marshal.PtrToStructure<RAWINPUT>(buffer);
                     if (raw.header.dwType == RIM_TYPEKEYBOARD)
                     {
-                        Debug.WriteLine(
-                            $" hDevice {raw.header.hDevice}," +
-                            $" MakeCode={raw.keyboard.MakeCode}," +
-                            $" Flags={raw.keyboard.Flags}," +
-                            $" Reserved={raw.keyboard.Reserved}," +
-                            $" VKey={raw.keyboard.VKey}," +
-                            $" Message={raw.keyboard.Message}");
+                        if (!keyboardStates.TryGetValue(raw.header.hDevice, out HashSet<Keys> value))
+                        {
+                            value = new HashSet<Keys>();
+                            keyboardStates.Add(raw.header.hDevice, value);
+                            keyboardHandles.Add(raw.header.hDevice);
+                        }
+                        UpdateKeyboardKeys(value, raw.keyboard);
                     }
                     else if (raw.header.dwType == RIM_TYPEMOUSE)
                     {
-                        if (!mousePositions.ContainsKey(raw.header.hDevice))
+                        if (!mouseStates.TryGetValue(raw.header.hDevice, out MouseState value))
                         {
-                            mousePositions.Add(raw.header.hDevice, new Point());
+                            value = default;
+                            mouseStates.Add(raw.header.hDevice, value);
+                            mouseHandles.Add(raw.header.hDevice);
                         }
-
-                        mousePositions[raw.header.hDevice] = AddMousePos(mousePositions[raw.header.hDevice], raw.mouse.LastX, raw.mouse.LastY);
-
-
-                        Debug.WriteLine(
-                            $" hDevice {raw.header.hDevice}," +
-                            $" Flags={raw.mouse.Flags}," +
-                            $" ButtonFlags={raw.mouse.ButtonFlags}," +
-                            $" ButtonData={raw.mouse.ButtonData}," +
-                            $" LastX={raw.mouse.LastX}," +
-                            $" LastY={raw.mouse.LastY}");
+                        mouseStates[raw.header.hDevice] = CalculateNextMouseState(value, raw.mouse);
                     }
                 }
             }

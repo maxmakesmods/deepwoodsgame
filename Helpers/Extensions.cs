@@ -19,5 +19,25 @@ namespace DeepWoods.Helpers
         {
             return new Vector2(rect.Width, rect.Height);
         }
+
+        public static bool IsBitFlagSet(this byte value, byte flag)
+        {
+            return (value & flag) != 0;
+        }
+
+        public static bool IsBitFlagSet(this ushort value, ushort flag)
+        {
+            return (value & flag) != 0;
+        }
+
+        public static bool IsBitFlagSet(this uint value, uint flag)
+        {
+            return (value & flag) != 0;
+        }
+
+        public static bool IsBitFlagSet(this ulong value, ulong flag)
+        {
+            return (value & flag) != 0;
+        }
     }
 }

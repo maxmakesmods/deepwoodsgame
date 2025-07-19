@@ -34,12 +34,12 @@ namespace DeepWoods.World
             position.Z = 16;
         }
 
-        public void Update(Vector2 playerPos, float timeDelta)
+        public void Update(Vector2 playerPos, MouseState mouseState, float timeDelta)
         {
             position.X = playerPos.X + 0.5f;
             position.Y = playerPos.Y + 0.5f - position.Z / 2;
 
-            int mouseWheel = Mouse.GetState().ScrollWheelValue;
+            int mouseWheel = mouseState.ScrollWheelValue;
             int mouseWheelDelta = mouseWheel - lastMouseWheel;
             lastMouseWheel = mouseWheel;
 

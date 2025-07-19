@@ -1,9 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace DeepWoods.World.Generators
 {

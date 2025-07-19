@@ -1,13 +1,11 @@
 ﻿
 using DeepWoods.Loaders;
-using DeepWoods.Objects;
+using DeepWoods.UI;
 using DeepWoods.World;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended;
-using MonoGame.Extended.Animations;
-using System;
 using System.Runtime.InteropServices;
 
 namespace DeepWoods.Players
@@ -56,8 +54,16 @@ namespace DeepWoods.Players
         private VertexCharacterData[] vertices;
         private short[] indices;
 
-        public Player(GraphicsDevice graphicsDevice, Vector2 startPos)
+
+        private float animationFPS = 8f;
+        private int animationFrame = 0;
+        private int animationRow = 0;
+        private float frameTimeCounter = 0f;
+        public PlayerIndex PlayerIndex { get; private set; }
+
+        public Player(GraphicsDevice graphicsDevice, PlayerIndex playerIndex, Vector2 startPos)
         {
+            PlayerIndex = playerIndex;
             position = startPos;
             camera = new Camera(graphicsDevice);
 
@@ -106,13 +112,6 @@ namespace DeepWoods.Players
             indices = [0, 1, 2, 0, 2, 3];
         }
 
-
-        float animationFPS = 8f;
-        int animationFrame = 0;
-        int animationRow = 0;
-        float frameTimeCounter = 0f;
-
-
         private Vector4 getTexRect()
         {
             return new Vector4(16 + animationFrame * 64, 16 + animationRow * 64, 32, 32);
@@ -130,7 +129,7 @@ namespace DeepWoods.Players
             animationRow = getAnimationRow(velocity);
             if (velocity != Vector2.Zero)
             {
-                if (Keyboard.GetState().IsKeyDown(Keys.LeftShift))
+                if (DWKeyboard.GetState(PlayerIndex).IsKeyDown(Keys.LeftShift))
                 {
                     frameTimeCounter += timeDelta * 2f;
                 }
@@ -157,7 +156,7 @@ namespace DeepWoods.Players
                 vertices[i].TexRect = getTexRect();
             }
 
-            camera.Update(position, timeDelta);
+            camera.Update(position, DWMouse.GetState(PlayerIndex), timeDelta);
         }
 
         private Vector2 clipVelocity(Terrain terrain, Vector2 velocity, float timeDelta)
@@ -263,12 +262,14 @@ namespace DeepWoods.Players
 
         private Vector2 getVelocity()
         {
+            var keyboardState = DWKeyboard.GetState(PlayerIndex);
+
             Vector2 velocity = Vector2.Zero;
-            if (Keyboard.GetState().IsKeyDown(Keys.W)) velocity.Y += WalkSpeed;
-            if (Keyboard.GetState().IsKeyDown(Keys.S)) velocity.Y -= WalkSpeed;
-            if (Keyboard.GetState().IsKeyDown(Keys.A)) velocity.X -= WalkSpeed;
-            if (Keyboard.GetState().IsKeyDown(Keys.D)) velocity.X += WalkSpeed;
-            if (Keyboard.GetState().IsKeyDown(Keys.LeftShift)) velocity *= 2f;
+            if (keyboardState.IsKeyDown(Keys.W)) velocity.Y += WalkSpeed;
+            if (keyboardState.IsKeyDown(Keys.S)) velocity.Y -= WalkSpeed;
+            if (keyboardState.IsKeyDown(Keys.A)) velocity.X -= WalkSpeed;
+            if (keyboardState.IsKeyDown(Keys.D)) velocity.X += WalkSpeed;
+            if (keyboardState.IsKeyDown(Keys.LeftShift)) velocity *= 2f;
             return velocity;
         }
 

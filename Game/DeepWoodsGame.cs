@@ -88,7 +88,7 @@ namespace DeepWoods.Game
                 spawnY = rng.Next(gridSize);
             }
 
-            player = new Player(GraphicsDevice, new Vector2(spawnX, spawnY));
+            player = new Player(GraphicsDevice, PlayerIndex.One, new Vector2(spawnX, spawnY));
         }
 
         protected override void Update(GameTime gameTime)
@@ -151,13 +151,13 @@ namespace DeepWoods.Game
                 ];
 
             int i = 0;
-            foreach (var (_, mousePos) in RawInput.mousePositions)
+            foreach (var mouseState in RawInput.GetMouseStates())
             {
                 spriteBatch.Draw(TextureLoader.MouseCursor,
-                    new Rectangle(mousePos.X, mousePos.Y, TextureLoader.MouseCursor.Width * 2, TextureLoader.MouseCursor.Height * 2),
+                    new Rectangle(mouseState.X, mouseState.Y, TextureLoader.MouseCursor.Width * 2, TextureLoader.MouseCursor.Height * 2),
                     colors[i % 2]);
 
-                var tilePos = player.camera.GetTileAtScreenPos(mousePos);
+                var tilePos = player.camera.GetTileAtScreenPos(mouseState.Position);
                 debugstring += $" Tile (Player {i+1}): {tilePos.X},{tilePos.Y},";
 
                 i++;

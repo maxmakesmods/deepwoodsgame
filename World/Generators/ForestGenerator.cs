@@ -1,7 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 
 namespace DeepWoods.World.Generators
@@ -54,10 +53,7 @@ namespace DeepWoods.World.Generators
                 GenerateOpenPatch(new(rng.Next(width), rng.Next(height)), numSteps);
             }
             var regions = CollectRegions();
-            Debug.WriteLine($"regions.Count: {regions.Count}");
             ConnectRegions(regions);
-            var regions2 = CollectRegions();
-            Debug.WriteLine($"regions.Count: {regions2.Count}");
             return tiles;
         }
 
