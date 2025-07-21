@@ -6,6 +6,7 @@ using DeepWoods.World;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using MonoGame.Extended;
 using System;
 using System.Collections.Generic;
 
@@ -18,7 +19,7 @@ namespace DeepWoods.Game
         private int gridSize = 128;
         private int numPatches = 10;
 
-        private Player player;
+        private List<Player> players;
         private Terrain terrain;
         private LightManager lightManager;
         private ObjectManager objectManager;
@@ -55,6 +56,8 @@ namespace DeepWoods.Game
             GraphicsDevice.DepthStencilState = DepthStencilState.Default;
             GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
             GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+
+            GameState.IsMultiplayerGame = true;
         }
 
         protected override void LoadContent()
@@ -88,17 +91,31 @@ namespace DeepWoods.Game
                 spawnY = rng.Next(gridSize);
             }
 
-            player = new Player(GraphicsDevice, PlayerIndex.One, new Vector2(spawnX, spawnY));
+            players = [
+                new Player(GraphicsDevice, PlayerIndex.One, new Vector2(spawnX, spawnY)),
+                new Player(GraphicsDevice, PlayerIndex.Two, new Vector2(spawnX, spawnY))
+                ];
         }
+
+        private bool wasESCPressed = false;
+        private bool isGamePaused = false;
 
         protected override void Update(GameTime gameTime)
         {
             if (Keyboard.GetState().IsKeyDown(Keys.Escape))
             {
-                Exit();
+                if (!wasESCPressed)
+                {
+                    isGamePaused = !isGamePaused;
+                }
+                wasESCPressed = true;
+            }
+            else
+            {
+                wasESCPressed = false;
             }
 
-            if (IsActive)
+            if (IsActive && !isGamePaused)
             {
                 IsMouseVisible = false;
                 Mouse.SetPosition(Window.ClientBounds.Width / 2, Window.ClientBounds.Height / 2);
@@ -111,7 +128,10 @@ namespace DeepWoods.Game
             double deltaTime = gameTime.ElapsedGameTime.TotalSeconds;
 
             fps.CountFrame(deltaTime);
-            player.Update(terrain, (float)deltaTime);
+            foreach (var player in players)
+            {
+                player.Update(terrain, (float)deltaTime);
+            }
             clock.Update(deltaTime);
             base.Update(gameTime);
         }
@@ -123,27 +143,56 @@ namespace DeepWoods.Game
             lightManager.Update(clock.DayDelta, deltaTime);
             lightManager.Apply();
 
-            objectManager.DrawShadowMap(GraphicsDevice, player, player.camera);
 
-            GraphicsDevice.Clear(Color.CornflowerBlue);
-            GraphicsDevice.DepthStencilState = DepthStencilState.None;
-            terrain.Draw(GraphicsDevice, player.camera);
-            GraphicsDevice.DepthStencilState = DepthStencilState.Default;
-            objectManager.Draw(GraphicsDevice, player.camera);
-
-            string debugstring = $"Seed: {terrain.seed}," +
-                $" Time: {clock.Day}:{clock.Hour}:{clock.Minute},";
+            foreach (var player in players)
+            {
+                DrawPlayerScreen(player.myCamera, player.myRenderTarget);
+            }
 
 
             spriteBatch.Begin();
 
+            GraphicsDevice.Clear(Color.CornflowerBlue);
+            foreach (var player in players)
+            {
+                int halfwidth = GraphicsDevice.Viewport.Width / 2;
+                int height = GraphicsDevice.Viewport.Height;
+                spriteBatch.Draw(player.myRenderTarget, new Rectangle(halfwidth * (int)player.PlayerIndex, 0, halfwidth, height), Color.White);
+            }
 
-            player.Draw(GraphicsDevice);
 
+            DrawDebugInfo();
+
+            spriteBatch.End();
+
+
+            base.Draw(gameTime);
+        }
+
+        private void DrawPlayerScreen(Camera camera, RenderTarget2D renderTarget)
+        {
+            objectManager.DrawShadowMap(GraphicsDevice, players, camera);
+
+            GraphicsDevice.SetRenderTarget(renderTarget);
+            GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.DepthStencilState = DepthStencilState.None;
+            terrain.Draw(GraphicsDevice, camera);
+            GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+            objectManager.Draw(GraphicsDevice, camera);
+
+            foreach (var player in players)
+            {
+                player.Draw(GraphicsDevice, camera);
+            }
+            GraphicsDevice.SetRenderTarget(null);
+        }
+
+        private void DrawDebugInfo()
+        {
+            string debugstring = $"Seed: {terrain.seed}," +
+                $" Time: {clock.Day}:{clock.Hour}:{clock.Minute},";
 
             //spriteBatch.Draw(TextureLoader.ShadowMap, new Rectangle(32, 128, 256, 256), Color.White);
-
-
 
             List<Color> colors = [
                 Color.Pink,
@@ -151,28 +200,23 @@ namespace DeepWoods.Game
                 ];
 
             int i = 0;
-            foreach (var mouseState in RawInput.GetMouseStates())
+            foreach (var player in players)
             {
+                var mouseState = DWMouse.GetState(player.PlayerIndex);
+
                 spriteBatch.Draw(TextureLoader.MouseCursor,
                     new Rectangle(mouseState.X, mouseState.Y, TextureLoader.MouseCursor.Width * 2, TextureLoader.MouseCursor.Height * 2),
                     colors[i % 2]);
 
-                var tilePos = player.camera.GetTileAtScreenPos(mouseState.Position);
-                debugstring += $" Tile (Player {i+1}): {tilePos.X},{tilePos.Y},";
+                var tilePos = player.myCamera.GetTileAtScreenPos(mouseState.Position);
+                debugstring += $" Tile (Player {i + 1}): {tilePos.X},{tilePos.Y},";
 
                 i++;
             }
 
-            debugstring += $" FPS: {fps.FPS}, ms/f: {fps.SPF}\nShadowRect: {player.camera.ShadowRectangle}";
-
-           
+            debugstring += $" FPS: {fps.FPS}, ms/f: {fps.SPF}";
 
             textHelper.DrawStringOnScreen(spriteBatch, debugstring);
-
-
-            spriteBatch.End();
-
-            base.Draw(gameTime);
         }
     }
 }

@@ -1,5 +1,7 @@
-﻿using Microsoft.Xna.Framework;
+﻿using DeepWoods.Game;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using System;
 
 namespace DeepWoods.UI
 {
@@ -7,7 +9,18 @@ namespace DeepWoods.UI
     {
         public static KeyboardState GetState(PlayerIndex playerIndex)
         {
-            return RawInput.GetKeyboardState(playerIndex);
+            if (OperatingSystem.IsWindows() && GameState.IsMultiplayerGame)
+            {
+                return RawInput.GetKeyboardState(playerIndex);
+            }
+            else if (playerIndex == PlayerIndex.One)
+            {
+                return Keyboard.GetState();
+            }
+            else
+            {
+                return default;
+            }
         }
     }
 }

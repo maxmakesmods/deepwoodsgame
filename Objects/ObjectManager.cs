@@ -2,9 +2,11 @@
 using DeepWoods.Loaders;
 using DeepWoods.Players;
 using DeepWoods.World;
+using DeepWoods.World.Biomes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using MonoGame.Extended.Collections;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -72,6 +74,8 @@ namespace DeepWoods.Objects
 
         private void GenerateObjects(Terrain terrain)
         {
+            TemperateForestBiome biome = new TemperateForestBiome();
+
             // TODO TEMP Sprite Test
             for (int y = height - 1; y >= 0; y--)
             {
@@ -79,16 +83,22 @@ namespace DeepWoods.Objects
                 {
                     if (terrain.tiles[x, y].isOpen)
                     {
-                        if (rng.NextSingle() < 0.2f)
+                        if (rng.NextSingle() < biome.StuffDensity)
                         {
-                            var dwobj = objectTypes.Where(o => !o.name.StartsWith("tree")).OrderBy(_ => rng.Next()).FirstOrDefault();
-                            sprites.Add(new Sprite(new Vector2(x, y), new Rectangle(dwobj.x, dwobj.y, dwobj.width, dwobj.height), dwobj.standing, dwobj.glowing));
+                            SpawnRandomObject(biome.Stuff, x, y);
+                            //var dwobj = objectTypes.Where(o => !o.name.StartsWith("tree")).OrderBy(_ => rng.Next()).FirstOrDefault();
+                            //sprites.Add(new Sprite(new Vector2(x, y), new Rectangle(dwobj.x, dwobj.y, dwobj.width, dwobj.height), dwobj.standing, dwobj.glowing));
                         }
+                    }
+                    else if (HasOpenNeighbours(terrain.tiles, x, y) && rng.NextSingle() < biome.BuildingDensity)
+                    {
+                        SpawnRandomObject(biome.Buildings, x, y);
+                        //var dwobj = objectTypes.Where(o => o.name.StartsWith("tree")).OrderBy(_ => rng.Next()).FirstOrDefault();
+                        //sprites.Add(new Sprite(new Vector2(x, y), new Rectangle(dwobj.x, dwobj.y, dwobj.width, dwobj.height), dwobj.standing, dwobj.glowing));
                     }
                     else
                     {
-                        var dwobj = objectTypes.Where(o => o.name.StartsWith("tree")).OrderBy(_ => rng.Next()).FirstOrDefault();
-                        sprites.Add(new Sprite(new Vector2(x, y), new Rectangle(dwobj.x, dwobj.y, dwobj.width, dwobj.height), dwobj.standing, dwobj.glowing));
+                        SpawnRandomObject(biome.Trees, x, y);
                     }
                 }
             }
@@ -102,6 +112,34 @@ namespace DeepWoods.Objects
             SpawnObject("tree1", 7, 3);
             SpawnObject("tower", 5, 2);
             */
+        }
+
+        private bool HasOpenNeighbours(Tile[,] tiles, int x, int y)
+        {
+            if (x > 0 && tiles[x - 1, y].isOpen)
+                return true;
+
+            if (x < (tiles.GetLength(0) - 1) && tiles[x + 1, y].isOpen)
+                return true;
+
+            if (y > 0 && tiles[x, y - 1].isOpen)
+                return true;
+
+            if (y < (tiles.GetLength(1) - 1) && tiles[x, y + 1].isOpen)
+                return true;
+
+            return false;
+        }
+
+        private void SpawnRandomObject(List<string> objectList, int x, int y)
+        {
+            if (objectList.Count == 0)
+            {
+                return;
+            }
+
+            var objectName = objectList[rng.Next(objectList.Count)];
+            SpawnObject(objectName, x, y);
         }
 
         private void SpawnObject(string name, int x, int y)
@@ -130,7 +168,7 @@ namespace DeepWoods.Objects
         }
 
 
-        internal void DrawShadowMap(GraphicsDevice graphicsDevice, Player player, Camera camera)
+        internal void DrawShadowMap(GraphicsDevice graphicsDevice, List<Player> players, Camera camera)
         {
             Matrix view = camera.ShadowView;
             Matrix projection = camera.ShadowProjection;
@@ -156,7 +194,10 @@ namespace DeepWoods.Objects
             }
 
 
-            player.DrawShadow(graphicsDevice);
+            foreach (var player in players)
+            {
+                player.DrawShadow(graphicsDevice, camera);
+            }
 
 
 

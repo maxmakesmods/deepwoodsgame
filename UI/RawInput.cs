@@ -267,13 +267,13 @@ namespace DeepWoods.UI
             }
 
             return new MouseState(x, y,
-                scrollWheelValue,
+                prevState.ScrollWheelValue + scrollWheelValue,
                 GetButtonState(prevState.LeftButton, mouseData.ButtonFlags, RI_MOUSE_BUTTON_1_DOWN, RI_MOUSE_BUTTON_1_UP),
                 GetButtonState(prevState.RightButton, mouseData.ButtonFlags, RI_MOUSE_BUTTON_2_DOWN, RI_MOUSE_BUTTON_2_UP),
                 GetButtonState(prevState.MiddleButton, mouseData.ButtonFlags, RI_MOUSE_BUTTON_3_DOWN, RI_MOUSE_BUTTON_3_UP),
                 GetButtonState(prevState.XButton1, mouseData.ButtonFlags, RI_MOUSE_BUTTON_4_DOWN, RI_MOUSE_BUTTON_4_UP),
                 GetButtonState(prevState.XButton2, mouseData.ButtonFlags, RI_MOUSE_BUTTON_5_DOWN, RI_MOUSE_BUTTON_5_UP),
-                horizontalScrollWheelValue
+                 prevState.HorizontalScrollWheelValue + horizontalScrollWheelValue
             );
         }
 

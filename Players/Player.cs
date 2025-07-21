@@ -49,7 +49,8 @@ namespace DeepWoods.Players
 
         public Vector2 position;
 
-        public Camera camera;
+        public Camera myCamera;
+        public RenderTarget2D myRenderTarget;
 
         private VertexCharacterData[] vertices;
         private short[] indices;
@@ -65,7 +66,14 @@ namespace DeepWoods.Players
         {
             PlayerIndex = playerIndex;
             position = startPos;
-            camera = new Camera(graphicsDevice);
+            myCamera = new Camera(graphicsDevice);
+            myRenderTarget = new RenderTarget2D(graphicsDevice,
+                1024, 1024,
+                false,
+                SurfaceFormat.Color,
+                DepthFormat.Depth24,
+                0, RenderTargetUsage.DiscardContents, false);
+
 
             vertices = new VertexCharacterData[4];
 
@@ -156,7 +164,7 @@ namespace DeepWoods.Players
                 vertices[i].TexRect = getTexRect();
             }
 
-            camera.Update(position, DWMouse.GetState(PlayerIndex), timeDelta);
+            myCamera.Update(position, DWMouse.GetState(PlayerIndex), timeDelta);
         }
 
         private Vector2 clipVelocity(Terrain terrain, Vector2 velocity, float timeDelta)
@@ -273,12 +281,12 @@ namespace DeepWoods.Players
             return velocity;
         }
 
-        public void DrawShadow(GraphicsDevice graphicsDevice)
+        public void DrawShadow(GraphicsDevice graphicsDevice, Camera camera)
         {
             DoDraw(graphicsDevice, EffectLoader.SpriteEffect, camera.ShadowView, camera.ShadowProjection, true);
         }
 
-        public void Draw(GraphicsDevice graphicsDevice)
+        public void Draw(GraphicsDevice graphicsDevice, Camera camera)
         {
             DoDraw(graphicsDevice, EffectLoader.SpriteEffect, camera.View, camera.Projection, false);
         }
