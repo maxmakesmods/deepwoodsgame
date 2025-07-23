@@ -14,10 +14,10 @@ namespace DeepWoods.UI
             ft88RegularFont = content.Load<SpriteFont>("fonts/FT88-Regular");
         }
 
-        public void DrawStringOnScreen(SpriteBatch spriteBatch, string text)
+        public void DrawStringOnScreen(SpriteBatch spriteBatch, Vector2 position, string text)
         {
-            spriteBatch.DrawString(ft88RegularFont, text, new Vector2(22f, 22f), Color.Black);
-            spriteBatch.DrawString(ft88RegularFont, text, new Vector2(20f, 20f), Color.White);
+            spriteBatch.DrawString(ft88RegularFont, text, position + new Vector2(2f, 2f), Color.Black);
+            spriteBatch.DrawString(ft88RegularFont, text, position, Color.White);
         }
     }
 }

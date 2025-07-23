@@ -180,14 +180,29 @@ namespace DeepWoods.UI
             return default;
         }
 
-        public static MouseState GetMouseState(PlayerIndex playerIndex)
+        public static MouseState GetMouseState(PlayerIndex playerIndex, Rectangle playerViewport)
         {
             if (mouseHandles.Count > (int)playerIndex
                 && mouseStates.TryGetValue(mouseHandles[(int)playerIndex], out var value))
             {
-                return value;
+                var clampedValue = ClampMouseXY(value, playerViewport);
+                mouseStates[mouseHandles[(int)playerIndex]] = clampedValue;
+                return clampedValue;
             }
             return default;
+        }
+
+        private static MouseState ClampMouseXY(MouseState original, Rectangle playerViewport)
+        {
+            return new(Math.Clamp(original.X, playerViewport.X, playerViewport.X + playerViewport.Width - 16),
+                Math.Clamp(original.Y, playerViewport.Y, playerViewport.Y + playerViewport.Height - 16),
+                original.ScrollWheelValue,
+                original.LeftButton,
+                original.MiddleButton,
+                original.RightButton,
+                original.XButton1,
+                original.XButton2,
+                original.HorizontalScrollWheelValue);
         }
 
         internal static List<MouseState> GetMouseStates()

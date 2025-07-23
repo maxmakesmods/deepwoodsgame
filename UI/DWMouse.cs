@@ -1,4 +1,5 @@
 ﻿using DeepWoods.Game;
+using DeepWoods.Players;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using System;
@@ -7,13 +8,13 @@ namespace DeepWoods.UI
 {
     internal static class DWMouse
     {
-        public static MouseState GetState(PlayerIndex playerIndex)
+        public static MouseState GetState(Player player)
         {
             if (OperatingSystem.IsWindows() && GameState.IsMultiplayerGame)
             {
-                return RawInput.GetMouseState(playerIndex);
+                return RawInput.GetMouseState(player.PlayerIndex, player.PlayerViewport);
             }
-            else if (playerIndex == PlayerIndex.One)
+            else if (player.PlayerIndex == PlayerIndex.One)
             {
                 return Mouse.GetState();
             }

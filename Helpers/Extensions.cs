@@ -1,5 +1,6 @@
 ﻿
 using Microsoft.Xna.Framework;
+using MonoGame.Extended;
 
 namespace DeepWoods.Helpers
 {
@@ -18,6 +19,16 @@ namespace DeepWoods.Helpers
         public static Vector2 GetSizeV2(this Rectangle rect)
         {
             return new Vector2(rect.Width, rect.Height);
+        }
+
+        public static RectangleF Scale(this RectangleF rectangleF, Rectangle scaler)
+        {
+            return new(
+                rectangleF.X * scaler.Width + scaler.X,
+                rectangleF.Y * scaler.Height + scaler.Y,
+                rectangleF.Width * scaler.Width,
+                rectangleF.Height * scaler.Height
+            );
         }
 
         public static bool IsBitFlagSet(this byte value, byte flag)

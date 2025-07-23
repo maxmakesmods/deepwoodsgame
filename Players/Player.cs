@@ -1,4 +1,5 @@
 ﻿
+using DeepWoods.Helpers;
 using DeepWoods.Loaders;
 using DeepWoods.UI;
 using DeepWoods.World;
@@ -61,14 +62,20 @@ namespace DeepWoods.Players
         private int animationRow = 0;
         private float frameTimeCounter = 0f;
         public PlayerIndex PlayerIndex { get; private set; }
+        public Rectangle PlayerViewport { get; private set; }
 
-        public Player(GraphicsDevice graphicsDevice, PlayerIndex playerIndex, Vector2 startPos)
+        private readonly RectangleF relativeViewport;
+
+        public Player(GraphicsDevice graphicsDevice, PlayerIndex playerIndex, RectangleF relativeViewport, Vector2 startPos)
         {
+            this.relativeViewport = relativeViewport;
+            PlayerViewport = relativeViewport.Scale(graphicsDevice.Viewport.Bounds).ToRectangle();
+
             PlayerIndex = playerIndex;
             position = startPos;
             myCamera = new Camera(graphicsDevice);
             myRenderTarget = new RenderTarget2D(graphicsDevice,
-                1024, 1024,
+                PlayerViewport.Width, PlayerViewport.Height,
                 false,
                 SurfaceFormat.Color,
                 DepthFormat.Depth24,
@@ -126,8 +133,10 @@ namespace DeepWoods.Players
         }
 
 
-        public void Update(Terrain terrain, float timeDelta)
+        public void Update(GraphicsDevice graphicsDevice, Terrain terrain, float timeDelta)
         {
+            PlayerViewport = relativeViewport.Scale(graphicsDevice.Viewport.Bounds).ToRectangle();
+
             var oldPosition = position;
 
             // get input velocity
@@ -164,7 +173,7 @@ namespace DeepWoods.Players
                 vertices[i].TexRect = getTexRect();
             }
 
-            myCamera.Update(position, DWMouse.GetState(PlayerIndex), timeDelta);
+            myCamera.Update(position, PlayerViewport, DWMouse.GetState(this), timeDelta);
         }
 
         private Vector2 clipVelocity(Terrain terrain, Vector2 velocity, float timeDelta)
