@@ -6,99 +6,91 @@ using DeepWoods.World.Biomes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using MonoGame.Extended;
 using MonoGame.Extended.Collections;
+using MonoGame.Extended.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using static DeepWoods.World.Terrain;
 
 namespace DeepWoods.Objects
 {
     internal class ObjectManager
     {
-        private readonly  List<Sprite> sprites;
+        private enum Critter
+        {
+            CROW,
+            HEDGEHOG,
+            BEEHIVE,
+            FROG
+        }
+
         private readonly List<DWObject> objectTypes;
         private readonly Random rng;
         private readonly int width;
         private readonly int height;
 
-
-        private VertexBuffer vertexBuffer;
-        private IndexBuffer indexBuffer;
-        private DynamicVertexBuffer instanceBuffer;
-
-        private struct InstanceData : IVertexType
-        {
-            public Vector2 WorldPos;
-            public Vector4 TexRect;
-            public float IsStanding;
-            public float IsGlowing;
-
-            public static readonly VertexDeclaration vertexDeclaration = new(
-                new VertexElement(0, VertexElementFormat.Vector2, VertexElementUsage.TextureCoordinate, 1),
-                new VertexElement(8, VertexElementFormat.Vector4, VertexElementUsage.TextureCoordinate, 2),
-                new VertexElement(24, VertexElementFormat.Single, VertexElementUsage.TextureCoordinate, 3),
-                new VertexElement(28, VertexElementFormat.Single, VertexElementUsage.TextureCoordinate, 4)
-            );
-
-            public readonly VertexDeclaration VertexDeclaration => vertexDeclaration;
-        }
+        private InstancedObjects instancedObjects;
+        private InstancedObjects instancedCritters;
 
         public ObjectManager(ContentManager content, GraphicsDevice graphicsDevice, int seed, int width, int height, Terrain terrain)
         {
             rng = new Random(seed);
             objectTypes = content.Load<List<DWObject>>("objects/objects");
-            sprites = new List<Sprite>();
 
             this.width = width;
             this.height = height;
 
-            CreateBasicBuffers(graphicsDevice);
-            GenerateObjects(terrain);
+            TemperateForestBiome biome = new TemperateForestBiome();
 
 
-            InstanceData[] instances = new InstanceData[sprites.Count];
-            for (int i = 0; i < sprites.Count; i++)
-            {
-                instances[i] = new InstanceData()
-                {
-                    WorldPos = sprites[i].WorldPos,
-                    TexRect = new(sprites[i].TexRect.X, sprites[i].TexRect.Y, sprites[i].TexRect.Width, sprites[i].TexRect.Height),
-                    IsStanding = sprites[i].IsStanding ? 1f : 0f,
-                    IsGlowing = sprites[i].IsGlowing ? 1f : 0f
-                };
-            }
+            List<Sprite> objects = new List<Sprite>();
+            List<Sprite> critters = new List<Sprite>();
 
-            instanceBuffer = new(graphicsDevice, InstanceData.vertexDeclaration, instances.Length, BufferUsage.WriteOnly);
-            instanceBuffer.SetData(instances);
+            GenerateObjects(biome, terrain, objects, critters);
+
+            instancedObjects = new InstancedObjects(graphicsDevice, objects, TextureLoader.ObjectsTexture);
+            instancedCritters = new InstancedObjects(graphicsDevice, critters, TextureLoader.Critters);
         }
 
-        private void GenerateObjects(Terrain terrain)
+        private void GenerateObjects(IBiome biome, Terrain terrain, List<Sprite> objects, List<Sprite> critters)
         {
-            TemperateForestBiome biome = new TemperateForestBiome();
+            var critterIDs = new List<Critter>(Enum.GetValues<Critter>());
 
             // TODO TEMP Sprite Test
             for (int y = height - 1; y >= 0; y--)
             {
                 for (int x = 0; x < width; x++)
                 {
-                    if (terrain.tiles[x, y].isOpen)
+                    if (terrain.CanSpawnCritter(x, y) && rng.NextSingle() < biome.StuffDensity)
                     {
-                        if (rng.NextSingle() < biome.StuffDensity)
+                        Critter critter = critterIDs[rng.Next(critterIDs.Count)];
+                        critters.Add(new Sprite(new Vector2(x, y), new Rectangle(32 * (int)critter, 0, 32, 32), true, false, 8, 32, 4));
+                    }
+                    else if (terrain.CanSpawnStuff(x, y) && rng.NextSingle() < biome.StuffDensity)
+                    {
+                        var o = SpawnRandomObject(biome.Stuff, x, y);
+                        if (o != null)
                         {
-                            SpawnRandomObject(biome.Stuff, x, y);
-                            //var dwobj = objectTypes.Where(o => !o.name.StartsWith("tree")).OrderBy(_ => rng.Next()).FirstOrDefault();
-                            //sprites.Add(new Sprite(new Vector2(x, y), new Rectangle(dwobj.x, dwobj.y, dwobj.width, dwobj.height), dwobj.standing, dwobj.glowing));
+                            objects.Add(o);
                         }
                     }
-                    else if (HasOpenNeighbours(terrain.tiles, x, y) && rng.NextSingle() < biome.BuildingDensity)
+                    else if (terrain.CanSpawnBuilding(x, y) && rng.NextSingle() < biome.BuildingDensity)
                     {
-                        SpawnRandomObject(biome.Buildings, x, y);
-                        //var dwobj = objectTypes.Where(o => o.name.StartsWith("tree")).OrderBy(_ => rng.Next()).FirstOrDefault();
-                        //sprites.Add(new Sprite(new Vector2(x, y), new Rectangle(dwobj.x, dwobj.y, dwobj.width, dwobj.height), dwobj.standing, dwobj.glowing));
+                        var o = SpawnRandomObject(biome.Buildings, x, y);
+                        if (o != null)
+                        {
+                            objects.Add(o);
+                        }
                     }
-                    else
+                    else if (terrain.CanSpawnTree(x, y))
                     {
-                        SpawnRandomObject(biome.Trees, x, y);
+                        var o = SpawnRandomObject(biome.Trees, x, y);
+                        if (o != null)
+                        {
+                            objects.Add(o);
+                        }
                     }
                 }
             }
@@ -114,57 +106,24 @@ namespace DeepWoods.Objects
             */
         }
 
-        private bool HasOpenNeighbours(Tile[,] tiles, int x, int y)
-        {
-            if (x > 0 && tiles[x - 1, y].isOpen)
-                return true;
-
-            if (x < (tiles.GetLength(0) - 1) && tiles[x + 1, y].isOpen)
-                return true;
-
-            if (y > 0 && tiles[x, y - 1].isOpen)
-                return true;
-
-            if (y < (tiles.GetLength(1) - 1) && tiles[x, y + 1].isOpen)
-                return true;
-
-            return false;
-        }
-
-        private void SpawnRandomObject(List<string> objectList, int x, int y)
+        private Sprite SpawnRandomObject(List<string> objectList, int x, int y)
         {
             if (objectList.Count == 0)
             {
-                return;
+                return null;
             }
-
             var objectName = objectList[rng.Next(objectList.Count)];
-            SpawnObject(objectName, x, y);
+            return SpawnObject(objectName, x, y);
         }
 
-        private void SpawnObject(string name, int x, int y)
+        private Sprite SpawnObject(string name, int x, int y)
         {
             var dwobj = objectTypes.Where(o => o.name == name).FirstOrDefault();
-            if (dwobj != null)
+            if (dwobj == null)
             {
-                sprites.Add(new Sprite(new Vector2(x, y), new Rectangle(dwobj.x, dwobj.y, dwobj.width, dwobj.height), dwobj.standing, dwobj.glowing));
+                return null;
             }
-        }
-
-        private void CreateBasicBuffers(GraphicsDevice graphicsDevice)
-        {
-            VertexPositionTexture[] vertices = new VertexPositionTexture[4];
-            vertices[0] = new VertexPositionTexture(new Vector3(0, 0, 0), new Vector2(0, 1));
-            vertices[1] = new VertexPositionTexture(new Vector3(0, 1, 0), new Vector2(0, 0));
-            vertices[2] = new VertexPositionTexture(new Vector3(1, 1, 0), new Vector2(1, 0));
-            vertices[3] = new VertexPositionTexture(new Vector3(1, 0, 0), new Vector2(1, 1));
-
-            ushort[] indices = [0, 1, 2, 0, 2, 3];
-
-            vertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionTexture), 4, BufferUsage.WriteOnly);
-            vertexBuffer.SetData(vertices);
-            indexBuffer = new IndexBuffer(graphicsDevice, IndexElementSize.SixteenBits, 6, BufferUsage.WriteOnly);
-            indexBuffer.SetData(indices);
+            return new Sprite(new Vector2(x, y), new Rectangle(dwobj.x, dwobj.y, dwobj.width, dwobj.height), dwobj.standing, dwobj.glowing);
         }
 
 
@@ -177,29 +136,19 @@ namespace DeepWoods.Objects
             graphicsDevice.Clear(Color.Black);
             graphicsDevice.DepthStencilState = DepthStencilState.Default;
 
-
-
-            graphicsDevice.SetVertexBuffers(new VertexBufferBinding(vertexBuffer, 0, 0), new VertexBufferBinding(instanceBuffer, 0, 1));
-            graphicsDevice.Indices = indexBuffer;
-            EffectLoader.SpriteEffect.Parameters["ObjectTextureSize"].SetValue(new Vector2(TextureLoader.ObjectsTexture.Width, TextureLoader.ObjectsTexture.Height));
             EffectLoader.SpriteEffect.Parameters["CellSize"].SetValue(Terrain.CellSize);
             EffectLoader.SpriteEffect.Parameters["ViewProjection"].SetValue(view * projection);
-            EffectLoader.SpriteEffect.Parameters["SpriteTexture"].SetValue(TextureLoader.ObjectsTexture);
             EffectLoader.SpriteEffect.Parameters["IsShadow"].SetValue(1);
-            graphicsDevice.DepthStencilState = DepthStencilState.Default;
-            foreach (EffectPass pass in EffectLoader.SpriteEffect.CurrentTechnique.Passes)
-            {
-                pass.Apply();
-                graphicsDevice.DrawInstancedPrimitives(PrimitiveType.TriangleList, 0, 0, 2, sprites.Count);
-            }
+
+
+            instancedObjects.Draw(graphicsDevice);
+            instancedCritters.Draw(graphicsDevice);
 
 
             foreach (var player in players)
             {
                 player.DrawShadow(graphicsDevice, camera);
             }
-
-
 
             graphicsDevice.SetRenderTarget(null);
         }
@@ -212,28 +161,15 @@ namespace DeepWoods.Objects
 
             var spriteEffect = EffectLoader.SpriteEffect;
 
-            graphicsDevice.SetVertexBuffers(
-                new VertexBufferBinding(vertexBuffer, 0, 0),
-                new VertexBufferBinding(instanceBuffer, 0, 1));
-            graphicsDevice.Indices = indexBuffer;
-
-            spriteEffect.Parameters["ObjectTextureSize"].SetValue(new Vector2(TextureLoader.ObjectsTexture.Width, TextureLoader.ObjectsTexture.Height));
             spriteEffect.Parameters["CellSize"].SetValue(Terrain.CellSize);
             spriteEffect.Parameters["ViewProjection"].SetValue(view * projection);
-            spriteEffect.Parameters["SpriteTexture"].SetValue(TextureLoader.ObjectsTexture);
             spriteEffect.Parameters["IsShadow"].SetValue(0);
-
             spriteEffect.Parameters["ShadowMap"].SetValue(TextureLoader.ShadowMap);
             spriteEffect.Parameters["ShadowMapBounds"].SetValue(camera.ShadowRectangle.GetBoundsV4());
             spriteEffect.Parameters["ShadowMapTileSize"].SetValue(camera.ShadowRectangle.GetSizeV2());
 
-            foreach (EffectPass pass in spriteEffect.CurrentTechnique.Passes)
-            {
-                pass.Apply();
-                graphicsDevice.DrawInstancedPrimitives(PrimitiveType.TriangleList, 0, 0, 2, sprites.Count);
-            }
-
-
+            instancedObjects.Draw(graphicsDevice);
+            instancedCritters.Draw(graphicsDevice);
         }
     }
 }

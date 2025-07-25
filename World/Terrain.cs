@@ -209,5 +209,46 @@ namespace DeepWoods.World
             EffectLoader.GroundEffect.Parameters["BlurHalfSize"].SetValue(DitherSize);
             EffectLoader.GroundEffect.Parameters["TerrainGridTexture"].SetValue(terrainGridTexture);
         }
+
+        private bool HasOpenNeighbours(int x, int y)
+        {
+            if (x > 0 && tiles[x - 1, y].isOpen)
+                return true;
+
+            if (x < (tiles.GetLength(0) - 1) && tiles[x + 1, y].isOpen)
+                return true;
+
+            if (y > 0 && tiles[x, y - 1].isOpen)
+                return true;
+
+            if (y < (tiles.GetLength(1) - 1) && tiles[x, y + 1].isOpen)
+                return true;
+
+            return false;
+        }
+
+        internal bool CanSpawnBuilding(int x, int y)
+        {
+            if (tiles[x, y].isOpen)
+                return false;
+
+            return HasOpenNeighbours(x, y);
+        }
+
+        internal bool CanSpawnStuff(int x, int y)
+        {
+            return tiles[x, y].isOpen;
+        }
+
+        internal bool CanSpawnTree(int x, int y)
+        {
+            return !tiles[x, y].isOpen;
+        }
+
+        internal bool CanSpawnCritter(int x, int y)
+        {
+            // TODO: We need to check where stuff is!
+            return CanSpawnBuilding(x, y);
+        }
     }
 }

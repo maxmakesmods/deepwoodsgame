@@ -189,7 +189,7 @@ namespace DeepWoods.UI
                 mouseStates[mouseHandles[(int)playerIndex]] = clampedValue;
                 return clampedValue;
             }
-            return default;
+            return ClampMouseXY(default, playerViewport);
         }
 
         private static MouseState ClampMouseXY(MouseState original, Rectangle playerViewport)

@@ -11,7 +11,8 @@ namespace DeepWoods.Loaders
         public static Texture2D ObjectsTexture { get; private set; }
         public static Texture2D MouseCursor { get; private set; }
         public static Texture2D CharacterTileSet { get; private set; }
-        
+        public static Texture2D Critters { get; private set; }
+
 
         public static RenderTarget2D ShadowMap { get; private set; }
 
@@ -22,6 +23,7 @@ namespace DeepWoods.Loaders
             ObjectsTexture = content.Load<Texture2D>("objects/objects_tileset");
             MouseCursor = content.Load<Texture2D>("icons/cursor");
             CharacterTileSet = content.Load<Texture2D>("characters/temp_character");
+            Critters = content.Load<Texture2D>("characters/critters");
 
             ShadowMap = new RenderTarget2D(graphicsDevice,
                 1024, 1024,

@@ -15,7 +15,7 @@ namespace DeepWoods.Game
     {
         private GraphicsDeviceManager _graphics;
 
-        private int gridSize = 128;
+        private int gridSize = 32;
         private int numPatches = 10;
 
         private Terrain terrain;
@@ -68,8 +68,8 @@ namespace DeepWoods.Game
             renderer = new DWRenderer(GraphicsDevice, Content);
 
             clock = new InGameClock();
-            clock.TimeScale = 120;
-            clock.SetTime(1, 10, 0);
+            clock.TimeScale = 0;
+            clock.SetTime(1, 12, 0);
 
 
             terrain = new Terrain(GraphicsDevice, rng.Next(), gridSize, gridSize, numPatches);
@@ -78,7 +78,7 @@ namespace DeepWoods.Game
             lightManager = new LightManager(rng.Next(), gridSize, gridSize);
             objectManager = new ObjectManager(Content, GraphicsDevice, rng.Next(), gridSize, gridSize, terrain);
 
-            int numPlayers = 4;
+            int numPlayers = 1;
             playerManager.SpawnPlayers(GraphicsDevice, terrain, numPlayers);
         }
 
@@ -92,6 +92,11 @@ namespace DeepWoods.Game
                 if (!wasESCPressed)
                 {
                     isGamePaused = !isGamePaused;
+                    if (isGamePaused)
+                    {
+                        MouseState ms = DWMouse.GetState(playerManager.Players[0]);
+                        Mouse.SetPosition(ms.X, ms.Y);
+                    }
                 }
                 wasESCPressed = true;
             }
@@ -109,6 +114,10 @@ namespace DeepWoods.Game
             {
                 IsMouseVisible = true;
             }
+
+            EffectLoader.SpriteEffect.Parameters["GlobalTime"].SetValue((float)gameTime.TotalGameTime.TotalSeconds);
+            //EffectLoader.GroundEffect.Parameters["GlobalTime"].SetValue(1);
+            //EffectLoader.SpriteEffect.Parameters["GlobalTime"].SetValue(0f);
 
             double deltaTime = gameTime.ElapsedGameTime.TotalSeconds;
 

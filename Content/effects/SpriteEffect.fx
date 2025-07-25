@@ -24,6 +24,8 @@ float CellSize;
 float4 ShadowMapBounds;
 float2 ShadowMapTileSize;
 
+float GlobalTime;
+
 sampler2D SpriteTextureSampler = sampler_state
 {
     Texture = <SpriteTexture>;
@@ -53,6 +55,7 @@ struct VertexShaderInput
     float4 TexRect : TEXCOORD2;
     float IsStanding : TEXCOORD3;
     float IsGlowing : TEXCOORD4;
+    float3 AnimationData : TEXCOORD5;
 };
 
 struct VertexShaderOutput
@@ -95,8 +98,15 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
         world = mul(rotation, translation);
     }
 
+    int animFrame = 0;
+    if (input.AnimationData.x > 0)
+    {
+        animFrame = int(fmod(input.AnimationData.z * GlobalTime, max(input.AnimationData.x, 1)));
+    }
+    float animY = input.TexRect.y + animFrame * input.AnimationData.y;
+
     float tex_x = input.TexRect.x / ObjectTextureSize.x;
-    float tex_y = input.TexRect.y / ObjectTextureSize.y;
+    float tex_y = animY / ObjectTextureSize.y;
     float tex_width = input.TexRect.z / ObjectTextureSize.x;
     float tex_height = input.TexRect.w / ObjectTextureSize.y;
 
