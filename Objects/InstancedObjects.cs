@@ -1,10 +1,7 @@
 ﻿using DeepWoods.Loaders;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MonoGame.Extended.Graphics;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace DeepWoods.Objects
 {
@@ -23,13 +20,15 @@ namespace DeepWoods.Objects
             public float IsStanding;
             public float IsGlowing;
             public Vector3 AnimationData;
+            public float IsHidden;
 
             public static readonly VertexDeclaration vertexDeclaration = new(
                 new VertexElement(0, VertexElementFormat.Vector2, VertexElementUsage.TextureCoordinate, 1),
                 new VertexElement(8, VertexElementFormat.Vector4, VertexElementUsage.TextureCoordinate, 2),
                 new VertexElement(24, VertexElementFormat.Single, VertexElementUsage.TextureCoordinate, 3),
                 new VertexElement(28, VertexElementFormat.Single, VertexElementUsage.TextureCoordinate, 4),
-                new VertexElement(32, VertexElementFormat.Vector3, VertexElementUsage.TextureCoordinate, 5)
+                new VertexElement(32, VertexElementFormat.Vector3, VertexElementUsage.TextureCoordinate, 5),
+                new VertexElement(44, VertexElementFormat.Single, VertexElementUsage.TextureCoordinate, 6)
             );
 
             public readonly VertexDeclaration VertexDeclaration => vertexDeclaration;
@@ -53,7 +52,8 @@ namespace DeepWoods.Objects
                     TexRect = new(sprites[i].TexRect.X, sprites[i].TexRect.Y, sprites[i].TexRect.Width, sprites[i].TexRect.Height),
                     IsStanding = sprites[i].IsStanding ? 1f : 0f,
                     IsGlowing = sprites[i].IsGlowing ? 1f : 0f,
-                    AnimationData = new(sprites[i].AnimationFrames, sprites[i].AnimationFrameOffset, sprites[i].AnimationFPS)
+                    AnimationData = new(sprites[i].AnimationFrames, sprites[i].AnimationFrameOffset, sprites[i].AnimationFPS),
+                    IsHidden = 0f
                 };
             }
             instanceBuffer = new(graphicsDevice, InstanceData.vertexDeclaration, instances.Length, BufferUsage.WriteOnly);
@@ -87,6 +87,12 @@ namespace DeepWoods.Objects
                 pass.Apply();
                 graphicsDevice.DrawInstancedPrimitives(PrimitiveType.TriangleList, 0, 0, 2, instances.Length);
             }
+        }
+
+        public void HideInstance(int index)
+        {
+            instances[index].IsHidden = 1f;
+            instanceBuffer.SetData(instances);
         }
     }
 }

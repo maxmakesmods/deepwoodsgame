@@ -122,7 +122,7 @@ namespace DeepWoods.Game
             double deltaTime = gameTime.ElapsedGameTime.TotalSeconds;
 
             fps.CountFrame(deltaTime);
-            playerManager.Update(GraphicsDevice, terrain, (float)deltaTime);
+            playerManager.Update(GraphicsDevice, objectManager,terrain, (float)deltaTime);
             clock.Update(deltaTime);
             base.Update(gameTime);
         }

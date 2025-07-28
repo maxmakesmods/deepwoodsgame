@@ -6,13 +6,9 @@ using DeepWoods.World.Biomes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
-using MonoGame.Extended;
-using MonoGame.Extended.Collections;
-using MonoGame.Extended.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using static DeepWoods.World.Terrain;
 
 namespace DeepWoods.Objects
 {
@@ -31,8 +27,12 @@ namespace DeepWoods.Objects
         private readonly int width;
         private readonly int height;
 
-        private InstancedObjects instancedObjects;
-        private InstancedObjects instancedCritters;
+        private readonly InstancedObjects instancedObjects;
+        private readonly InstancedObjects instancedCritters;
+
+        private readonly List<Sprite> objects = [];
+        private readonly List<Sprite> critters = [];
+        private readonly Dictionary<(int, int), int> objectIndices = [];
 
         public ObjectManager(ContentManager content, GraphicsDevice graphicsDevice, int seed, int width, int height, Terrain terrain)
         {
@@ -44,9 +44,6 @@ namespace DeepWoods.Objects
 
             TemperateForestBiome biome = new TemperateForestBiome();
 
-
-            List<Sprite> objects = new List<Sprite>();
-            List<Sprite> critters = new List<Sprite>();
 
             GenerateObjects(biome, terrain, objects, critters);
 
@@ -73,6 +70,7 @@ namespace DeepWoods.Objects
                         var o = SpawnRandomObject(biome.Stuff, x, y);
                         if (o != null)
                         {
+                            objectIndices.Add((x, y), objects.Count);
                             objects.Add(o);
                         }
                     }
@@ -81,6 +79,7 @@ namespace DeepWoods.Objects
                         var o = SpawnRandomObject(biome.Buildings, x, y);
                         if (o != null)
                         {
+                            objectIndices.Add((x, y), objects.Count);
                             objects.Add(o);
                         }
                     }
@@ -89,6 +88,7 @@ namespace DeepWoods.Objects
                         var o = SpawnRandomObject(biome.Trees, x, y);
                         if (o != null)
                         {
+                            objectIndices.Add((x, y), objects.Count);
                             objects.Add(o);
                         }
                     }
@@ -170,6 +170,23 @@ namespace DeepWoods.Objects
 
             instancedObjects.Draw(graphicsDevice);
             instancedCritters.Draw(graphicsDevice);
+        }
+
+        internal Sprite GetObject(Terrain terrain, int x, int y)
+        {
+            if (terrain.IsTreeTile(x, y))
+            {
+                return null;
+            }
+
+            if (objectIndices.TryGetValue((x,y), out var index))
+            {
+                instancedObjects.HideInstance(index);
+                objectIndices.Remove((x, y));
+                return objects[index];
+            }
+
+            return null;
         }
     }
 }

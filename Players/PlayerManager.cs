@@ -1,4 +1,5 @@
-﻿using DeepWoods.World;
+﻿using DeepWoods.Objects;
+using DeepWoods.World;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended;
@@ -42,11 +43,11 @@ namespace DeepWoods.Players
             }
         }
 
-        internal void Update(GraphicsDevice graphicsDevice, Terrain terrain, float deltaTime)
+        internal void Update(GraphicsDevice graphicsDevice, ObjectManager objectManager, Terrain terrain, float deltaTime)
         {
             foreach (var player in players)
             {
-                player.Update(graphicsDevice, terrain, (float)deltaTime);
+                player.Update(graphicsDevice, objectManager, terrain, (float)deltaTime);
             }
         }
     }

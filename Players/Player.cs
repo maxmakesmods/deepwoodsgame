@@ -1,6 +1,7 @@
 ﻿
 using DeepWoods.Helpers;
 using DeepWoods.Loaders;
+using DeepWoods.Objects;
 using DeepWoods.UI;
 using DeepWoods.World;
 using Microsoft.Xna.Framework;
@@ -65,6 +66,9 @@ namespace DeepWoods.Players
         public Rectangle PlayerViewport { get; private set; }
 
         private readonly RectangleF relativeViewport;
+        private KeyboardState previousKeyboardState;
+
+        private readonly Inventory inventory;
 
         public Player(GraphicsDevice graphicsDevice, PlayerIndex playerIndex, RectangleF relativeViewport, Vector2 startPos)
         {
@@ -74,13 +78,10 @@ namespace DeepWoods.Players
             PlayerIndex = playerIndex;
             position = startPos;
             myCamera = new Camera(graphicsDevice);
-            myRenderTarget = new RenderTarget2D(graphicsDevice,
-                PlayerViewport.Width, PlayerViewport.Height,
-                false,
-                SurfaceFormat.Color,
-                DepthFormat.Depth24,
-                0, RenderTargetUsage.DiscardContents, false);
 
+            inventory = new Inventory(graphicsDevice);
+
+            RecreateRenderTarget(graphicsDevice);
 
             vertices = new VertexCharacterData[4];
 
@@ -127,26 +128,42 @@ namespace DeepWoods.Players
             indices = [0, 1, 2, 0, 2, 3];
         }
 
+        private void RecreateRenderTarget(GraphicsDevice graphicsDevice)
+        {
+            myRenderTarget?.Dispose();
+            myRenderTarget = new RenderTarget2D(graphicsDevice,
+                PlayerViewport.Width, PlayerViewport.Height,
+                false,
+                SurfaceFormat.Color,
+                DepthFormat.Depth24,
+                0, RenderTargetUsage.DiscardContents, false);
+        }
+
         private Vector4 getTexRect()
         {
             return new Vector4(16 + animationFrame * 64, 16 + animationRow * 64, 32, 32);
         }
 
 
-        public void Update(GraphicsDevice graphicsDevice, Terrain terrain, float timeDelta)
+        public void Update(GraphicsDevice graphicsDevice, ObjectManager objectManager, Terrain terrain, float timeDelta)
         {
-            PlayerViewport = relativeViewport.Scale(graphicsDevice.Viewport.Bounds).ToRectangle();
+            var keyboardState = DWKeyboard.GetState(PlayerIndex);
 
-            var oldPosition = position;
+            PlayerViewport = relativeViewport.Scale(graphicsDevice.Viewport.Bounds).ToRectangle();
+            if (PlayerViewport.Width != myRenderTarget.Width
+                || PlayerViewport.Height != myRenderTarget.Height)
+            {
+                RecreateRenderTarget(graphicsDevice);
+            }
 
             // get input velocity
-            Vector2 velocity = getVelocity();
+            Vector2 velocity = GetVelocity(keyboardState);
 
             // run animation based on velocity
-            animationRow = getAnimationRow(velocity);
+            animationRow = GetAnimationRow(velocity);
             if (velocity != Vector2.Zero)
             {
-                if (DWKeyboard.GetState(PlayerIndex).IsKeyDown(Keys.LeftShift))
+                if (keyboardState.IsKeyDown(Keys.LeftShift))
                 {
                     frameTimeCounter += timeDelta * 2f;
                 }
@@ -162,7 +179,7 @@ namespace DeepWoods.Players
             }
 
             // clip velocity against terrain
-            velocity = clipVelocity(terrain, velocity, timeDelta);
+            velocity = ClipVelocity(terrain, velocity, timeDelta);
 
             // apply velocity
             position += velocity * timeDelta;
@@ -174,9 +191,27 @@ namespace DeepWoods.Players
             }
 
             myCamera.Update(position, PlayerViewport, DWMouse.GetState(this), timeDelta);
+
+
+
+            if (keyboardState.IsKeyDown(Keys.E) && !previousKeyboardState.IsKeyDown(Keys.E))
+            {
+                int currentTileX = (int)position.X;
+                int currentTileY = (int)position.Y;
+
+                var sprite = objectManager.GetObject(terrain, currentTileX, currentTileY);
+                if (sprite != null)
+                {
+                    inventory.objects.Add(sprite);
+                }
+            }
+
+
+
+            previousKeyboardState = keyboardState;
         }
 
-        private Vector2 clipVelocity(Terrain terrain, Vector2 velocity, float timeDelta)
+        private Vector2 ClipVelocity(Terrain terrain, Vector2 velocity, float timeDelta)
         {
             Vector2 nextPosition = position + velocity * timeDelta;
 
@@ -193,7 +228,7 @@ namespace DeepWoods.Players
                         int checkX = currentTileX + x;
                         int checkY = currentTileY + y;
 
-                        if (!terrain.tiles[checkX, checkY].isOpen)
+                        if (!terrain.CanWalkHere(checkX, checkY))
                         {
                             RectangleF tileRectangle = new RectangleF(checkX, checkY, 0.9f, 0.9f);
                             if (nextRectangleX.Intersects(tileRectangle))
@@ -215,7 +250,7 @@ namespace DeepWoods.Players
                         int checkX = currentTileX + x;
                         int checkY = currentTileY + y;
 
-                        if (!terrain.tiles[checkX, checkY].isOpen)
+                        if (!terrain.CanWalkHere(checkX, checkY))
                         {
                             RectangleF tileRectangle = new RectangleF(checkX, checkY, 0.9f, 0.9f);
                             if (nextRectangleY.Intersects(tileRectangle))
@@ -231,7 +266,7 @@ namespace DeepWoods.Players
             return velocity;
         }
 
-        private int getAnimationRow(Vector2 velocity)
+        private int GetAnimationRow(Vector2 velocity)
         {
             if (velocity.X < 0)
             {
@@ -277,10 +312,8 @@ namespace DeepWoods.Players
             }
         }
 
-        private Vector2 getVelocity()
+        private Vector2 GetVelocity(KeyboardState keyboardState)
         {
-            var keyboardState = DWKeyboard.GetState(PlayerIndex);
-
             Vector2 velocity = Vector2.Zero;
             if (keyboardState.IsKeyDown(Keys.W)) velocity.Y += WalkSpeed;
             if (keyboardState.IsKeyDown(Keys.S)) velocity.Y -= WalkSpeed;
@@ -313,6 +346,11 @@ namespace DeepWoods.Players
                 pass.Apply();
                 graphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, vertices, 0, 4, indices, 0, 2);
             }
+        }
+
+        public void DrawUI(GraphicsDevice graphicsDevice, SpriteBatch spriteBatch)
+        {
+            inventory.DrawUI(graphicsDevice, spriteBatch);
         }
     }
 }

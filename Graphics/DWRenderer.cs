@@ -33,10 +33,10 @@ namespace DeepWoods.Graphics
         {
             foreach (var player in playerManager.Players)
             {
-                DrawPlayerScreen(graphicsDevice, terrain, objectManager, playerManager.Players, player.myCamera, player.myRenderTarget);
+                DrawPlayerScreen(player, graphicsDevice, terrain, objectManager, playerManager.Players);
             }
 
-            spriteBatch.Begin();
+            spriteBatch.Begin(samplerState: SamplerState.PointClamp);
 
             graphicsDevice.Clear(Color.CornflowerBlue);
             foreach (var player in playerManager.Players)
@@ -50,21 +50,26 @@ namespace DeepWoods.Graphics
             spriteBatch.End();
         }
 
-        private void DrawPlayerScreen(GraphicsDevice graphicsDevice, Terrain terrain, ObjectManager objectManager, List<Player> players, Camera camera, RenderTarget2D renderTarget)
+        private void DrawPlayerScreen(Player player, GraphicsDevice graphicsDevice, Terrain terrain, ObjectManager objectManager, List<Player> players)
         {
-            objectManager.DrawShadowMap(graphicsDevice, players, camera);
+            objectManager.DrawShadowMap(graphicsDevice, players, player.myCamera);
 
-            graphicsDevice.SetRenderTarget(renderTarget);
+            graphicsDevice.SetRenderTarget(player.myRenderTarget);
             graphicsDevice.Clear(Color.CornflowerBlue);
             graphicsDevice.DepthStencilState = DepthStencilState.None;
-            terrain.Draw(graphicsDevice, camera);
+            terrain.Draw(graphicsDevice, player.myCamera);
             graphicsDevice.DepthStencilState = DepthStencilState.Default;
-            objectManager.Draw(graphicsDevice, camera);
+            objectManager.Draw(graphicsDevice, player.myCamera);
 
-            foreach (var player in players)
+            foreach (var pl in players)
             {
-                player.Draw(graphicsDevice, camera);
+                pl.Draw(graphicsDevice, player.myCamera);
             }
+
+            spriteBatch.Begin(samplerState: SamplerState.PointClamp);
+            player.DrawUI(graphicsDevice, spriteBatch);
+            spriteBatch.End();
+
             graphicsDevice.SetRenderTarget(null);
         }
 

@@ -56,6 +56,7 @@ struct VertexShaderInput
     float IsStanding : TEXCOORD3;
     float IsGlowing : TEXCOORD4;
     float3 AnimationData : TEXCOORD5;
+    float IsHidden : TEXCOORD6;
 };
 
 struct VertexShaderOutput
@@ -65,6 +66,7 @@ struct VertexShaderOutput
     float2 WorldPos : TEXCOORD1;
     float IsGlowing : TEXCOORD2;
     float RowIndex : TEXCOORD3;
+    float IsHidden : TEXCOORD4;
 };
 
 VertexShaderOutput MainVS(in VertexShaderInput input)
@@ -138,6 +140,9 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
     output.WorldPos = mul(adjustedPos, world).xy;
     output.IsGlowing = input.IsGlowing;
     output.RowIndex = rowIndex;
+    output.IsHidden = input.IsHidden;
+    
+    output.Position = output.Position * (1.0 - input.IsHidden);
 
 	return output;
 }
@@ -191,6 +196,8 @@ float3 applyShadows(float2 pos, float rowIndex, float3 color)
 
 float4 MainPS(VertexShaderOutput input) : COLOR
 {
+    clip(-input.IsHidden);
+    
     float4 color = tex2D(SpriteTextureSampler, input.TexCoord);
     clip(-step(color.a, 0.1));
     if (IsShadow)

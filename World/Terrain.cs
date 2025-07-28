@@ -210,6 +210,11 @@ namespace DeepWoods.World
             EffectLoader.GroundEffect.Parameters["TerrainGridTexture"].SetValue(terrainGridTexture);
         }
 
+        private bool IsInsideGrid(int x, int y)
+        {
+            return x >= 0 && x < width && y >= 0 && y < height;
+        }
+
         private bool HasOpenNeighbours(int x, int y)
         {
             if (x > 0 && tiles[x - 1, y].isOpen)
@@ -221,14 +226,17 @@ namespace DeepWoods.World
             if (y > 0 && tiles[x, y - 1].isOpen)
                 return true;
 
-            if (y < (tiles.GetLength(1) - 1) && tiles[x, y + 1].isOpen)
-                return true;
+            //if (y < (tiles.GetLength(1) - 1) && tiles[x, y + 1].isOpen)
+            //    return true;
 
             return false;
         }
 
         internal bool CanSpawnBuilding(int x, int y)
         {
+            if (!IsInsideGrid(x, y))
+                return false;
+
             if (tiles[x, y].isOpen)
                 return false;
 
@@ -237,18 +245,47 @@ namespace DeepWoods.World
 
         internal bool CanSpawnStuff(int x, int y)
         {
+            if (!IsInsideGrid(x, y))
+                return false;
+
             return tiles[x, y].isOpen;
         }
 
         internal bool CanSpawnTree(int x, int y)
         {
+            if (!IsInsideGrid(x, y))
+                return false;
+
             return !tiles[x, y].isOpen;
         }
 
         internal bool CanSpawnCritter(int x, int y)
         {
+            if (!IsInsideGrid(x, y))
+                return false;
+
             // TODO: We need to check where stuff is!
             return CanSpawnBuilding(x, y);
+        }
+
+        internal bool CanWalkHere(int x, int y)
+        {
+            if (!IsInsideGrid(x, y))
+                return false;
+
+            if (!tiles[x, y].isOpen)
+                return false;
+
+            // TODO: Detect objects!
+            return true;
+        }
+
+        internal bool IsTreeTile(int x, int y)
+        {
+            if (!IsInsideGrid(x, y))
+                return false;
+
+            return !tiles[x, y].isOpen;
         }
     }
 }
