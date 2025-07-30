@@ -67,7 +67,7 @@ namespace DeepWoods.Graphics
             }
 
             spriteBatch.Begin(samplerState: SamplerState.PointClamp);
-            player.DrawUI(graphicsDevice, spriteBatch);
+            player.DrawUI(graphicsDevice, textHelper, spriteBatch);
             spriteBatch.End();
 
             graphicsDevice.SetRenderTarget(null);

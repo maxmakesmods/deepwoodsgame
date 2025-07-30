@@ -34,14 +34,14 @@ namespace DeepWoods.Objects
             public readonly VertexDeclaration VertexDeclaration => vertexDeclaration;
         }
 
-        public InstancedObjects(GraphicsDevice graphicsDevice, List<Sprite> sprites, Texture2D texture)
+        public InstancedObjects(GraphicsDevice graphicsDevice, List<DWObject> sprites, Texture2D texture)
         {
             this.texture = texture;
             CreateBasicBuffers(graphicsDevice);
             CreateInstanceBuffer(graphicsDevice, sprites);
         }
 
-        private void CreateInstanceBuffer(GraphicsDevice graphicsDevice, List<Sprite> sprites)
+        private void CreateInstanceBuffer(GraphicsDevice graphicsDevice, List<DWObject> sprites)
         {
             instances = new InstanceData[sprites.Count];
             for (int i = 0; i < sprites.Count; i++)

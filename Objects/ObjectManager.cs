@@ -14,15 +14,7 @@ namespace DeepWoods.Objects
 {
     internal class ObjectManager
     {
-        private enum Critter
-        {
-            CROW,
-            HEDGEHOG,
-            BEEHIVE,
-            FROG
-        }
-
-        private readonly List<DWObject> objectTypes;
+        private readonly List<DWObjectDefinition> objectDefinitions;
         private readonly Random rng;
         private readonly int width;
         private readonly int height;
@@ -30,14 +22,14 @@ namespace DeepWoods.Objects
         private readonly InstancedObjects instancedObjects;
         private readonly InstancedObjects instancedCritters;
 
-        private readonly List<Sprite> objects = [];
-        private readonly List<Sprite> critters = [];
+        private readonly List<DWObject> objects = [];
+        private readonly List<DWObject> critters = [];
         private readonly Dictionary<(int, int), int> objectIndices = [];
 
         public ObjectManager(ContentManager content, GraphicsDevice graphicsDevice, int seed, int width, int height, Terrain terrain)
         {
             rng = new Random(seed);
-            objectTypes = content.Load<List<DWObject>>("objects/objects");
+            objectDefinitions = content.Load<List<DWObjectDefinition>>("objects/objects");
 
             this.width = width;
             this.height = height;
@@ -51,9 +43,9 @@ namespace DeepWoods.Objects
             instancedCritters = new InstancedObjects(graphicsDevice, critters, TextureLoader.Critters);
         }
 
-        private void GenerateObjects(IBiome biome, Terrain terrain, List<Sprite> objects, List<Sprite> critters)
+        private void GenerateObjects(IBiome biome, Terrain terrain, List<DWObject> objects, List<DWObject> critters)
         {
-            var critterIDs = new List<Critter>(Enum.GetValues<Critter>());
+            var critterIDs = new List<CritterDefinitions.Critter>(Enum.GetValues<CritterDefinitions.Critter>());
 
             // TODO TEMP Sprite Test
             for (int y = height - 1; y >= 0; y--)
@@ -62,8 +54,9 @@ namespace DeepWoods.Objects
                 {
                     if (terrain.CanSpawnCritter(x, y) && rng.NextSingle() < biome.StuffDensity)
                     {
-                        Critter critter = critterIDs[rng.Next(critterIDs.Count)];
-                        critters.Add(new Sprite(new Vector2(x, y), new Rectangle(32 * (int)critter, 0, 32, 32), true, false, 8, 32, 4));
+                        CritterDefinitions.Critter critter = critterIDs[rng.Next(critterIDs.Count)];
+                        var def = CritterDefinitions.GetCritterDefinition(critter);
+                        critters.Add(new DWObject(new Vector2(x, y), def));
                     }
                     else if (terrain.CanSpawnStuff(x, y) && rng.NextSingle() < biome.StuffDensity)
                     {
@@ -106,7 +99,7 @@ namespace DeepWoods.Objects
             */
         }
 
-        private Sprite SpawnRandomObject(List<string> objectList, int x, int y)
+        private DWObject SpawnRandomObject(List<string> objectList, int x, int y)
         {
             if (objectList.Count == 0)
             {
@@ -116,14 +109,14 @@ namespace DeepWoods.Objects
             return SpawnObject(objectName, x, y);
         }
 
-        private Sprite SpawnObject(string name, int x, int y)
+        private DWObject SpawnObject(string name, int x, int y)
         {
-            var dwobj = objectTypes.Where(o => o.name == name).FirstOrDefault();
-            if (dwobj == null)
+            var def = objectDefinitions.Where(o => o.Name == name).FirstOrDefault();
+            if (def == null)
             {
                 return null;
             }
-            return new Sprite(new Vector2(x, y), new Rectangle(dwobj.x, dwobj.y, dwobj.width, dwobj.height), dwobj.standing, dwobj.glowing);
+            return new DWObject(new Vector2(x, y), def);
         }
 
 
@@ -172,7 +165,7 @@ namespace DeepWoods.Objects
             instancedCritters.Draw(graphicsDevice);
         }
 
-        internal Sprite GetObject(Terrain terrain, int x, int y)
+        internal DWObject GetObject(Terrain terrain, int x, int y)
         {
             if (terrain.IsTreeTile(x, y))
             {

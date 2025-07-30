@@ -85,7 +85,7 @@
 #begin objects/objects.json
 /importer:JsonContentImporter
 /processor:JsonContentProcessor
-/processorParam:ContentType=DeepWoods.Objects.ContentObjectsReader, DeepWoods
+/processorParam:ContentType=DeepWoods.Objects.DWObjectsJsonReader, DeepWoods
 /build:objects/objects.json
 
 #begin textures/bluenoise_rgba.png

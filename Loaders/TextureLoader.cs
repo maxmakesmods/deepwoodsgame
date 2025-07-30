@@ -1,4 +1,5 @@
 ﻿
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -6,6 +7,8 @@ namespace DeepWoods.Loaders
 {
     internal static class TextureLoader
     {
+        public static Texture2D WhiteTexture { get; private set; }
+
         public static Texture2D GroundTilesTexture { get; private set; }
         public static Texture2D BluenoiseTexture { get; private set; }
         public static Texture2D ObjectsTexture { get; private set; }
@@ -32,6 +35,8 @@ namespace DeepWoods.Loaders
                 DepthFormat.Depth24,
                 0, RenderTargetUsage.DiscardContents, false);
 
+            WhiteTexture = new Texture2D(graphicsDevice, 1, 1, false, SurfaceFormat.Color);
+            WhiteTexture.SetData(0, null, [Color.White], 0, 1);
         }
     }
 }

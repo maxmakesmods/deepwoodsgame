@@ -199,10 +199,10 @@ namespace DeepWoods.Players
                 int currentTileX = (int)position.X;
                 int currentTileY = (int)position.Y;
 
-                var sprite = objectManager.GetObject(terrain, currentTileX, currentTileY);
-                if (sprite != null)
+                var dwobj = objectManager.GetObject(terrain, currentTileX, currentTileY);
+                if (dwobj != null)
                 {
-                    inventory.objects.Add(sprite);
+                    inventory.Add(dwobj);
                 }
             }
 
@@ -348,9 +348,9 @@ namespace DeepWoods.Players
             }
         }
 
-        public void DrawUI(GraphicsDevice graphicsDevice, SpriteBatch spriteBatch)
+        public void DrawUI(GraphicsDevice graphicsDevice, TextHelper textHelper, SpriteBatch spriteBatch)
         {
-            inventory.DrawUI(graphicsDevice, spriteBatch);
+            inventory.DrawUI(graphicsDevice, textHelper, spriteBatch);
         }
     }
 }
