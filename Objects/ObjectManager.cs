@@ -1,4 +1,5 @@
-﻿using DeepWoods.Helpers;
+﻿using DeepWoods.Game;
+using DeepWoods.Helpers;
 using DeepWoods.Loaders;
 using DeepWoods.Players;
 using DeepWoods.World;
@@ -26,21 +27,21 @@ namespace DeepWoods.Objects
         private readonly List<DWObject> critters = [];
         private readonly Dictionary<(int, int), int> objectIndices = [];
 
-        public ObjectManager(ContentManager content, GraphicsDevice graphicsDevice, int seed, int width, int height, Terrain terrain)
+        public ObjectManager(AllTheThings att, int seed)
         {
             rng = new Random(seed);
-            objectDefinitions = content.Load<List<DWObjectDefinition>>("objects/objects");
+            objectDefinitions = att.Content.Load<List<DWObjectDefinition>>("objects/objects");
 
-            this.width = width;
-            this.height = height;
+            this.width = att.Terrain.tiles.GetLength(0);
+            this.height = att.Terrain.tiles.GetLength(1);
 
             TemperateForestBiome biome = new TemperateForestBiome();
 
 
-            GenerateObjects(biome, terrain, objects, critters);
+            GenerateObjects(biome, att.Terrain, objects, critters);
 
-            instancedObjects = new InstancedObjects(graphicsDevice, objects, TextureLoader.ObjectsTexture);
-            instancedCritters = new InstancedObjects(graphicsDevice, critters, TextureLoader.Critters);
+            instancedObjects = new InstancedObjects(att.GraphicsDevice, objects, TextureLoader.ObjectsTexture);
+            instancedCritters = new InstancedObjects(att.GraphicsDevice, critters, TextureLoader.Critters);
         }
 
         private void GenerateObjects(IBiome biome, Terrain terrain, List<DWObject> objects, List<DWObject> critters)

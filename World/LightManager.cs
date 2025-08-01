@@ -1,4 +1,5 @@
 ﻿using System;
+using DeepWoods.Game;
 using DeepWoods.Loaders;
 using Microsoft.Xna.Framework;
 
@@ -24,11 +25,11 @@ namespace DeepWoods.World
 
         Vector3 ambientLightColor = AMBIENT_DAY;
 
-        public LightManager(int seed, int width, int height)
+        public LightManager(AllTheThings att, int seed)
         {
             rng = new Random(seed);
-            this.width = width;
-            this.height = height;
+            this.width = att.Terrain.tiles.GetLength(0);
+            this.height = att.Terrain.tiles.GetLength(1);
 
             // TODO TEMP light test
             for (int i = 0; i < numLights; i++)

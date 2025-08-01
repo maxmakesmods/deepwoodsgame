@@ -1,4 +1,5 @@
 ﻿
+using DeepWoods.Game;
 using DeepWoods.Loaders;
 using DeepWoods.Objects;
 using DeepWoods.Players;
@@ -13,69 +14,62 @@ namespace DeepWoods.Graphics
 {
     internal class DWRenderer
     {
-        private readonly TextHelper textHelper;
+        private AllTheThings ATT { get; set; }
         private readonly SpriteBatch spriteBatch;
 
-        public DWRenderer(GraphicsDevice graphicsDevice, ContentManager content)
+        public DWRenderer(AllTheThings att)
         {
-            spriteBatch = new SpriteBatch(graphicsDevice);
-            textHelper = new TextHelper(graphicsDevice, content);
-
+            ATT = att;
+            spriteBatch = new SpriteBatch(att.GraphicsDevice);
         }
 
-        public void Draw(
-            GraphicsDevice graphicsDevice,
-            Terrain terrain,
-            ObjectManager objectManager,
-            PlayerManager playerManager,
-            string debugstring,
-            bool isGamePaused)
+        public void Draw(string debugstring, bool isGamePaused)
         {
-            foreach (var player in playerManager.Players)
+            foreach (var player in ATT.PlayerManager.Players)
             {
-                DrawPlayerScreen(player, graphicsDevice, terrain, objectManager, playerManager.Players);
+                DrawPlayerScreen(player);
             }
 
             spriteBatch.Begin(samplerState: SamplerState.PointClamp);
 
-            graphicsDevice.Clear(Color.CornflowerBlue);
-            foreach (var player in playerManager.Players)
+            ATT.GraphicsDevice.Clear(Color.CornflowerBlue);
+            foreach (var player in ATT.PlayerManager.Players)
             {
                 spriteBatch.Draw(player.myRenderTarget, player.PlayerViewport, Color.White);
             }
 
-            DrawPlayerMouseCursors(playerManager.Players, isGamePaused);
+            DrawPlayerMouseCursors(ATT.PlayerManager.Players, isGamePaused);
             DrawDebugString(debugstring);
 
             spriteBatch.End();
         }
 
-        private void DrawPlayerScreen(Player player, GraphicsDevice graphicsDevice, Terrain terrain, ObjectManager objectManager, List<Player> players)
+        private void DrawPlayerScreen(Player player)
         {
-            objectManager.DrawShadowMap(graphicsDevice, players, player.myCamera);
+            ATT.ObjectManager.DrawShadowMap(ATT.GraphicsDevice, ATT.PlayerManager.Players, player.myCamera);
 
-            graphicsDevice.SetRenderTarget(player.myRenderTarget);
-            graphicsDevice.Clear(Color.CornflowerBlue);
-            graphicsDevice.DepthStencilState = DepthStencilState.None;
-            terrain.Draw(graphicsDevice, player.myCamera);
-            graphicsDevice.DepthStencilState = DepthStencilState.Default;
-            objectManager.Draw(graphicsDevice, player.myCamera);
+            ATT.GraphicsDevice.SetRenderTarget(player.myRenderTarget);
+            ATT.GraphicsDevice.Clear(Color.CornflowerBlue);
+            ATT.GraphicsDevice.DepthStencilState = DepthStencilState.None;
+            ATT.Terrain.Draw(ATT.GraphicsDevice, player.myCamera);
+            ATT.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+            ATT.ObjectManager.Draw(ATT.GraphicsDevice, player.myCamera);
 
-            foreach (var pl in players)
+            foreach (var pl in ATT.PlayerManager.Players)
             {
-                pl.Draw(graphicsDevice, player.myCamera);
+                pl.Draw(ATT.GraphicsDevice, player.myCamera);
             }
 
             spriteBatch.Begin(samplerState: SamplerState.PointClamp);
-            player.DrawUI(graphicsDevice, textHelper, spriteBatch);
+            player.DrawUI(ATT, spriteBatch);
             spriteBatch.End();
 
-            graphicsDevice.SetRenderTarget(null);
+            ATT.GraphicsDevice.SetRenderTarget(null);
         }
 
         private void DrawDebugString(string debugstring)
         {
-            textHelper.DrawStringOnScreen(spriteBatch, new Vector2(20f, 20f), debugstring);
+            ATT.TextHelper.DrawStringOnScreen(spriteBatch, new Vector2(20f, 20f), debugstring);
 
             //spriteBatch.Draw(TextureLoader.ShadowMap, new Rectangle(32, 128, 256, 256), Color.White);
 
@@ -101,7 +95,7 @@ namespace DeepWoods.Graphics
                     colors[i % 2]);
 
                 var tilePos = player.myCamera.GetTileAtScreenPos(mouseState.Position);
-                textHelper.DrawStringOnScreen(spriteBatch, new Vector2(mouseState.X, mouseState.Y + 32), $"{tilePos.X},{tilePos.Y}");
+                ATT.TextHelper.DrawStringOnScreen(spriteBatch, new Vector2(mouseState.X, mouseState.Y + 32), $"{tilePos.X},{tilePos.Y}");
 
                 i++;
             }

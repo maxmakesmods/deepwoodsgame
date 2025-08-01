@@ -1,7 +1,5 @@
-﻿using DeepWoods.Objects;
-using DeepWoods.World;
+﻿using DeepWoods.Game;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended;
 using System;
 using System.Collections.Generic;
@@ -18,36 +16,40 @@ namespace DeepWoods.Players
         ];
 
         private List<Player> players = new();
+
+        private AllTheThings ATT { get; set; }
+
         private Random rng;
 
         public List<Player> Players => players;
 
-        public PlayerManager(int seed)
+        public PlayerManager(AllTheThings att, int seed)
         {
+            ATT = att;
             rng = new Random(seed);
         }
 
-        public void SpawnPlayers(GraphicsDevice graphicsDevice, Terrain terrain, int numPlayers)
+        public void SpawnPlayers(int numPlayers)
         {
-            int spawnX = terrain.terrainGrid.GetLength(0) / 2;
-            int spawnY = terrain.terrainGrid.GetLength(1) / 2;
-            while (!terrain.tiles[spawnX, spawnY].isOpen)
+            int spawnX = ATT.Terrain.terrainGrid.GetLength(0) / 2;
+            int spawnY = ATT.Terrain.terrainGrid.GetLength(1) / 2;
+            while (!ATT.Terrain.tiles[spawnX, spawnY].isOpen)
             {
-                spawnX = rng.Next(terrain.terrainGrid.GetLength(0));
-                spawnY = rng.Next(terrain.terrainGrid.GetLength(1));
+                spawnX = rng.Next(ATT.Terrain.terrainGrid.GetLength(0));
+                spawnY = rng.Next(ATT.Terrain.terrainGrid.GetLength(1));
             }
 
             for (int i = 0; i < numPlayers; i++)
             {
-                players.Add(new Player(graphicsDevice, (PlayerIndex)i, playerRectangles[numPlayers - 1][i], new Vector2(spawnX, spawnY)));
+                players.Add(new Player(ATT.GraphicsDevice, (PlayerIndex)i, playerRectangles[numPlayers - 1][i], new Vector2(spawnX, spawnY)));
             }
         }
 
-        internal void Update(GraphicsDevice graphicsDevice, ObjectManager objectManager, Terrain terrain, float deltaTime)
+        internal void Update(float deltaTime)
         {
             foreach (var player in players)
             {
-                player.Update(graphicsDevice, objectManager, terrain, (float)deltaTime);
+                player.Update(ATT, (float)deltaTime);
             }
         }
     }

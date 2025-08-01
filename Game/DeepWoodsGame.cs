@@ -13,77 +13,71 @@ namespace DeepWoods.Game
 {
     public class DeepWoodsGame : Microsoft.Xna.Framework.Game
     {
-        private GraphicsDeviceManager _graphics;
+        private AllTheThings ATT { get; set; } = new();
+        private Random rng = new();
 
         private int gridSize = 32;
         private int numPatches = 10;
 
-        private Terrain terrain;
-        private LightManager lightManager;
-        private ObjectManager objectManager;
-        private InGameClock clock;
-        private Random rng = new Random();
-        private DWRenderer renderer;
-        private PlayerManager playerManager;
-
-        public static GameWindow window;
-
-        private FPSCounter fps = new();
+        private bool wasESCPressed = false;
+        private bool isGamePaused = false;
 
         public DeepWoodsGame()
         {
-            _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
-
-            window = Window;
+            ATT.GraphicsDeviceManager = new GraphicsDeviceManager(this);
         }
 
         protected override void Initialize()
         {
             base.Initialize();
-
             RawInput.Initialize(WindowHelper.GetRealHWNDFromSDL(Window.Handle));
-
-            Window.AllowUserResizing = true;
             IsFixedTimeStep = false;
-            _graphics.SynchronizeWithVerticalRetrace = false;
-            _graphics.PreferredBackBufferWidth = 1920;
-            _graphics.PreferredBackBufferHeight = 1080;
-            _graphics.ApplyChanges();
-            GraphicsDevice.BlendState = BlendState.Opaque;
-            GraphicsDevice.DepthStencilState = DepthStencilState.Default;
-            GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
-            GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+            Window.AllowUserResizing = true;
 
-            GameState.IsMultiplayerGame = true;
-        }
 
-        protected override void LoadContent()
-        {
+
+            ATT.GameWindow = Window;
+            ATT.Content = Content;
+            ATT.GraphicsDevice = GraphicsDevice;
+            ATT.FPS = new FPSCounter();
+            ATT.Clock = new InGameClock();
+
+            ATT.GraphicsDeviceManager.SynchronizeWithVerticalRetrace = false;
+            ATT.GraphicsDeviceManager.PreferredBackBufferWidth = 1920;
+            ATT.GraphicsDeviceManager.PreferredBackBufferHeight = 1080;
+            ATT.GraphicsDeviceManager.ApplyChanges();
+
+            ATT.GraphicsDevice.BlendState = BlendState.Opaque;
+            ATT.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+            ATT.GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
+            ATT.GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+
             EffectLoader.Load(Content);
             TextureLoader.Load(Content, GraphicsDevice);
 
-            playerManager = new PlayerManager(rng.Next());
-            renderer = new DWRenderer(GraphicsDevice, Content);
+            ATT.TextHelper = new TextHelper(ATT);
+            ATT.PlayerManager = new PlayerManager(ATT, rng.Next());
+            ATT.Renderer = new DWRenderer(ATT);
+            ATT.DialogueManager = new DialogueManager();
+            ATT.Terrain = new Terrain(ATT, rng.Next(), gridSize, gridSize, numPatches);
+            ATT.Terrain.Apply();
+            ATT.LightManager = new LightManager(ATT, rng.Next());
+            ATT.ObjectManager = new ObjectManager(ATT, rng.Next());
 
-            clock = new InGameClock();
-            clock.TimeScale = 0;
-            clock.SetTime(1, 12, 0);
 
 
-            terrain = new Terrain(GraphicsDevice, rng.Next(), gridSize, gridSize, numPatches);
-            terrain.Apply();
-
-            lightManager = new LightManager(rng.Next(), gridSize, gridSize);
-            objectManager = new ObjectManager(Content, GraphicsDevice, rng.Next(), gridSize, gridSize, terrain);
+            ATT.Clock.TimeScale = 0;
+            ATT.Clock.SetTime(1, 12, 0);
 
             int numPlayers = 1;
-            playerManager.SpawnPlayers(GraphicsDevice, terrain, numPlayers);
-        }
+            ATT.PlayerManager.SpawnPlayers(numPlayers);
 
-        private bool wasESCPressed = false;
-        private bool isGamePaused = false;
+
+            // TODO
+            GameState.IsMultiplayerGame = true;
+        }
 
         protected override void Update(GameTime gameTime)
         {
@@ -94,7 +88,7 @@ namespace DeepWoods.Game
                     isGamePaused = !isGamePaused;
                     if (isGamePaused)
                     {
-                        MouseState ms = DWMouse.GetState(playerManager.Players[0]);
+                        MouseState ms = DWMouse.GetState(ATT.PlayerManager.Players[0]);
                         Mouse.SetPosition(ms.X, ms.Y);
                     }
                 }
@@ -121,9 +115,9 @@ namespace DeepWoods.Game
 
             double deltaTime = gameTime.ElapsedGameTime.TotalSeconds;
 
-            fps.CountFrame(deltaTime);
-            playerManager.Update(GraphicsDevice, objectManager,terrain, (float)deltaTime);
-            clock.Update(deltaTime);
+            ATT.FPS.CountFrame(deltaTime);
+            ATT.PlayerManager.Update((float)deltaTime);
+            ATT.Clock.Update(deltaTime);
             base.Update(gameTime);
         }
 
@@ -131,21 +125,15 @@ namespace DeepWoods.Game
         {
             float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-            lightManager.Update(clock.DayDelta, deltaTime);
-            lightManager.Apply();
+            ATT.LightManager.Update(ATT.Clock.DayDelta, deltaTime);
+            ATT.LightManager.Apply();
 
 
-            string debugstring = $"Seed: {terrain.seed}," +
-                $" Time: {clock.Day:D2}:{clock.Hour:D2}:{clock.Minute:D2}," +
-                $" FPS: {fps.FPS}, ms/f: {fps.SPF}";
+            string debugstring = $"Seed: {ATT.Terrain.seed}," +
+                $" Time: {ATT.Clock.Day:D2}:{ATT.Clock.Hour:D2}:{ATT.Clock.Minute:D2}," +
+                $" FPS: {ATT.FPS.FPS}, ms/f: {ATT.FPS.SPF}";
 
-            renderer.Draw(
-                GraphicsDevice,
-                terrain,
-                objectManager,
-                playerManager,
-                debugstring,
-                isGamePaused);
+            ATT.Renderer.Draw(debugstring, isGamePaused);
 
 
 

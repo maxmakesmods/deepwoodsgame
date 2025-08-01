@@ -1,4 +1,5 @@
-﻿using DeepWoods.Helpers;
+﻿using DeepWoods.Game;
+using DeepWoods.Helpers;
 using DeepWoods.Loaders;
 using DeepWoods.World.Generators;
 using Microsoft.Xna.Framework;
@@ -44,7 +45,7 @@ namespace DeepWoods.World
             public GroundType groundType;
         }
 
-        public Terrain(GraphicsDevice graphicsDevice, int seed, int width, int height, int numPatches)
+        public Terrain(AllTheThings att, int seed, int width, int height, int numPatches)
         {
             rng = new Random(seed);
             this.seed = seed;
@@ -58,7 +59,7 @@ namespace DeepWoods.World
 
             terrainGrid = GenerateTerrain(width, height, numPatches);
             UpdateTerrainFromTiles();
-            terrainGridTexture = GenerateTerrainTexture(graphicsDevice, terrainGrid);
+            terrainGridTexture = GenerateTerrainTexture(att.GraphicsDevice, terrainGrid);
             drawingQuad = CreateVertices(width, height);
 
             List<int> bluenoiseChannels = [0, 1, 2, 3];

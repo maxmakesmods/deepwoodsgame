@@ -6,6 +6,11 @@ namespace DeepWoods.Helpers
 {
     internal static class Extensions
     {
+        public static Vector2 Position(this Rectangle rect)
+        {
+            return new Vector2(rect.X, rect.Y);
+        }
+
         public static Vector3 CenterV3(this Rectangle rect, float z = 0f)
         {
             return new Vector3(rect.X + rect.Width / 2f, rect.Y + rect.Height / 2f, z);

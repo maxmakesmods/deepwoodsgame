@@ -1,15 +1,21 @@
-﻿using DeepWoods.Loaders;
+﻿using DeepWoods.Game;
+using DeepWoods.Helpers;
+using DeepWoods.Loaders;
 using DeepWoods.Objects;
 using DeepWoods.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace DeepWoods.Players
 {
-    internal class Inventory
+    internal class Inventory : UIPanel
     {
-        private static readonly int NumSlots = 10;
+        private static readonly int NumRowSlots = 10;
+        private static readonly int NumRows = 7;
+
+        public bool IsOpen { get; set; } = false;
 
         private class InventorySlot
         {
@@ -23,25 +29,38 @@ namespace DeepWoods.Players
         {
         }
 
-        public void DrawUI(GraphicsDevice graphicsDevice, TextHelper textHelper, SpriteBatch spriteBatch)
+        public void DrawUI(AllTheThings att, SpriteBatch spriteBatch)
         {
-            int w = graphicsDevice.Viewport.Width;
-            int h = graphicsDevice.Viewport.Height;
+            PanelData panelData = DoThePanelThing(att.GraphicsDevice, spriteBatch, NumRowSlots, 1, 0.85f);
 
-            int barheight = (int)(h * 0.1);
-            int barwidth = barheight * NumSlots;
-
-            int barx = (w - barwidth) / 2;
-            int bary = (int)(h - barheight * 1.5);
-
-            spriteBatch.Draw(TextureLoader.WhiteTexture, new Rectangle(barx, bary, barwidth, barheight), Color.BurlyWood);
-
-            for (int i = 0; i < slots.Count && i < NumSlots; i++)
+            for (int i = 0; i < slots.Count && i < NumRowSlots; i++)
             {
                 if (slots[i].dwobj != null)
                 {
-                    spriteBatch.Draw(TextureLoader.ObjectsTexture, new Rectangle(barx + barheight * i, bary, barheight, barheight), slots[i].dwobj.TexRect, Color.White);
-                    textHelper.DrawStringOnScreen(spriteBatch, new(barx + barheight * i, bary + barheight), slots[i].count.ToString());
+                    var cell = panelData.MakeCell(i, 0);
+                    spriteBatch.Draw(TextureLoader.ObjectsTexture, cell, slots[i].dwobj.TexRect, Color.White);
+                    att.TextHelper.DrawStringOnScreen(spriteBatch, cell.Position(), slots[i].count.ToString());
+                }
+            }
+
+            if (IsOpen)
+            {
+                DrawOpenInventory(att, spriteBatch);
+            }
+        }
+
+        private void DrawOpenInventory(AllTheThings att, SpriteBatch spriteBatch)
+        {
+            var panelData = DoThePanelThing(att.GraphicsDevice, spriteBatch, NumRowSlots, NumRows, 0.1f);
+
+            for (int i = NumRowSlots; i < slots.Count; i++)
+            {
+                if (slots[i].dwobj != null)
+                {
+                    int slotIndex = i - NumRowSlots;
+                    var cell = panelData.MakeCell(slotIndex);
+                    spriteBatch.Draw(TextureLoader.ObjectsTexture, cell, slots[i].dwobj.TexRect, Color.White);
+                    att.TextHelper.DrawStringOnScreen(spriteBatch, cell.Position(), slots[i].count.ToString());
                 }
             }
         }

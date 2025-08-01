@@ -1,4 +1,5 @@
 ﻿
+using DeepWoods.Game;
 using DeepWoods.Helpers;
 using DeepWoods.Loaders;
 using DeepWoods.Objects;
@@ -145,15 +146,15 @@ namespace DeepWoods.Players
         }
 
 
-        public void Update(GraphicsDevice graphicsDevice, ObjectManager objectManager, Terrain terrain, float timeDelta)
+        public void Update(AllTheThings att, float timeDelta)
         {
             var keyboardState = DWKeyboard.GetState(PlayerIndex);
 
-            PlayerViewport = relativeViewport.Scale(graphicsDevice.Viewport.Bounds).ToRectangle();
+            PlayerViewport = relativeViewport.Scale(att.GraphicsDevice.Viewport.Bounds).ToRectangle();
             if (PlayerViewport.Width != myRenderTarget.Width
                 || PlayerViewport.Height != myRenderTarget.Height)
             {
-                RecreateRenderTarget(graphicsDevice);
+                RecreateRenderTarget(att.GraphicsDevice);
             }
 
             // get input velocity
@@ -179,7 +180,7 @@ namespace DeepWoods.Players
             }
 
             // clip velocity against terrain
-            velocity = ClipVelocity(terrain, velocity, timeDelta);
+            velocity = ClipVelocity(att.Terrain, velocity, timeDelta);
 
             // apply velocity
             position += velocity * timeDelta;
@@ -199,10 +200,27 @@ namespace DeepWoods.Players
                 int currentTileX = (int)position.X;
                 int currentTileY = (int)position.Y;
 
-                var dwobj = objectManager.GetObject(terrain, currentTileX, currentTileY);
+                var dwobj = att.ObjectManager.GetObject(att.Terrain, currentTileX, currentTileY);
                 if (dwobj != null)
                 {
                     inventory.Add(dwobj);
+                }
+            }
+
+            if (keyboardState.IsKeyDown(Keys.Tab) && !previousKeyboardState.IsKeyDown(Keys.Tab))
+            {
+                inventory.IsOpen = !inventory.IsOpen;
+            }
+
+            if (keyboardState.IsKeyDown(Keys.H) && !previousKeyboardState.IsKeyDown(Keys.H))
+            {
+                if (att.DialogueManager.HasOpenDialogue(this))
+                {
+                    att.DialogueManager.CloseDialogue(this);
+                }
+                else
+                {
+                    att.DialogueManager.OpenDialogue(this, new("hello", ["yes", "no", "why even"]));
                 }
             }
 
@@ -348,9 +366,10 @@ namespace DeepWoods.Players
             }
         }
 
-        public void DrawUI(GraphicsDevice graphicsDevice, TextHelper textHelper, SpriteBatch spriteBatch)
+        public void DrawUI(AllTheThings att, SpriteBatch spriteBatch)
         {
-            inventory.DrawUI(graphicsDevice, textHelper, spriteBatch);
+            inventory.DrawUI(att, spriteBatch);
+            att.DialogueManager.DrawUI(att, spriteBatch, this);
         }
     }
 }

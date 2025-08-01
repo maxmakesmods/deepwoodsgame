@@ -30,6 +30,19 @@ namespace DeepWoods.World.Biomes
             "herb2",
             "herb3",
             "herb4",
+            "bluecrystal",
+            "crystal_ball",
+            "greencrystal",
+            "yellowcrystal",
+            "helmet",
+            "pendant",
+            "pileofbooks",
+            "pinkcrystal",
+            "purplecrystal",
+            "redcrystal",
+            "ring",
+            "whitecrystal",
+            "wizardhat",
         ];
 
         public float StuffDensity => 0.2f;
