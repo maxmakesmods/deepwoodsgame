@@ -14,6 +14,8 @@ namespace DeepWoods.Graphics
 {
     internal class DWRenderer
     {
+        private static readonly Color ClearColor = Color.Black;
+
         private AllTheThings ATT { get; set; }
         private readonly SpriteBatch spriteBatch;
 
@@ -32,7 +34,7 @@ namespace DeepWoods.Graphics
 
             spriteBatch.Begin(samplerState: SamplerState.PointClamp);
 
-            ATT.GraphicsDevice.Clear(Color.CornflowerBlue);
+            ATT.GraphicsDevice.Clear(ClearColor);
             foreach (var player in ATT.PlayerManager.Players)
             {
                 spriteBatch.Draw(player.myRenderTarget, player.PlayerViewport, Color.White);
@@ -49,7 +51,7 @@ namespace DeepWoods.Graphics
             ATT.ObjectManager.DrawShadowMap(ATT.GraphicsDevice, ATT.PlayerManager.Players, player.myCamera);
 
             ATT.GraphicsDevice.SetRenderTarget(player.myRenderTarget);
-            ATT.GraphicsDevice.Clear(Color.CornflowerBlue);
+            ATT.GraphicsDevice.Clear(ClearColor);
             ATT.GraphicsDevice.DepthStencilState = DepthStencilState.None;
             ATT.Terrain.Draw(ATT.GraphicsDevice, player.myCamera);
             ATT.GraphicsDevice.DepthStencilState = DepthStencilState.Default;

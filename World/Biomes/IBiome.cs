@@ -10,5 +10,8 @@ namespace DeepWoods.World.Biomes
         public List<string> Buildings { get; }
         public List<string> Critters { get; }
         public List<string> Stuff { get; }
+        public GroundType OpenGroundType { get; }
+        public GroundType ClosedGroundType { get; }
+        public bool CanSpawnInThisBiome { get; }
     }
 }

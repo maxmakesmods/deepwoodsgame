@@ -52,6 +52,26 @@ namespace DeepWoods.World.Generators
             {
                 GenerateOpenPatch(new(rng.Next(width), rng.Next(height)), numSteps);
             }
+
+            int treeBorderSize = 3;
+
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < treeBorderSize; y++)
+                {
+                    tiles[x, y].isOpen = false;
+                    tiles[x, height - 1 - y].isOpen = false;
+                }
+            }
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < treeBorderSize; x++)
+                {
+                    tiles[x, y].isOpen = false;
+                    tiles[width - 1 - x, y].isOpen = false;
+                }
+            }
+
             var regions = CollectRegions();
             ConnectRegions(regions);
             return tiles;

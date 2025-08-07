@@ -2,15 +2,14 @@
 
 namespace DeepWoods.World.Biomes
 {
-    internal class TemperateForestBiome : IBiome
+    internal class TemporaryTestBiome1 : IBiome
     {
-        public GroundType OpenGroundType => GroundType.Grass;
-        public GroundType ClosedGroundType => GroundType.ForestFloor;
-        public bool CanSpawnInThisBiome => true;
+        public GroundType OpenGroundType => GroundType.Mud;
+        public GroundType ClosedGroundType => GroundType.Mud;
+        public bool CanSpawnInThisBiome => false;
 
         public List<string> Trees => [
-            "tree1",
-            "tree2"
+            "tree3"
         ];
 
         public List<string> Buildings => [
@@ -24,14 +23,13 @@ namespace DeepWoods.World.Biomes
         ];
 
         public List<string> Stuff => [
-            "flower1",
-            "flower2",
-            "flower3",
-            "flower4",
-            "herb1",
-            "herb2",
-            "herb3",
-            "herb4",
+            "bluecrystal",
+            "greencrystal",
+            "yellowcrystal",
+            "pinkcrystal",
+            "purplecrystal",
+            "redcrystal",
+            "whitecrystal",
         ];
 
         public float StuffDensity => 0.2f;

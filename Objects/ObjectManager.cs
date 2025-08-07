@@ -32,19 +32,16 @@ namespace DeepWoods.Objects
             rng = new Random(seed);
             objectDefinitions = att.Content.Load<List<DWObjectDefinition>>("objects/objects");
 
-            this.width = att.Terrain.tiles.GetLength(0);
-            this.height = att.Terrain.tiles.GetLength(1);
+            width = att.Terrain.Width;
+            height = att.Terrain.Height;
 
-            TemperateForestBiome biome = new TemperateForestBiome();
-
-
-            GenerateObjects(biome, att.Terrain, objects, critters);
+            GenerateObjects(att.Terrain, objects, critters);
 
             instancedObjects = new InstancedObjects(att.GraphicsDevice, objects, TextureLoader.ObjectsTexture);
             instancedCritters = new InstancedObjects(att.GraphicsDevice, critters, TextureLoader.Critters);
         }
 
-        private void GenerateObjects(IBiome biome, Terrain terrain, List<DWObject> objects, List<DWObject> critters)
+        private void GenerateObjects(Terrain terrain, List<DWObject> objects, List<DWObject> critters)
         {
             var critterIDs = new List<CritterDefinitions.Critter>(Enum.GetValues<CritterDefinitions.Critter>());
 
@@ -53,6 +50,11 @@ namespace DeepWoods.Objects
             {
                 for (int x = 0; x < width; x++)
                 {
+                    IBiome biome = terrain.GetBiome(x, y);
+                    if (biome == null)
+                    {
+                        continue;
+                    }
                     if (terrain.CanSpawnCritter(x, y) && rng.NextSingle() < biome.StuffDensity)
                     {
                         CritterDefinitions.Critter critter = critterIDs[rng.Next(critterIDs.Count)];

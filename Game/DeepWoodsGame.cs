@@ -16,7 +16,7 @@ namespace DeepWoods.Game
         private AllTheThings ATT { get; set; } = new();
         private Random rng = new();
 
-        private int gridSize = 32;
+        private int gridSize = 128;
         private int numPatches = 10;
 
         private bool wasESCPressed = false;
@@ -129,7 +129,7 @@ namespace DeepWoods.Game
             ATT.LightManager.Apply();
 
 
-            string debugstring = $"Seed: {ATT.Terrain.seed}," +
+            string debugstring = $"Seed: {ATT.Terrain.Seed}," +
                 $" Time: {ATT.Clock.Day:D2}:{ATT.Clock.Hour:D2}:{ATT.Clock.Minute:D2}," +
                 $" FPS: {ATT.FPS.FPS}, ms/f: {ATT.FPS.SPF}";
 

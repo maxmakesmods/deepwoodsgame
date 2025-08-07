@@ -122,7 +122,7 @@ int getGroundType(float2 uv)
     int gridY = int(wavy_y * GridSize.y);
 
     float2 gridTextureUV = float2(gridX / GridSize.x, gridY / GridSize.y);
-    int groundType = int(tex2D(TerrainGridTextureSampler, gridTextureUV).r / 256.0 + 0.5);
+    int groundType = int(tex2D(TerrainGridTextureSampler, gridTextureUV).r / 256.0 + 0.5) - 1.0;
     
     return groundType;
 }
@@ -197,6 +197,8 @@ float4 MainPS(VertexShaderOutput input) : COLOR
     int pixelY = pixelIndex % blurFullSize;
 
     int groundType = getGroundType(input.Tex + float2(pixelX - BlurHalfSize, pixelY - BlurHalfSize) * gridTexelSize);
+    clip(groundType);
+
     float3 color = getGroundTypeColor(input.Tex, groundType);
 
     float3 litColor = applyLights(input.WorldPos, color);

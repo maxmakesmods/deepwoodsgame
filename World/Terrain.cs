@@ -1,6 +1,7 @@
 ﻿using DeepWoods.Game;
 using DeepWoods.Helpers;
 using DeepWoods.Loaders;
+using DeepWoods.World.Biomes;
 using DeepWoods.World.Generators;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -17,10 +18,9 @@ namespace DeepWoods.World
 
         private readonly VertexPositionColorTexture[] drawingQuad;
         private readonly short[] drawingIndices = [0, 1, 2, 0, 2, 3];
-        public readonly GroundType[,] terrainGrid; // TODO: make private
-        public readonly Tile[,] tiles; // TODO: make private
+        private readonly Tile[,] tiles;
         private readonly Texture2D terrainGridTexture;
-        public readonly int seed; // TODO: make private
+        private readonly int seed;
         private readonly int width;
         private readonly int height;
         private readonly int blueNoiseDitherChannel;
@@ -33,16 +33,15 @@ namespace DeepWoods.World
         private readonly Vector2 blueNoiseSineYOffset;
         private readonly Random rng;
 
-        public enum GroundType
-        {
-            Grass, Sand, Mud, Gravel, ForestFloor
-        }
+        public int Seed => seed;
+        public int Width => width;
+        public int Height => height;
 
         private class PatchCenter
         {
             public int x;
             public int y;
-            public GroundType groundType;
+            public IBiome biome;
         }
 
         public Terrain(AllTheThings att, int seed, int width, int height, int numPatches)
@@ -53,14 +52,15 @@ namespace DeepWoods.World
             this.height = height;
 
 
+            List<IBiome> biomes = [new TemperateForestBiome(), new TemporaryTestBiome1(), new TemporaryTestBiome2()];
+
             //Generator generator = new LabyrinthGenerator(width, height, rng.Next());
             Generator generator = new ForestGenerator(width, height, rng.Next());
             tiles = generator.Generate();
 
-            terrainGrid = GenerateTerrain(width, height, numPatches);
-            UpdateTerrainFromTiles();
-            terrainGridTexture = GenerateTerrainTexture(att.GraphicsDevice, terrainGrid);
-            drawingQuad = CreateVertices(width, height);
+            GenerateBiomes(biomes, numPatches);
+            terrainGridTexture = GenerateTerrainTexture(att.GraphicsDevice);
+            drawingQuad = CreateVertices();
 
             List<int> bluenoiseChannels = [0, 1, 2, 3];
             bluenoiseChannels.Shuffle(rng);
@@ -75,96 +75,81 @@ namespace DeepWoods.World
             blueNoiseSineYOffset = new Vector2(rng.Next(TextureLoader.BluenoiseTexture.Width), rng.Next(TextureLoader.BluenoiseTexture.Height));
         }
 
-        private void UpdateTerrainFromTiles()
-        {
-            for (int x = 0; x < width; x++)
-            {
-                for (int y = 0; y < height; y++)
-                {
-                    if (tiles[x, y].isOpen)
-                    {
-                        terrainGrid[x, y] = GroundType.Grass;
-                    }
-                    else
-                    {
-                        terrainGrid[x, y] = GroundType.ForestFloor;
-                    }
-                }
-            }
-        }
-
-        private static int calcDistSqrd(int x1, int y1, int x2, int y2)
+        private static int CalcDistSqrd(int x1, int y1, int x2, int y2)
         {
             return (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1);
         }
 
-        private GroundType[,] GenerateTerrain(int width, int height, int numPatches)
+        private void GenerateBiomes(List<IBiome> biomes, int numPatches)
         {
-            var groundTypes = new List<GroundType>(Enum.GetValues<GroundType>());
-            groundTypes.Shuffle(rng);
+            biomes.Shuffle(rng);
 
-            int currentGroundTypeIndex = 0;
-
-            GroundType getNextGroundType()
+            int currentBiomeIndex = 0;
+            IBiome getNextBiome()
             {
-                if (currentGroundTypeIndex >= groundTypes.Count)
+                if (currentBiomeIndex >= biomes.Count)
                 {
-                    currentGroundTypeIndex = 0;
+                    currentBiomeIndex = 0;
                 }
-                return groundTypes[currentGroundTypeIndex++];
+                return biomes[currentBiomeIndex++];
             }
 
-            List<PatchCenter> patchCenters = new();
+            List<PatchCenter> patchCenters = [];
             for (int i = 0; i < numPatches; i++)
             {
                 patchCenters.Add(new()
                 {
                     x = rng.Next(width),
                     y = rng.Next(height),
-                    groundType = getNextGroundType()
+                    biome = getNextBiome()
                 });
             }
 
-            GroundType[,] grid = new GroundType[width, height];
+            for (int x = 1; x < width - 1; x++)
+            {
+                for (int y = 1; y < height - 1; y++)
+                {
+                    IBiome nearestBiome = null;
+                    float nearestDistSqrd = float.MaxValue;
+                    foreach (var patchCenter in patchCenters)
+                    {
+                        float distSqrd = CalcDistSqrd(x, y, patchCenter.x, patchCenter.y);
+                        if (distSqrd <  nearestDistSqrd)
+                        {
+                            nearestBiome = patchCenter.biome;
+                            nearestDistSqrd = distSqrd;
+                        }
+                    }
+                    tiles[x, y].biome = nearestBiome;
+                    if (tiles[x, y].isOpen)
+                    {
+                        tiles[x, y].groundType = nearestBiome.OpenGroundType;// GroundType.Grass;
+                    }
+                    else
+                    {
+                        tiles[x, y].groundType = nearestBiome.ClosedGroundType;//GroundType.ForestFloor;
+                    }
+                }
+            }
+        }
+
+        private Texture2D GenerateTerrainTexture(GraphicsDevice graphicsDevice)
+        {
+            var texture = new Texture2D(graphicsDevice, width, height, false, SurfaceFormat.Single);
+            float[] pixelData = new float[width * height];
             for (int x = 0; x < width; x++)
             {
                 for (int y = 0; y < height; y++)
                 {
-                    GroundType nearestGroundType = GroundType.Grass;
-                    float nearestDistSqrd = float.MaxValue;
-                    foreach (var patchCenter in patchCenters)
-                    {
-                        float distSqrd = calcDistSqrd(x, y, patchCenter.x, patchCenter.y);
-                        if (distSqrd <  nearestDistSqrd)
-                        {
-                            nearestGroundType = patchCenter.groundType;
-                            nearestDistSqrd = distSqrd;
-                        }
-                    }
-                    grid[x, y] = nearestGroundType;
-                }
-            }
-
-            return grid;
-        }
-
-        private Texture2D GenerateTerrainTexture(GraphicsDevice graphicsDevice, GroundType[,] grid)
-        {
-            Texture2D texture = new Texture2D(graphicsDevice, grid.GetLength(0), grid.GetLength(1), false, SurfaceFormat.Single);
-            float[] pixelData = new float[grid.GetLength(0) * grid.GetLength(1)];
-            for (int x = 0; x < grid.GetLength(0); x++)
-            {
-                for (int y = 0; y < grid.GetLength(1); y++)
-                {
-                    int pixelIndex = y * grid.GetLength(0) + x;
-                    pixelData[pixelIndex] = (byte)grid[x, y] * 256.0f;
+                    int pixelIndex = y * width + x;
+                    pixelData[pixelIndex] = (byte)tiles[x, y].groundType * 256.0f;
                 }
             }
             texture.SetData(pixelData);
             return texture;
         }
 
-        private VertexPositionColorTexture[] CreateVertices(int width, int height)
+        private VertexPositionColorTexture[] CreateVertices()
         {
             var drawingQuad = new VertexPositionColorTexture[4];
             drawingQuad[0] = new VertexPositionColorTexture(new Vector3(0, 0, 0), Color.White, new Vector2(0f, 0f));
@@ -287,6 +272,22 @@ namespace DeepWoods.World
                 return false;
 
             return !tiles[x, y].isOpen;
+        }
+
+        internal bool CanSpawnHere(int x, int y)
+        {
+            if (!IsInsideGrid(x, y))
+                return false;
+
+            return tiles[x, y].isOpen && tiles[x,y].biome.CanSpawnInThisBiome;
+        }
+
+        internal IBiome GetBiome(int x, int y)
+        {
+            if (!IsInsideGrid(x, y))
+                return null;
+
+            return tiles[x, y].biome;
         }
     }
 }

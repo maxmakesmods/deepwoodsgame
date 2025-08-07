@@ -28,8 +28,8 @@ namespace DeepWoods.World
         public LightManager(AllTheThings att, int seed)
         {
             rng = new Random(seed);
-            this.width = att.Terrain.tiles.GetLength(0);
-            this.height = att.Terrain.tiles.GetLength(1);
+            width = att.Terrain.Width;
+            height = att.Terrain.Height;
 
             // TODO TEMP light test
             for (int i = 0; i < numLights; i++)

@@ -11,7 +11,7 @@ namespace DeepWoods.World
         private static readonly float NearPlane = 1f;
         private static readonly float FarPlane = 10000f;
         private static readonly float MinimumCameraZ = 2f;
-        private static readonly float MaximumCameraZ = 64f;
+        private static readonly float MaximumCameraZ = 6400f;
 
         public Vector3 position;
         private float angle = 20f;
