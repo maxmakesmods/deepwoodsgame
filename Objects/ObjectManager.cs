@@ -37,8 +37,8 @@ namespace DeepWoods.Objects
 
             GenerateObjects(att.Terrain, objects, critters);
 
-            instancedObjects = new InstancedObjects(att.GraphicsDevice, objects, TextureLoader.ObjectsTexture);
-            instancedCritters = new InstancedObjects(att.GraphicsDevice, critters, TextureLoader.Critters);
+            //instancedObjects = new InstancedObjects(att.GraphicsDevice, objects, TextureLoader.ObjectsTexture);
+            //instancedCritters = new InstancedObjects(att.GraphicsDevice, critters, TextureLoader.Critters);
         }
 
         private void GenerateObjects(Terrain terrain, List<DWObject> objects, List<DWObject> critters)
@@ -137,8 +137,8 @@ namespace DeepWoods.Objects
             EffectLoader.SpriteEffect.Parameters["IsShadow"].SetValue(1);
 
 
-            instancedObjects.Draw(graphicsDevice);
-            instancedCritters.Draw(graphicsDevice);
+            instancedObjects?.Draw(graphicsDevice);
+            instancedCritters?.Draw(graphicsDevice);
 
 
             foreach (var player in players)
@@ -164,8 +164,8 @@ namespace DeepWoods.Objects
             spriteEffect.Parameters["ShadowMapBounds"].SetValue(camera.ShadowRectangle.GetBoundsV4());
             spriteEffect.Parameters["ShadowMapTileSize"].SetValue(camera.ShadowRectangle.GetSizeV2());
 
-            instancedObjects.Draw(graphicsDevice);
-            instancedCritters.Draw(graphicsDevice);
+            instancedObjects?.Draw(graphicsDevice);
+            instancedCritters?.Draw(graphicsDevice);
         }
 
         internal DWObject GetObject(Terrain terrain, int x, int y)
@@ -177,7 +177,7 @@ namespace DeepWoods.Objects
 
             if (objectIndices.TryGetValue((x,y), out var index))
             {
-                instancedObjects.HideInstance(index);
+                instancedObjects?.HideInstance(index);
                 objectIndices.Remove((x, y));
                 return objects[index];
             }
