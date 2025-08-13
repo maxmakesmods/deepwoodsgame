@@ -17,7 +17,6 @@ namespace DeepWoods.Game
         private Random rng = new();
 
         private int gridSize = 128;
-        private int numPatches = 10;
 
         private bool wasESCPressed = false;
         private bool isGamePaused = false;
@@ -61,7 +60,7 @@ namespace DeepWoods.Game
             ATT.PlayerManager = new PlayerManager(ATT, rng.Next());
             ATT.Renderer = new DWRenderer(ATT);
             ATT.DialogueManager = new DialogueManager();
-            ATT.Terrain = new Terrain(ATT, rng.Next(), gridSize, gridSize, numPatches);
+            ATT.Terrain = new Terrain(ATT, rng.Next(), gridSize, gridSize);
             ATT.Terrain.Apply();
             ATT.LightManager = new LightManager(ATT, rng.Next());
             ATT.ObjectManager = new ObjectManager(ATT, rng.Next());

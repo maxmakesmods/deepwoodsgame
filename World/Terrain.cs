@@ -5,6 +5,7 @@ using DeepWoods.World.Biomes;
 using DeepWoods.World.Generators;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using MonoGame.Extended;
 using MonoGame.Extended.Collections;
 using System;
 using System.Collections.Generic;
@@ -41,10 +42,11 @@ namespace DeepWoods.World
         {
             public int x;
             public int y;
+            public int radiusSqrd;
             public IBiome biome;
         }
 
-        public Terrain(AllTheThings att, int seed, int width, int height, int numPatches)
+        public Terrain(AllTheThings att, int seed, int width, int height)
         {
             rng = new Random(seed);
             this.seed = seed;
@@ -52,13 +54,21 @@ namespace DeepWoods.World
             this.height = height;
 
 
-            List<IBiome> biomes = [new TemperateForestBiome(), new TemporaryTestBiome1(), new TemporaryTestBiome2()];
+            List<IBiome> biomes = [
+                new TemperateForestBiome(),
+                new TemporaryTestBiome1(),
+                new TemporaryTestBiome2(),
+                new TemporaryTestBiomeGeneric(GroundType.Sand),
+                new TemporaryTestBiomeGeneric(GroundType.PlaceHolder6),
+                new TemporaryTestBiomeGeneric(GroundType.PlaceHolder7),
+                new TemporaryTestBiomeGeneric(GroundType.PlaceHolder8)
+            ];
 
             //Generator generator = new LabyrinthGenerator(width, height, rng.Next());
             Generator generator = new ForestGenerator(width, height, rng.Next());
             tiles = generator.Generate();
 
-            GenerateBiomes(biomes, numPatches);
+            GenerateBiomes(biomes);
             terrainGridTexture = GenerateTerrainTexture(att.GraphicsDevice);
             drawingQuad = CreateVertices();
 
@@ -80,7 +90,129 @@ namespace DeepWoods.World
             return (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1);
         }
 
-        private void GenerateBiomes(List<IBiome> biomes, int numPatches)
+        private static float CalcDist(int x1, int y1, int x2, int y2)
+        {
+            int distSqrd = CalcDistSqrd(x1, y1, x2, y2);
+            return MathF.Sqrt(distSqrd);
+        }
+
+
+        private List<PatchCenter> CreateRing(List<IBiome> biomes)
+        {
+            var patchCenters = new List<PatchCenter>();
+
+            int repeats = 2;
+
+            float deltaAngle = 360f / (biomes.Count * repeats);
+
+            int xcenter = width / 2;
+            int ycenter = height / 2;
+            int xradius = width / 4;
+            int yradius = height / 4;
+
+            int biomeRadiusSqrd = (width / 6) * (width / 6);
+
+            VoidBiome voidBiome = new();
+
+            /*
+            patchCenters.Add(new()
+            {
+                x = xcenter,
+                y = ycenter,
+                radius = biome_radius,
+                biome = voidBiome
+            });
+            */
+
+            float spiralDistanceDelta = 0.1f;
+            float spiralAngleDeltaMultiplier = 2f;
+
+            for (int i = 0; i < biomes.Count * repeats; i++)
+            {
+                var angle = new Angle(i * deltaAngle * spiralAngleDeltaMultiplier, AngleType.Degree);
+                int x = (int)(xradius * (1 + spiralDistanceDelta * i) * MathF.Cos(angle));
+                int y = (int)(yradius * (1 + spiralDistanceDelta * i) * MathF.Sin(angle));
+
+                patchCenters.Add(new()
+                {
+                    x = xcenter + x,
+                    y = ycenter + y,
+                    radiusSqrd = biomeRadiusSqrd,
+                    biome = biomes[i / repeats]
+                });
+
+                /*
+                patchCenters.Add(new()
+                {
+                    x = xcenter + x * 2,
+                    y = ycenter + y * 2,
+                    radius = biome_radius,
+                    biome = voidBiome
+                });
+                */
+            }
+
+            return patchCenters;
+        }
+
+
+        private void GenerateBiomes(List<IBiome> biomes)
+        {
+            List<PatchCenter> patchCenters = CreateRing(biomes);
+
+            VoidBiome voidBiome = new();
+
+            for (int x = 1; x < width - 1; x++)
+            {
+                for (int y = 1; y < height - 1; y++)
+                {
+                    float ourDistToMapCenterSqrd = CalcDistSqrd(width / 2, height / 2, x, y);
+
+                    IBiome nearestBiome = voidBiome;
+
+                    float nearestDistSqrd = float.MaxValue;
+                    foreach (var patchCenter in patchCenters)
+                    {
+                        float distSqrd = CalcDistSqrd(x, y, patchCenter.x, patchCenter.y);
+                        if (distSqrd < nearestDistSqrd)
+                        {
+                            float patchCenterRadius = MathF.Sqrt(patchCenter.radiusSqrd);
+                            float patchDistToMapCenter = CalcDist(width / 2, height / 2, patchCenter.x, patchCenter.y);
+                            float innerBorderDist = patchDistToMapCenter - patchCenterRadius;
+                            float outerBorderDist = patchDistToMapCenter + patchCenterRadius;
+
+                            if (ourDistToMapCenterSqrd > innerBorderDist * innerBorderDist
+                                && ourDistToMapCenterSqrd < outerBorderDist * outerBorderDist)
+                            {
+                                nearestBiome = patchCenter.biome;
+                                nearestDistSqrd = distSqrd;
+                            }
+                        }
+                    }
+
+                    tiles[x, y].biome = nearestBiome;
+                    if (tiles[x, y].isOpen)
+                    {
+                        tiles[x, y].groundType = nearestBiome.OpenGroundType;
+                    }
+                    else
+                    {
+                        tiles[x, y].groundType = nearestBiome.ClosedGroundType;
+                    }
+                }
+            }
+
+            foreach (var patchCenter in patchCenters)
+            {
+                if (IsInsideGrid(patchCenter.x, patchCenter.y))
+                {
+                    tiles[patchCenter.x, patchCenter.y].groundType = GroundType.Void;
+                }
+            }
+        }
+
+
+        private void GenerateBiomesOLD(List<IBiome> biomes, int numPatches)
         {
             biomes.Shuffle(rng);
 
