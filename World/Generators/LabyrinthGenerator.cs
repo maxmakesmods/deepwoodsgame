@@ -7,18 +7,13 @@ namespace DeepWoods.World.Generators
 {
     internal class LabyrinthGenerator : Generator
     {
-        private readonly Tile[,] tiles;
-        private readonly int width;
-        private readonly int height;
         private readonly Random rng;
 
         private static readonly Point[] directions = [new(1, 0), new(-1, 0), new(0, 1), new(0, -1)];
 
-        public LabyrinthGenerator(int width, int height, int seed)
+        public LabyrinthGenerator(Tile[,] tiles, int seed)
+            : base(tiles)
         {
-            tiles = new Tile[width, height];
-            this.width = width - 1;
-            this.height = height - 1;
             rng = new Random(seed);
         }
 
@@ -27,7 +22,7 @@ namespace DeepWoods.World.Generators
             return next.X >= 0 && next.X < width && next.Y >= 0 && next.Y < height;
         }
 
-        public override Tile[,] Generate()
+        public override void Generate()
         {
             Stack<Point> stack = new Stack<Point>();
             stack.Push(new Point(1, 1));
@@ -66,8 +61,6 @@ namespace DeepWoods.World.Generators
                     stack.Pop();
                 }
             }
-
-            return tiles;
         }
     }
 }

@@ -53,22 +53,28 @@ namespace DeepWoods.World
             this.width = width;
             this.height = height;
 
+            tiles = new Tile[width, height];
 
             List<IBiome> biomes = [
-                new TemperateForestBiome(),
-                new TemporaryTestBiome1(),
-                new TemporaryTestBiome2(),
+                new TemporaryTestBiomeGeneric(GroundType.Grass),
                 new TemporaryTestBiomeGeneric(GroundType.Sand),
+                new TemporaryTestBiomeGeneric(GroundType.Mud),
+                new TemporaryTestBiomeGeneric(GroundType.Snow),
+                new TemporaryTestBiomeGeneric(GroundType.ForestFloor),
                 new TemporaryTestBiomeGeneric(GroundType.PlaceHolder6),
-                new TemporaryTestBiomeGeneric(GroundType.PlaceHolder7),
-                new TemporaryTestBiomeGeneric(GroundType.PlaceHolder8)
+                new TemporaryTestBiomeGeneric(GroundType.PlaceHolder7)
             ];
 
             //Generator generator = new LabyrinthGenerator(width, height, rng.Next());
-            Generator generator = new ForestGenerator(width, height, rng.Next());
-            tiles = generator.Generate();
+            BiomeGenerator biomeGenerator = new BiomeGenerator(tiles, biomes);
+            ForestGenerator forestGenerator = new ForestGenerator(tiles, rng.Next());
+            GroundTypeGenerator groundTypeGenerator = new GroundTypeGenerator(tiles);
+            biomeGenerator.Generate();
+            forestGenerator.Generate();
+            groundTypeGenerator.Generate();
 
-            GenerateBiomes(biomes);
+
+
             terrainGridTexture = GenerateTerrainTexture(att.GraphicsDevice);
             drawingQuad = CreateVertices();
 
@@ -156,7 +162,9 @@ namespace DeepWoods.World
         }
 
 
-        private void GenerateBiomes(List<IBiome> biomes)
+
+
+        private void GenerateBiomes2(List<IBiome> biomes)
         {
             List<PatchCenter> patchCenters = CreateRing(biomes);
 
@@ -420,6 +428,18 @@ namespace DeepWoods.World
                 return null;
 
             return tiles[x, y].biome;
+        }
+
+        internal Point GetSpawnPosition()
+        {
+            int spawnX = width / 2;
+            int spawnY = height / 2;
+            while (!CanSpawnHere(spawnX, spawnY))
+            {
+                spawnX = spawnX + rng.Next(-1, 2);
+                spawnY = spawnY + rng.Next(-1, 2);
+            }
+            return new Point(spawnX, spawnY);
         }
     }
 }

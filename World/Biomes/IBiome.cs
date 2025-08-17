@@ -13,5 +13,6 @@ namespace DeepWoods.World.Biomes
         public GroundType OpenGroundType { get; }
         public GroundType ClosedGroundType { get; }
         public bool CanSpawnInThisBiome { get; }
+        bool IsVoid { get; }
     }
 }

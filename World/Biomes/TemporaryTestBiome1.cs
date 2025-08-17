@@ -34,5 +34,6 @@ namespace DeepWoods.World.Biomes
 
         public float StuffDensity => 0.2f;
         public float BuildingDensity => 0.1f;
+        public bool IsVoid => false;
     }
 }

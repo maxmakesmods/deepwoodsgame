@@ -7,9 +7,6 @@ namespace DeepWoods.World.Generators
 {
     internal class ForestGenerator : Generator
     {
-        private readonly Tile[,] tiles;
-        private readonly int width;
-        private readonly int height;
         private readonly Random rng;
 
         private static readonly Point[] directions = [new(1, 0), new(-1, 0), new(0, 1), new(0, -1)];
@@ -20,31 +17,56 @@ namespace DeepWoods.World.Generators
             public Point anchor;
         }
 
-        public ForestGenerator(int width, int height, int seed)
+        public ForestGenerator(Tile[,] tiles, int seed)
+            : base(tiles)
         {
-            tiles = new Tile[width, height];
-            this.width = width;
-            this.height = height;
             rng = new Random(seed);
         }
 
-        private bool IsInsideGrid(Point next)
+        private bool IsInsideGrid(Point p)
         {
-            return next.X >= 0 && next.X < width && next.Y >= 0 && next.Y < height;
+            return p.X >= 0 && p.X < width
+                && p.Y >= 0 && p.Y < height
+                && !tiles[p.X, p.Y].biome.IsVoid;
+        }
+
+        private bool CanGenerateHere(Point p)
+        {
+            if (!IsInsideGrid(p))
+                return false;
+
+            int borderSize = 2;
+            for (int i = 1; i <= borderSize; i++)
+            {
+                if (!IsInsideGrid(p + new Point(0, i))
+                    || !IsInsideGrid(p + new Point(0, -i))
+                    || !IsInsideGrid(p + new Point(i, 0))
+                    || !IsInsideGrid(p + new Point(-i, 0)))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private double CurrentRatio()
         {
+            int totalTiles = 0;
             int openTiles = 0;
             foreach (var tile in tiles)
             {
+                if (tile.biome.IsVoid)
+                    continue;
+
                 if (tile.isOpen)
                     openTiles++;
+                totalTiles++;
             }
-            return openTiles / (double)tiles.Length;
+            return openTiles / (double)totalTiles;
         }
 
-        public override Tile[,] Generate()
+        public override void Generate()
         {
             int numSteps = Math.Max(10, width * height / 100);
             double goalRatio = 0.5;
@@ -72,9 +94,7 @@ namespace DeepWoods.World.Generators
                 }
             }
 
-            var regions = CollectRegions();
-            ConnectRegions(regions);
-            return tiles;
+            ConnectRegions();
         }
 
         private List<Region> CollectRegions()
@@ -100,7 +120,7 @@ namespace DeepWoods.World.Generators
                             foreach (var direction in directions)
                             {
                                 Point neighbour = p + direction;
-                                if (IsInsideGrid(neighbour) && tiles[neighbour.X, neighbour.Y].isOpen && !visited[neighbour.X, neighbour.Y])
+                                if (CanGenerateHere(neighbour) && tiles[neighbour.X, neighbour.Y].isOpen && !visited[neighbour.X, neighbour.Y])
                                 {
                                     queue.Enqueue(neighbour);
                                     visited[neighbour.X, neighbour.Y] = true;
@@ -117,41 +137,68 @@ namespace DeepWoods.World.Generators
             return regions;
         }
 
-        private void ConnectRegions(List<Region> regions)
+        private void ConnectRegions()
         {
-            if (regions.Count < 2)
-                return;
-
-            Point anchorA = regions[0].anchor;
-            for (int i = 1; i < regions.Count; i++)
+            var regions = CollectRegions();
+            while (regions.Count > 1)
             {
-                Point anchorB = regions[i].anchor;
-
-                Point currentPoint = anchorA;
-                while (currentPoint != anchorB)
+                Region regionA = regions[rng.Next(regions.Count)];
+                Region regionB = regions[rng.Next(regions.Count)];
+                if (TryConnectTwoRegions(regionA, regionB))
                 {
-                    int distX = Math.Abs(anchorB.X - currentPoint.X);
-                    int distY = Math.Abs(anchorB.Y - currentPoint.Y);
-
-                    if (distY == 0 || rng.NextSingle() * distX > rng.NextSingle() * distY)
-                    {
-                        currentPoint.X += Math.Sign(anchorB.X - currentPoint.X);
-                    }
-                    else
-                    {
-                        currentPoint.Y += Math.Sign(anchorB.Y - currentPoint.Y);
-                    }
-
-                    tiles[currentPoint.X, currentPoint.Y].isOpen = true;
+                    regions = CollectRegions();
                 }
             }
+        }
+
+        private bool TryConnectTwoRegions(Region regionA, Region regionB)
+        {
+            if (regionA == regionB)
+            {
+                return false;
+            }
+
+            Point anchorA = regionA.tiles.ToList()[rng.Next(regionA.tiles.Count)];
+            Point anchorB = regionB.tiles.ToList()[rng.Next(regionB.tiles.Count)];
+
+            List<Point> pointsToOpen = [];
+
+            Point currentPoint = anchorA;
+            while (currentPoint != anchorB)
+            {
+                int distX = Math.Abs(anchorB.X - currentPoint.X);
+                int distY = Math.Abs(anchorB.Y - currentPoint.Y);
+
+                if (distY == 0 || rng.NextSingle() * distX > rng.NextSingle() * distY)
+                {
+                    currentPoint.X += Math.Sign(anchorB.X - currentPoint.X);
+                }
+                else
+                {
+                    currentPoint.Y += Math.Sign(anchorB.Y - currentPoint.Y);
+                }
+
+                if (!CanGenerateHere(currentPoint))
+                {
+                    return false;
+                }
+
+                pointsToOpen.Add(currentPoint);
+            }
+
+            foreach (Point point in pointsToOpen)
+            {
+                tiles[point.X, point.Y].isOpen = true;
+            }
+
+            return true;
         }
 
         private void GenerateOpenPatch(Point p, int steps)
         {
             for (int i = 0; i < steps; i++)
             {
-                if (IsInsideGrid(p))
+                if (CanGenerateHere(p))
                 {
                     tiles[p.X, p.Y].isOpen = true;
                 }
