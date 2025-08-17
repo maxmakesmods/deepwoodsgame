@@ -37,8 +37,8 @@ namespace DeepWoods.Objects
 
             GenerateObjects(att.Terrain, objects, critters);
 
-            //instancedObjects = new InstancedObjects(att.GraphicsDevice, objects, TextureLoader.ObjectsTexture);
-            //instancedCritters = new InstancedObjects(att.GraphicsDevice, critters, TextureLoader.Critters);
+            instancedObjects = new InstancedObjects(att.GraphicsDevice, objects, TextureLoader.ObjectsTexture);
+            instancedCritters = new InstancedObjects(att.GraphicsDevice, critters, TextureLoader.Critters);
         }
 
         private void GenerateObjects(Terrain terrain, List<DWObject> objects, List<DWObject> critters)

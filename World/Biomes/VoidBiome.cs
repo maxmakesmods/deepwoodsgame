@@ -21,5 +21,7 @@ namespace DeepWoods.World.Biomes
         public GroundType ClosedGroundType => GroundType.Void;
 
         public bool CanSpawnInThisBiome => false;
+
+        public bool IsVoid => true;
     }
 }

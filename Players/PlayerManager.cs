@@ -31,17 +31,10 @@ namespace DeepWoods.Players
 
         public void SpawnPlayers(int numPlayers)
         {
-            int spawnX = ATT.Terrain.Width / 2;
-            int spawnY = ATT.Terrain.Height / 2;
-            while (!ATT.Terrain.CanSpawnHere(spawnX, spawnY))
-            {
-                spawnX = rng.Next(ATT.Terrain.Width);
-                spawnY = rng.Next(ATT.Terrain.Height);
-            }
-
+            Point spawnPos = ATT.Terrain.GetSpawnPosition();
             for (int i = 0; i < numPlayers; i++)
             {
-                players.Add(new Player(ATT.GraphicsDevice, (PlayerIndex)i, playerRectangles[numPlayers - 1][i], new Vector2(spawnX, spawnY)));
+                players.Add(new Player(ATT.GraphicsDevice, (PlayerIndex)i, playerRectangles[numPlayers - 1][i], new Vector2(spawnPos.X, spawnPos.Y)));
             }
         }
 

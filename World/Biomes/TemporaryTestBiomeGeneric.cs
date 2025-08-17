@@ -8,7 +8,7 @@ namespace DeepWoods.World.Biomes
 
         public GroundType OpenGroundType => groundType;
         public GroundType ClosedGroundType => groundType;
-        public bool CanSpawnInThisBiome => false;
+        public bool CanSpawnInThisBiome => true;
 
         public TemporaryTestBiomeGeneric(GroundType groundType)
         {
@@ -30,5 +30,6 @@ namespace DeepWoods.World.Biomes
 
         public float StuffDensity => 0.2f;
         public float BuildingDensity => 0.1f;
+        public bool IsVoid => false;
     }
 }
