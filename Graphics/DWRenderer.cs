@@ -48,14 +48,14 @@ namespace DeepWoods.Graphics
 
         private void DrawPlayerScreen(Player player)
         {
-            ATT.ObjectManager.DrawShadowMap(ATT.GraphicsDevice, ATT.PlayerManager.Players, player.myCamera);
+            ATT.ObjectManager.DrawShadowMap(ATT.GraphicsDevice, ATT.PlayerManager.Players, player);
 
             ATT.GraphicsDevice.SetRenderTarget(player.myRenderTarget);
             ATT.GraphicsDevice.Clear(ClearColor);
             ATT.GraphicsDevice.DepthStencilState = DepthStencilState.None;
-            ATT.Terrain.Draw(ATT.GraphicsDevice, player.myCamera);
+            ATT.Terrain.Draw(ATT.GraphicsDevice, player);
             ATT.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
-            ATT.ObjectManager.Draw(ATT.GraphicsDevice, player.myCamera);
+            ATT.ObjectManager.Draw(ATT.GraphicsDevice, player);
 
             foreach (var pl in ATT.PlayerManager.Players)
             {
@@ -73,8 +73,14 @@ namespace DeepWoods.Graphics
         {
             ATT.TextHelper.DrawStringOnScreen(spriteBatch, new Vector2(20f, 20f), debugstring);
 
-            //spriteBatch.Draw(TextureLoader.ShadowMap, new Rectangle(32, 128, 256, 256), Color.White);
-
+            /*
+            int i = 0;
+            foreach (var player in ATT.PlayerManager.Players)
+            {
+                spriteBatch.Draw(player.myShadowMap, new Rectangle(32 + (288 * i), 128, 256, 256), Color.White);
+                i++;
+            }
+            */
         }
 
         private void DrawPlayerMouseCursors(List<Player> players, bool isGamePaused)

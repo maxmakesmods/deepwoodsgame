@@ -54,6 +54,7 @@ namespace DeepWoods.Players
 
         public Camera myCamera;
         public RenderTarget2D myRenderTarget;
+        public RenderTarget2D myShadowMap;
 
         private VertexCharacterData[] vertices;
         private short[] indices;
@@ -82,7 +83,8 @@ namespace DeepWoods.Players
 
             inventory = new Inventory(graphicsDevice);
 
-            RecreateRenderTarget(graphicsDevice);
+            myRenderTarget = RecreateRenderTarget(graphicsDevice, SurfaceFormat.Color);
+            myShadowMap = RecreateRenderTarget(graphicsDevice, SurfaceFormat.Single);
 
             vertices = new VertexCharacterData[4];
 
@@ -129,15 +131,15 @@ namespace DeepWoods.Players
             indices = [0, 1, 2, 0, 2, 3];
         }
 
-        private void RecreateRenderTarget(GraphicsDevice graphicsDevice)
+        private RenderTarget2D RecreateRenderTarget(GraphicsDevice graphicsDevice, SurfaceFormat format)
         {
-            myRenderTarget?.Dispose();
-            myRenderTarget = new RenderTarget2D(graphicsDevice,
+            return new RenderTarget2D(graphicsDevice,
                 PlayerViewport.Width, PlayerViewport.Height,
                 false,
-                SurfaceFormat.Color,
+                format,
                 DepthFormat.Depth24,
                 0, RenderTargetUsage.DiscardContents, false);
+
         }
 
         private Vector4 getTexRect()
@@ -151,10 +153,15 @@ namespace DeepWoods.Players
             var keyboardState = DWKeyboard.GetState(PlayerIndex);
 
             PlayerViewport = relativeViewport.Scale(att.GraphicsDevice.Viewport.Bounds).ToRectangle();
-            if (PlayerViewport.Width != myRenderTarget.Width
-                || PlayerViewport.Height != myRenderTarget.Height)
+            if (PlayerViewport.Width != myRenderTarget.Width || PlayerViewport.Height != myRenderTarget.Height)
             {
-                RecreateRenderTarget(att.GraphicsDevice);
+                myRenderTarget.Dispose();
+                myRenderTarget = RecreateRenderTarget(att.GraphicsDevice, SurfaceFormat.Color);
+            }
+            if (PlayerViewport.Width != myRenderTarget.Width || myShadowMap.Height != myShadowMap.Height)
+            {
+                myShadowMap.Dispose();
+                myShadowMap = RecreateRenderTarget(att.GraphicsDevice, SurfaceFormat.Single);
             }
 
             // get input velocity

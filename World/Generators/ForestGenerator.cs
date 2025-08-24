@@ -23,25 +23,23 @@ namespace DeepWoods.World.Generators
             rng = new Random(seed);
         }
 
-        private bool IsInsideGrid(Point p)
+        private bool IsValidPoint(Point p)
         {
-            return p.X >= 0 && p.X < width
-                && p.Y >= 0 && p.Y < height
-                && !tiles[p.X, p.Y].biome.IsVoid;
+            return IsInsideGrid(p) && !tiles[p.X, p.Y].biome.IsVoid;
         }
 
         private bool CanGenerateHere(Point p)
         {
-            if (!IsInsideGrid(p))
+            if (!IsValidPoint(p))
                 return false;
 
             int borderSize = 2;
             for (int i = 1; i <= borderSize; i++)
             {
-                if (!IsInsideGrid(p + new Point(0, i))
-                    || !IsInsideGrid(p + new Point(0, -i))
-                    || !IsInsideGrid(p + new Point(i, 0))
-                    || !IsInsideGrid(p + new Point(-i, 0)))
+                if (!IsValidPoint(p + new Point(0, i))
+                    || !IsValidPoint(p + new Point(0, -i))
+                    || !IsValidPoint(p + new Point(i, 0))
+                    || !IsValidPoint(p + new Point(-i, 0)))
                 {
                     return false;
                 }
@@ -94,7 +92,7 @@ namespace DeepWoods.World.Generators
                 }
             }
 
-            ConnectRegions();
+            //ConnectRegions();
         }
 
         private List<Region> CollectRegions()
@@ -139,8 +137,9 @@ namespace DeepWoods.World.Generators
 
         private void ConnectRegions()
         {
+            bool debugbreaker = false;
             var regions = CollectRegions();
-            while (regions.Count > 1)
+            while (regions.Count > 1 && !debugbreaker)
             {
                 Region regionA = regions[rng.Next(regions.Count)];
                 Region regionB = regions[rng.Next(regions.Count)];

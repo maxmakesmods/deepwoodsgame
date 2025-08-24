@@ -17,8 +17,6 @@ namespace DeepWoods.Loaders
         public static Texture2D Critters { get; private set; }
 
 
-        public static RenderTarget2D ShadowMap { get; private set; }
-
         public static void Load(ContentManager content, GraphicsDevice graphicsDevice)
         {
             GroundTilesTexture = content.Load<Texture2D>("textures/groundtiles");
@@ -27,13 +25,6 @@ namespace DeepWoods.Loaders
             MouseCursor = content.Load<Texture2D>("icons/cursor");
             CharacterTileSet = content.Load<Texture2D>("characters/temp_character");
             Critters = content.Load<Texture2D>("characters/critters");
-
-            ShadowMap = new RenderTarget2D(graphicsDevice,
-                1024, 1024,
-                false,
-                SurfaceFormat.Single,
-                DepthFormat.Depth24,
-                0, RenderTargetUsage.DiscardContents, false);
 
             WhiteTexture = new Texture2D(graphicsDevice, 1, 1, false, SurfaceFormat.Color);
             WhiteTexture.SetData(0, null, [Color.White], 0, 1);

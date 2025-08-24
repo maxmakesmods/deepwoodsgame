@@ -1,4 +1,7 @@
 ﻿
+using Microsoft.Xna.Framework;
+using System;
+
 namespace DeepWoods.World.Generators
 {
     internal abstract class Generator
@@ -15,5 +18,11 @@ namespace DeepWoods.World.Generators
         }
 
         public abstract void Generate();
+
+        protected bool IsInsideGrid(Point p)
+        {
+            return p.X >= 0 && p.X < width && p.Y >= 0 && p.Y < height;
+        }
+
     }
 }

@@ -16,6 +16,7 @@ namespace DeepWoods.Game
         private AllTheThings ATT { get; set; } = new();
         private Random rng = new();
 
+        private int numPlayers = 1;
         private int gridSize = 128;
 
         private bool wasESCPressed = false;
@@ -68,9 +69,8 @@ namespace DeepWoods.Game
 
 
             ATT.Clock.TimeScale = 0;
-            ATT.Clock.SetTime(1, 12, 0);
+            ATT.Clock.SetTime(1, 10, 0);
 
-            int numPlayers = 1;
             ATT.PlayerManager.SpawnPlayers(numPlayers);
 
 

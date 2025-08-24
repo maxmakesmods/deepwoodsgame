@@ -123,12 +123,12 @@ namespace DeepWoods.Objects
         }
 
 
-        internal void DrawShadowMap(GraphicsDevice graphicsDevice, List<Player> players, Camera camera)
+        internal void DrawShadowMap(GraphicsDevice graphicsDevice, List<Player> players, Player player)
         {
-            Matrix view = camera.ShadowView;
-            Matrix projection = camera.ShadowProjection;
+            Matrix view = player.myCamera.ShadowView;
+            Matrix projection = player.myCamera.ShadowProjection;
 
-            graphicsDevice.SetRenderTarget(TextureLoader.ShadowMap);
+            graphicsDevice.SetRenderTarget(player.myShadowMap);
             graphicsDevice.Clear(Color.Black);
             graphicsDevice.DepthStencilState = DepthStencilState.Default;
 
@@ -141,28 +141,28 @@ namespace DeepWoods.Objects
             instancedCritters?.Draw(graphicsDevice);
 
 
-            foreach (var player in players)
+            foreach (var pl in players)
             {
-                player.DrawShadow(graphicsDevice, camera);
+                pl.DrawShadow(graphicsDevice, player.myCamera);
             }
 
             graphicsDevice.SetRenderTarget(null);
         }
 
 
-        internal void Draw(GraphicsDevice graphicsDevice, Camera camera)
+        internal void Draw(GraphicsDevice graphicsDevice, Player player)
         {
-            Matrix view = camera.View;
-            Matrix projection = camera.Projection;
+            Matrix view = player.myCamera.View;
+            Matrix projection = player.myCamera.Projection;
 
             var spriteEffect = EffectLoader.SpriteEffect;
 
             spriteEffect.Parameters["CellSize"].SetValue(Terrain.CellSize);
             spriteEffect.Parameters["ViewProjection"].SetValue(view * projection);
             spriteEffect.Parameters["IsShadow"].SetValue(0);
-            spriteEffect.Parameters["ShadowMap"].SetValue(TextureLoader.ShadowMap);
-            spriteEffect.Parameters["ShadowMapBounds"].SetValue(camera.ShadowRectangle.GetBoundsV4());
-            spriteEffect.Parameters["ShadowMapTileSize"].SetValue(camera.ShadowRectangle.GetSizeV2());
+            spriteEffect.Parameters["ShadowMap"].SetValue(player.myShadowMap);
+            spriteEffect.Parameters["ShadowMapBounds"].SetValue(player.myCamera.ShadowRectangle.GetBoundsV4());
+            spriteEffect.Parameters["ShadowMapTileSize"].SetValue(player.myCamera.ShadowRectangle.GetSizeV2());
 
             instancedObjects?.Draw(graphicsDevice);
             instancedCritters?.Draw(graphicsDevice);
