@@ -1,6 +1,7 @@
 ﻿using DeepWoods.Game;
 using DeepWoods.Helpers;
 using DeepWoods.Loaders;
+using DeepWoods.Players;
 using DeepWoods.World.Biomes;
 using DeepWoods.World.Generators;
 using Microsoft.Xna.Framework;
@@ -66,7 +67,7 @@ namespace DeepWoods.World
             ];
 
             //Generator generator = new LabyrinthGenerator(width, height, rng.Next());
-            BiomeGenerator biomeGenerator = new BiomeGenerator(tiles, biomes);
+            SpiralBiomeGenerator biomeGenerator = new SpiralBiomeGenerator(tiles, biomes);
             ForestGenerator forestGenerator = new ForestGenerator(tiles, rng.Next());
             GroundTypeGenerator groundTypeGenerator = new GroundTypeGenerator(tiles);
             biomeGenerator.Generate();
@@ -299,14 +300,14 @@ namespace DeepWoods.World
             return drawingQuad;
         }
 
-        public void Draw(GraphicsDevice graphicsDevice, Camera camera)
+        public void Draw(GraphicsDevice graphicsDevice, Player player)
         {
-            Matrix view = camera.View;
-            Matrix projection = camera.Projection;
+            Matrix view = player.myCamera.View;
+            Matrix projection = player.myCamera.Projection;
 
-            EffectLoader.GroundEffect.Parameters["ShadowMap"].SetValue(TextureLoader.ShadowMap);
-            EffectLoader.GroundEffect.Parameters["ShadowMapBounds"].SetValue(camera.ShadowRectangle.GetBoundsV4());
-            EffectLoader.GroundEffect.Parameters["ShadowMapTileSize"].SetValue(camera.ShadowRectangle.GetSizeV2());
+            EffectLoader.GroundEffect.Parameters["ShadowMap"].SetValue(player.myShadowMap);
+            EffectLoader.GroundEffect.Parameters["ShadowMapBounds"].SetValue(player.myCamera.ShadowRectangle.GetBoundsV4());
+            EffectLoader.GroundEffect.Parameters["ShadowMapTileSize"].SetValue(player.myCamera.ShadowRectangle.GetSizeV2());
 
             EffectLoader.GroundEffect.Parameters["WorldViewProjection"].SetValue(view * projection);
             foreach (EffectPass pass in EffectLoader.GroundEffect.CurrentTechnique.Passes)

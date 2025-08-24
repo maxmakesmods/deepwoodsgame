@@ -76,9 +76,9 @@ namespace DeepWoods.World
         {
             int margin = 2;
 
-            Point topleft = GetTileAtScreenPos(new Point(0, 0));
-            Point topright = GetTileAtScreenPos(new Point(Viewport.Width, 0));
-            Point bottomleft = GetTileAtScreenPos(new Point(0, Viewport.Height));
+            Point topleft = GetTileAtScreenPos(new Point(Viewport.X, Viewport.Y));
+            Point topright = GetTileAtScreenPos(new Point(Viewport.X + Viewport.Width, Viewport.Y));
+            Point bottomleft = GetTileAtScreenPos(new Point(Viewport.X, Viewport.Y + Viewport.Height));
 
             ShadowRectangle = new Rectangle(
                 topleft.X - margin,

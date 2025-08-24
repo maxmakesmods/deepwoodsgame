@@ -1,11 +1,17 @@
 ﻿
 using Microsoft.Xna.Framework;
 using MonoGame.Extended;
+using System;
 
 namespace DeepWoods.Helpers
 {
     internal static class Extensions
     {
+        public static Point RoundToPoint(this Vector2 v)
+        {
+            return new Point((int)MathF.Round(v.X), (int)MathF.Round(v.Y));
+        }
+
         public static Vector2 Position(this Rectangle rect)
         {
             return new Vector2(rect.X, rect.Y);
