@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using DeepWoods.World.Biomes;
+using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,6 +8,7 @@ namespace DeepWoods.World.Generators
 {
     internal class ForestGenerator : Generator
     {
+        private readonly List<IBiome> biomes;
         private readonly Random rng;
 
         private static readonly Point[] directions = [new(1, 0), new(-1, 0), new(0, 1), new(0, -1)];
@@ -17,9 +19,10 @@ namespace DeepWoods.World.Generators
             public Point anchor;
         }
 
-        public ForestGenerator(Tile[,] tiles, int seed)
+        public ForestGenerator(Tile[,] tiles, List<IBiome> biomes, int seed)
             : base(tiles)
         {
+            this.biomes = biomes;
             rng = new Random(seed);
         }
 
@@ -92,10 +95,15 @@ namespace DeepWoods.World.Generators
                 }
             }
 
-            //ConnectRegions();
+            ConnectRegions();
         }
 
-        private List<Region> CollectRegions()
+        private bool IsRegionTile(int x, int y, IBiome biome)
+        {
+            return CanGenerateHere(new(x, y)) && tiles[x, y].biome == biome && tiles[x, y].isOpen;
+        }
+
+        private List<Region> CollectRegions(IBiome biome)
         {
             List<Region> regions = new();
             bool[,] visited = new bool[width, height];
@@ -104,7 +112,7 @@ namespace DeepWoods.World.Generators
             {
                 for (int y = 0; y < height; y++)
                 {
-                    if (tiles[x, y].isOpen && !visited[x, y])
+                    if (IsRegionTile(x, y, biome) && !visited[x, y])
                     {
                         Region region = new Region();
                         Queue<Point> queue = new Queue<Point>();
@@ -118,7 +126,7 @@ namespace DeepWoods.World.Generators
                             foreach (var direction in directions)
                             {
                                 Point neighbour = p + direction;
-                                if (CanGenerateHere(neighbour) && tiles[neighbour.X, neighbour.Y].isOpen && !visited[neighbour.X, neighbour.Y])
+                                if (IsRegionTile(neighbour.X, neighbour.Y, biome) && !visited[neighbour.X, neighbour.Y])
                                 {
                                     queue.Enqueue(neighbour);
                                     visited[neighbour.X, neighbour.Y] = true;
@@ -138,19 +146,30 @@ namespace DeepWoods.World.Generators
         private void ConnectRegions()
         {
             bool debugbreaker = false;
-            var regions = CollectRegions();
-            while (regions.Count > 1 && !debugbreaker)
+
+            List<Region> biomeRegions = [];
+            foreach (var biome in biomes)
             {
-                Region regionA = regions[rng.Next(regions.Count)];
-                Region regionB = regions[rng.Next(regions.Count)];
-                if (TryConnectTwoRegions(regionA, regionB))
+                var regions = CollectRegions(biome);
+                while (regions.Count > 1 && !debugbreaker)
                 {
-                    regions = CollectRegions();
+                    Region regionA = regions[rng.Next(regions.Count)];
+                    Region regionB = regions[rng.Next(regions.Count)];
+                    if (TryConnectTwoRegions(regionA, regionB, biome))
+                    {
+                        regions = CollectRegions(biome);
+                    }
                 }
+                biomeRegions.Add(regions[0]);
+            }
+
+            for (int i = 0; i < biomeRegions.Count - 1; i++)
+            {
+                while (!TryConnectTwoRegions(biomeRegions[i], biomeRegions[i + 1], biomes[i + 1]));
             }
         }
 
-        private bool TryConnectTwoRegions(Region regionA, Region regionB)
+        private bool TryConnectTwoRegions(Region regionA, Region regionB, IBiome highestAllowedBiome)
         {
             if (regionA == regionB)
             {
@@ -177,7 +196,8 @@ namespace DeepWoods.World.Generators
                     currentPoint.Y += Math.Sign(anchorB.Y - currentPoint.Y);
                 }
 
-                if (!CanGenerateHere(currentPoint))
+                if (!CanGenerateHere(currentPoint)
+                    || biomes.IndexOf(tiles[currentPoint.X, currentPoint.Y].biome) > biomes.IndexOf(highestAllowedBiome))
                 {
                     return false;
                 }

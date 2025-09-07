@@ -67,8 +67,9 @@ namespace DeepWoods.World
             ];
 
             //Generator generator = new LabyrinthGenerator(width, height, rng.Next());
-            SpiralBiomeGenerator biomeGenerator = new SpiralBiomeGenerator(tiles, biomes);
-            ForestGenerator forestGenerator = new ForestGenerator(tiles, rng.Next());
+            //SpiralBiomeGenerator biomeGenerator = new SpiralBiomeGenerator(tiles, biomes);
+            EightFigureBiomeGenerator biomeGenerator = new EightFigureBiomeGenerator(tiles, biomes);
+            ForestGenerator forestGenerator = new ForestGenerator(tiles, biomes, rng.Next());
             GroundTypeGenerator groundTypeGenerator = new GroundTypeGenerator(tiles);
             biomeGenerator.Generate();
             forestGenerator.Generate();
