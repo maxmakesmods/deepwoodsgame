@@ -6,7 +6,6 @@ using MonoGame.Extended;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Reflection.Metadata;
 
 namespace DeepWoods.World.Generators
 {
@@ -23,6 +22,9 @@ namespace DeepWoods.World.Generators
         private readonly int yradius;
         private readonly int spiralRadius;
 
+        private readonly float biomeSeparatorWaveAmplitude;
+        private readonly float biomeSeparatorWaveWavelength;
+
         public SpiralBiomeGenerator(Tile[,] tiles, List<IBiome> biomes)
             : base(tiles)
         {
@@ -32,6 +34,9 @@ namespace DeepWoods.World.Generators
             xradius = width / 6;
             yradius = height / 6;
             spiralRadius = Math.Max(2, Math.Min(width / 64, height / 64));
+
+            biomeSeparatorWaveAmplitude = spiralRadius / 2f;
+            biomeSeparatorWaveWavelength = spiralRadius;
         }
 
         public override void Generate()
@@ -54,10 +59,11 @@ namespace DeepWoods.World.Generators
                         float spiralDistToMapCenter = spiralpos.Length();
                         float ourDistToMapCenter = new Vector2(relx, rely).Length();
 
-                        if (tiles[x, y].biome == null &&
-                            ourDistToMapCenter < spiralDistToMapCenter)
+                        if (tiles[x, y].biome == null && ourDistToMapCenter < spiralDistToMapCenter)
                         {
                             int biomeIndex;
+
+                            float biomeSeparatorWave = 0;// MathF.Sin(ourDistToMapCenter / biomeSeparatorWaveWavelength) * biomeSeparatorWaveAmplitude;
 
                             if (j == 0)
                             {
@@ -66,12 +72,12 @@ namespace DeepWoods.World.Generators
                             else if (j == 1)
                             {
                                 int anglesPerBiome = 150;
-                                biomeIndex = (int)(angle.Degrees / anglesPerBiome);
+                                biomeIndex = (int)((angle.Degrees + biomeSeparatorWave) / anglesPerBiome);
                             }
                             else if (j == 2)
                             {
                                 int anglesPerBiome = 70;
-                                biomeIndex = (int)(2 + angle.Degrees / anglesPerBiome);
+                                biomeIndex = (int)(2 + (angle.Degrees + biomeSeparatorWave) / anglesPerBiome);
                                 if (biomeIndex > 6)
                                 {
                                     Debug.WriteLine($"angle.Degrees: {angle.Degrees}");
@@ -111,7 +117,7 @@ namespace DeepWoods.World.Generators
 
             AddCirclyEnd(biomes[biomes.Count - 1]);
 
-            FillVoid(voidBiome);
+            FillVoid();
         }
 
         private Vector2 GetSpiralPos(Angle angle)
@@ -129,17 +135,17 @@ namespace DeepWoods.World.Generators
             Angle outerAngle = new(350 + 360f * 2, AngleType.Degree);
             Vector2 outerSpiralPos = GetSpiralPos(outerAngle);
 
-            int radius = (int)MathF.Ceiling((innerSpiralPos - outerSpiralPos).Length() / 2 - spiralRadius);
+            int radius = (int)MathF.Floor((innerSpiralPos - outerSpiralPos).Length() / 2 - spiralRadius);
             Point midPoint = ((innerSpiralPos + outerSpiralPos) / 2).RoundToPoint();
 
             for (int x = -radius; x <= radius; x++)
             {
                 for (int y = -radius; y <= radius; y++)
                 {
-                    if (new Vector2(x, y).Length() < radius)
+                    if (new Vector2(x, y).Length() <= radius)
                     {
                         int px = xcenter + midPoint.X + x;
-                        int py = ycenter + midPoint.Y + y;
+                        int py = ycenter - midPoint.Y + y;
                         if (IsInsideGrid(new Point(px, py)))
                         {
                             tiles[px, py].biome = lastBiome;
@@ -149,7 +155,7 @@ namespace DeepWoods.World.Generators
             }
         }
 
-        private void FillVoid(VoidBiome voidBiome)
+        private void FillVoid()
         {
             for (int x = 0; x < width; x++)
             {
