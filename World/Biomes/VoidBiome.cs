@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using DeepWoods.Objects;
+using System.Collections.Generic;
 
 namespace DeepWoods.World.Biomes
 {
@@ -12,7 +13,7 @@ namespace DeepWoods.World.Biomes
 
         public List<string> Buildings => [];
 
-        public List<string> Critters => [];
+        public List<CritterDefinitions.Critter> Critters => [];
 
         public List<string> Stuff => [];
 

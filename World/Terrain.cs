@@ -56,20 +56,26 @@ namespace DeepWoods.World
 
             tiles = new Tile[width, height];
 
+            /*
             List<IBiome> biomes = [
-                new TemporaryTestBiomeGeneric(GroundType.Grass),
-                new TemporaryTestBiomeGeneric(GroundType.Sand),
-                new TemporaryTestBiomeGeneric(GroundType.Mud),
-                new TemporaryTestBiomeGeneric(GroundType.Snow),
-                new TemporaryTestBiomeGeneric(GroundType.ForestFloor),
-                new TemporaryTestBiomeGeneric(GroundType.PlaceHolder6),
-                new TemporaryTestBiomeGeneric(GroundType.PlaceHolder7)
+                new TemperateForestBiome(),
+                //new GenericBiome(GroundType.Grass),
+                new GenericBiome(GroundType.Sand),
+                new GenericBiome(GroundType.Mud),
+                new GenericBiome(GroundType.Snow),
+                new GenericBiome(GroundType.ForestFloor),
+                new GenericBiome(GroundType.PlaceHolder6),
+                new GenericBiome(GroundType.PlaceHolder7)
             ];
+            */
+            List<IBiome> biomes = [new GenericBiome(GroundType.Sand, GroundType.Mud)];
 
             //Generator generator = new LabyrinthGenerator(width, height, rng.Next());
             //SpiralBiomeGenerator biomeGenerator = new SpiralBiomeGenerator(tiles, biomes);
-            EightFigureBiomeGenerator biomeGenerator = new EightFigureBiomeGenerator(tiles, biomes);
-            ForestGenerator forestGenerator = new ForestGenerator(tiles, biomes, rng.Next());
+            //EightFigureBiomeGenerator biomeGenerator = new EightFigureBiomeGenerator(tiles, biomes);
+            SingleBiomeGenerator biomeGenerator = new SingleBiomeGenerator(tiles, biomes[0]);
+            //ForestGenerator forestGenerator = new ForestGenerator(tiles, biomes, rng.Next());
+            UndergroundGenerator forestGenerator = new UndergroundGenerator(tiles, biomes, rng.Next());
             GroundTypeGenerator groundTypeGenerator = new GroundTypeGenerator(tiles);
             biomeGenerator.Generate();
             forestGenerator.Generate();
