@@ -8,10 +8,12 @@ namespace DeepWoods.World.Generators
 {
     internal class ForestGenerator : Generator
     {
-        private readonly List<IBiome> biomes;
-        private readonly Random rng;
-
         private static readonly Point[] directions = [new(1, 0), new(-1, 0), new(0, 1), new(0, -1)];
+
+        private readonly List<IBiome> biomes;
+        protected readonly Random rng;
+        protected virtual double GoalRatio => 0.5;
+        protected virtual int BorderSize => 2;
 
         class Region
         {
@@ -36,8 +38,7 @@ namespace DeepWoods.World.Generators
             if (!IsValidPoint(p))
                 return false;
 
-            int borderSize = 2;
-            for (int i = 1; i <= borderSize; i++)
+            for (int i = 1; i <= BorderSize; i++)
             {
                 if (!IsValidPoint(p + new Point(0, i))
                     || !IsValidPoint(p + new Point(0, -i))
@@ -70,8 +71,7 @@ namespace DeepWoods.World.Generators
         public override void Generate()
         {
             int numSteps = Math.Max(10, width * height / 100);
-            double goalRatio = 0.5;
-            while (CurrentRatio() < goalRatio)
+            while (CurrentRatio() < GoalRatio)
             {
                 GenerateOpenPatch(new(rng.Next(width), rng.Next(height)), numSteps);
             }
@@ -151,6 +151,7 @@ namespace DeepWoods.World.Generators
             foreach (var biome in biomes)
             {
                 var regions = CollectRegions(biome);
+                int attemptCounter = 0;
                 while (regions.Count > 1 && !debugbreaker)
                 {
                     Region regionA = regions[rng.Next(regions.Count)];
@@ -158,6 +159,17 @@ namespace DeepWoods.World.Generators
                     if (TryConnectTwoRegions(regionA, regionB, biome))
                     {
                         regions = CollectRegions(biome);
+                        attemptCounter = 0;
+                    }
+                    else
+                    {
+                        attemptCounter++;
+                        if (attemptCounter >= 100)
+                        {
+                            FillInSmallestRegion(regions);
+                            regions = CollectRegions(biome);
+                            attemptCounter = 0;
+                        }
                     }
                 }
                 biomeRegions.Add(regions[0]);
@@ -166,6 +178,15 @@ namespace DeepWoods.World.Generators
             for (int i = 0; i < biomeRegions.Count - 1; i++)
             {
                 while (!TryConnectTwoRegions(biomeRegions[i], biomeRegions[i + 1], biomes[i + 1]));
+            }
+        }
+
+        private void FillInSmallestRegion(List<Region> regions)
+        {
+            regions.Sort((r1, r2) => r1.tiles.Count.CompareTo(r2.tiles.Count));
+            foreach (var p in regions[0].tiles)
+            {
+                tiles[p.X, p.Y].isOpen = false;
             }
         }
 

@@ -49,8 +49,6 @@ namespace DeepWoods.Objects
 
         private void GenerateObjects(Terrain terrain, List<DWObject> objects, List<DWObject> critters)
         {
-            var critterIDs = new List<CritterDefinitions.Critter>(Enum.GetValues<CritterDefinitions.Critter>());
-
             // TODO TEMP Sprite Test
             for (int y = height - 1; y >= 0; y--)
             {
@@ -63,9 +61,11 @@ namespace DeepWoods.Objects
                     }
                     if (terrain.CanSpawnCritter(x, y) && rng.NextSingle() < biome.StuffDensity)
                     {
-                        CritterDefinitions.Critter critter = critterIDs[rng.Next(critterIDs.Count)];
-                        var def = CritterDefinitions.GetCritterDefinition(critter);
-                        critters.Add(new DWObject(new Vector2(x, y), def));
+                        var c = SpawnRandomCritter(biome.Critters, x, y);
+                        if (c != null)
+                        {
+                            critters.Add(c);
+                        }
                     }
                     else if (terrain.CanSpawnStuff(x, y) && rng.NextSingle() < biome.StuffDensity)
                     {
@@ -106,6 +106,17 @@ namespace DeepWoods.Objects
             SpawnObject("tree1", 7, 3);
             SpawnObject("tower", 5, 2);
             */
+        }
+
+        private DWObject SpawnRandomCritter(List<CritterDefinitions.Critter> critters, int x, int y)
+        {
+            if (critters.Count == 0)
+            {
+                return null;
+            }
+            CritterDefinitions.Critter critter = critters[rng.Next(critters.Count)];
+            var def = CritterDefinitions.GetCritterDefinition(critter);
+            return new DWObject(new Vector2(x, y), def);
         }
 
         private DWObject SpawnRandomObject(List<string> objectList, int x, int y)

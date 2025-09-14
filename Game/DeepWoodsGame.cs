@@ -61,7 +61,10 @@ namespace DeepWoods.Game
             ATT.PlayerManager = new PlayerManager(ATT, rng.Next());
             ATT.Renderer = new DWRenderer(ATT);
             ATT.DialogueManager = new DialogueManager();
-            ATT.Terrain = new Terrain(ATT, rng.Next(), gridSize, gridSize);
+
+            int terrainSeed = rng.Next();//382081431;
+
+            ATT.Terrain = new Terrain(ATT, terrainSeed, gridSize, gridSize);
             ATT.Terrain.Apply();
             ATT.LightManager = new LightManager(ATT, rng.Next());
             ATT.ObjectManager = new ObjectManager(ATT, rng.Next());
