@@ -1,11 +1,9 @@
 ﻿
-using DeepWoods.Helpers;
 using DeepWoods.World.Biomes;
 using Microsoft.Xna.Framework;
 using MonoGame.Extended;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 
 namespace DeepWoods.World.Generators
 {
@@ -13,21 +11,16 @@ namespace DeepWoods.World.Generators
     {
         private static readonly VoidBiome voidBiome = new();
 
-        private readonly List<IBiome> allbiomes;
+        private int xcenter1;
+        private int ycenter1;
+        private int xcenter2;
+        private int ycenter2;
+        private int xradius;
+        private int yradius;
+        private int circleRadius;
 
-        private readonly int xcenter1;
-        private readonly int ycenter1;
-        private readonly int xcenter2;
-        private readonly int ycenter2;
-        private readonly int xradius;
-        private readonly int yradius;
-        private readonly int circleRadius;
-
-        public EightFigureBiomeGenerator(Tile[,] tiles, List<IBiome> biomes)
-            : base(tiles)
+        protected override void GenerateImpl()
         {
-            allbiomes = biomes;
-
             xradius = width / 6;
             yradius = height / 6;
 
@@ -38,18 +31,15 @@ namespace DeepWoods.World.Generators
 
             xcenter2 = width / 2 + xradius;
             ycenter2 = height / 2;
-        }
 
-        public override void Generate()
-        {
             FillNull();
 
-            var startBiome = allbiomes[0];
+            var startBiome = biomes[0];
 
-            int biomesPerCircle = (allbiomes.Count - 1) / 2;
+            int biomesPerCircle = (biomes.Count - 1) / 2;
 
-            List<IBiome> firstCircleBiomes = allbiomes[1..(1 + biomesPerCircle)];
-            List<IBiome> secondCircleBiomes = allbiomes[(1 + biomesPerCircle)..];
+            List<IBiome> firstCircleBiomes = biomes[1..(1 + biomesPerCircle)];
+            List<IBiome> secondCircleBiomes = biomes[(1 + biomesPerCircle)..];
 
             int xstart1 = 1;
             int xend1 = width / 2;
@@ -103,11 +93,11 @@ namespace DeepWoods.World.Generators
                     float circleDistOuter = circleDistToMapCenter + circleRadius;
                     float ourDistToMapCenter = new Vector2(relx, rely).Length();
 
-                    if (tiles[x, y].biome != allbiomes[0] && ourDistToMapCenter >= circleDistInner && ourDistToMapCenter <= circleDistOuter)
+                    if (tiles[x, y].biome != biomes[0] && ourDistToMapCenter >= circleDistInner && ourDistToMapCenter <= circleDistOuter)
                     {
                         if (x < xstart || x >= xend)
                         {
-                            tiles[x, y].biome = allbiomes[0];
+                            tiles[x, y].biome = biomes[0];
                         }
                         else
                         {

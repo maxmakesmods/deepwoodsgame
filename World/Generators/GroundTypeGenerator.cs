@@ -3,12 +3,7 @@ namespace DeepWoods.World.Generators
 {
     internal class GroundTypeGenerator : Generator
     {
-        public GroundTypeGenerator(Tile[,] tiles)
-            : base(tiles)
-        {
-        }
-
-        public override void Generate()
+        protected override void GenerateImpl()
         {
             for (int x = 1; x < width - 1; x++)
             {

@@ -39,6 +39,8 @@ namespace DeepWoods.World.Biomes
             "herb4",
         ];
 
+        public string CaveObjectId { get; set; } = "crystal ball";
+
         public float StuffDensity => 0.2f;
         public float BuildingDensity => 0.1f;
 

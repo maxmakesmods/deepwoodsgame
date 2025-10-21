@@ -187,7 +187,7 @@ namespace DeepWoods.Players
             }
 
             // clip velocity against terrain
-            velocity = ClipVelocity(att.Terrain, velocity, timeDelta);
+            velocity = ClipVelocity(att.World.GetTerrain(this), velocity, timeDelta);
 
             // apply velocity
             position += velocity * timeDelta;
@@ -207,7 +207,12 @@ namespace DeepWoods.Players
                 int currentTileX = (int)position.X;
                 int currentTileY = (int)position.Y;
 
-                var dwobj = att.ObjectManager.GetObject(att.Terrain, currentTileX, currentTileY);
+                if (att.World.IsCave(this, currentTileX, currentTileY))
+                {
+                    att.World.SwitchOverUnderground(this, currentTileX, currentTileY);
+                }
+
+                var dwobj = att.World.TryPickUpObject(this, currentTileX, currentTileY);
                 if (dwobj != null)
                 {
                     inventory.Add(dwobj);
@@ -217,6 +222,16 @@ namespace DeepWoods.Players
             if (keyboardState.IsKeyDown(Keys.Tab) && !previousKeyboardState.IsKeyDown(Keys.Tab))
             {
                 inventory.IsOpen = !inventory.IsOpen;
+            }
+
+            if (keyboardState.IsKeyDown(Keys.K) && !previousKeyboardState.IsKeyDown(Keys.K))
+            {
+                att.World.SwitchToUnderground(this, 0);
+            }
+
+            if (keyboardState.IsKeyDown(Keys.J) && !previousKeyboardState.IsKeyDown(Keys.J))
+            {
+                att.World.SwitchToOverground(this);
             }
 
             if (keyboardState.IsKeyDown(Keys.H) && !previousKeyboardState.IsKeyDown(Keys.H))

@@ -14,6 +14,7 @@ namespace DeepWoods.World.Biomes
         public List<string> Buildings { get; set; } = [];
         public List<CritterDefinitions.Critter> Critters { get; set; } = [];
         public List<string> Stuff { get; set; } = [];
+        public string CaveObjectId { get; set; } = "crystal ball";
 
         public float StuffDensity { get; set; } = 0.2f;
         public float BuildingDensity { get; set; } = 0.1f;

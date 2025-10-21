@@ -7,22 +7,9 @@ namespace DeepWoods.World.Generators
 {
     internal class LabyrinthGenerator : Generator
     {
-        private readonly Random rng;
-
         private static readonly Point[] directions = [new(1, 0), new(-1, 0), new(0, 1), new(0, -1)];
 
-        public LabyrinthGenerator(Tile[,] tiles, int seed)
-            : base(tiles)
-        {
-            rng = new Random(seed);
-        }
-
-        private bool IsInsideGrid(Point next)
-        {
-            return next.X >= 0 && next.X < width && next.Y >= 0 && next.Y < height;
-        }
-
-        public override void Generate()
+        protected override void GenerateImpl()
         {
             Stack<Point> stack = new Stack<Point>();
             stack.Push(new Point(1, 1));

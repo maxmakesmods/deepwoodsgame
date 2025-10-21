@@ -7,6 +7,7 @@ using DeepWoods.World.Biomes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using MonoGame.Extended.Collections;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,33 +18,94 @@ namespace DeepWoods.Objects
     {
         private readonly List<DWObjectDefinition> objectDefinitions;
         private readonly Random rng;
+
+        private AllTheThings ATT { get; set; }
+
+        private readonly Terrain terrain;
+
         private readonly int width;
         private readonly int height;
-
-        private readonly InstancedObjects instancedObjects;
-        private readonly InstancedObjects instancedCritters;
 
         private readonly List<DWObject> objects = [];
         private readonly List<DWObject> critters = [];
         private readonly Dictionary<(int, int), int> objectIndices = [];
 
-        public ObjectManager(AllTheThings att, int seed)
+        private InstancedObjects instancedObjects;
+        private InstancedObjects instancedCritters;
+
+        public ObjectManager(AllTheThings att, Terrain terrain, int seed)
         {
+            ATT = att;
+            this.terrain = terrain;
             rng = new Random(seed);
             objectDefinitions = att.Content.Load<List<DWObjectDefinition>>("objects/objects");
 
-            width = att.Terrain.Width;
-            height = att.Terrain.Height;
+            width = terrain.Width;
+            height = terrain.Height;
+        }
 
-            GenerateObjects(att.Terrain, objects, critters);
+        internal bool GenerateCaves(IBiome overgroundBiome, Rectangle rectangle, SubWorld underground, int numCaves)
+        {
+            List<Point> possibleCavePositions = new();
+
+            for (int x = 0; x < rectangle.Width; x++)
+            {
+                for (int y = 0; y < rectangle.Height; y++)
+                {
+                    if (terrain.GetBiome(rectangle.X + x, rectangle.Y + y) == overgroundBiome
+                        && terrain.CanSpawnBuilding(rectangle.X + x, rectangle.Y + y))
+                    {
+                        if (underground.Terrain.CanSpawnBuilding(x, y))
+                        {
+                            possibleCavePositions.Add(new Point(x, y));
+                        }
+                    }
+                }
+            }
+
+            if (possibleCavePositions.Count < numCaves)
+            {
+                return false;
+            }
+
+            possibleCavePositions.Shuffle(rng);
+
+            for (int i = 0; i < numCaves; i++)
+            {
+                Point cavePos = possibleCavePositions[i];
+                SpawnCave(rectangle.X + cavePos.X, rectangle.Y + cavePos.Y);
+                underground.ObjectManager.SpawnCave(cavePos.X, cavePos.Y);
+            }
+
+            return true;
+        }
+
+        protected void SpawnCave(int x, int y)
+        {
+            IBiome biome = terrain.GetBiome(x, y);
+            if (biome == null)
+            {
+                return;
+            }
+            var cave = SpawnObject(biome.CaveObjectId, x, y);
+            if (cave != null)
+            {
+                objectIndices.Add((x, y), objects.Count);
+                objects.Add(cave);
+            }
+        }
+
+        internal void FinalGenerate()
+        {
+            GenerateObjects(terrain, objects, critters);
 
             if (objects.Count > 0)
             {
-                instancedObjects = new InstancedObjects(att.GraphicsDevice, objects, TextureLoader.ObjectsTexture);
+                instancedObjects = new InstancedObjects(ATT.GraphicsDevice, objects, TextureLoader.ObjectsTexture);
             }
             if (critters.Count > 0)
             {
-                instancedCritters = new InstancedObjects(att.GraphicsDevice, critters, TextureLoader.Critters);
+                instancedCritters = new InstancedObjects(ATT.GraphicsDevice, critters, TextureLoader.Critters);
             }
         }
 
@@ -56,6 +118,10 @@ namespace DeepWoods.Objects
                 {
                     IBiome biome = terrain.GetBiome(x, y);
                     if (biome == null)
+                    {
+                        continue;
+                    }
+                    if (objectIndices.ContainsKey((x, y)))
                     {
                         continue;
                     }
@@ -185,9 +251,24 @@ namespace DeepWoods.Objects
             instancedCritters?.Draw(graphicsDevice);
         }
 
-        internal DWObject GetObject(Terrain terrain, int x, int y)
+        internal bool IsCave(int x, int y)
+        {
+            if (objectIndices.TryGetValue((x, y), out var index))
+            {
+                return objects[index].Def.Name == "crystal ball";
+            }
+
+            return false;
+        }
+
+        internal DWObject TryPickUpObject(int x, int y)
         {
             if (terrain.IsTreeTile(x, y))
+            {
+                return null;
+            }
+
+            if (IsCave(x, y))
             {
                 return null;
             }

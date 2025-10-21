@@ -17,6 +17,8 @@ namespace DeepWoods.World.Biomes
 
         public List<string> Stuff => [];
 
+        public string CaveObjectId { get; set; } = null;
+
         public GroundType OpenGroundType => GroundType.Void;
 
         public GroundType ClosedGroundType => GroundType.Void;

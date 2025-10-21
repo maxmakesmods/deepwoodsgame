@@ -1,7 +1,6 @@
 ﻿using DeepWoods.World.Biomes;
 using Microsoft.Xna.Framework;
 using System;
-using System.Collections.Generic;
 
 namespace DeepWoods.World.Generators
 {
@@ -12,9 +11,24 @@ namespace DeepWoods.World.Generators
         protected override double GoalRatio => 0.3;
         protected override int BorderSize => 1;
 
-        public UndergroundGenerator(Tile[,] tiles, List<IBiome> biomes, int seed)
-            : base(tiles, biomes, seed)
+        private void MakeVoidCircle()
         {
+            int xcenter = width / 2;
+            int ycenter = height / 2;
+            int radiusSquared = (width / 2) * (width / 2);
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    int relx = x - xcenter;
+                    int rely = y - ycenter;
+                    float distToMapCenter = new Vector2(relx, rely).LengthSquared();
+                    if (distToMapCenter > radiusSquared)
+                    {
+                        tiles[x, y].biome = voidBiome;
+                    }
+                }
+            }
         }
 
         private void MakeFuzzyVoidBorder()
@@ -71,10 +85,11 @@ namespace DeepWoods.World.Generators
             return false;
         }
 
-        public override void Generate()
+        protected override void GenerateImpl()
         {
-            MakeFuzzyVoidBorder();
-            base.Generate();
+            //MakeFuzzyVoidBorder();
+            MakeVoidCircle();
+            base.GenerateImpl();
             for (int x = 0; x < width; x++)
             {
                 for (int y = 0; y < height; y++)

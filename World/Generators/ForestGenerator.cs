@@ -10,22 +10,13 @@ namespace DeepWoods.World.Generators
     {
         private static readonly Point[] directions = [new(1, 0), new(-1, 0), new(0, 1), new(0, -1)];
 
-        private readonly List<IBiome> biomes;
-        protected readonly Random rng;
         protected virtual double GoalRatio => 0.5;
         protected virtual int BorderSize => 2;
 
         class Region
         {
             public HashSet<Point> tiles = new();
-            public Point anchor;
-        }
-
-        public ForestGenerator(Tile[,] tiles, List<IBiome> biomes, int seed)
-            : base(tiles)
-        {
-            this.biomes = biomes;
-            rng = new Random(seed);
+            public Point center;
         }
 
         private bool IsValidPoint(Point p)
@@ -68,7 +59,7 @@ namespace DeepWoods.World.Generators
             return openTiles / (double)totalTiles;
         }
 
-        public override void Generate()
+        protected override void GenerateImpl()
         {
             int numSteps = Math.Max(10, width * height / 100);
             while (CurrentRatio() < GoalRatio)
@@ -119,10 +110,17 @@ namespace DeepWoods.World.Generators
                         queue.Enqueue(new Point(x, y));
                         visited[x, y] = true;
 
+                        Point minPoint = new(int.MaxValue, int.MaxValue);
+                        Point maxPoint = new(int.MinValue, int.MinValue);
+
                         while (queue.Count > 0)
                         {
                             Point p = queue.Dequeue();
                             region.tiles.Add(p);
+                            minPoint.X = Math.Min(p.X, minPoint.X);
+                            minPoint.Y = Math.Min(p.Y, minPoint.Y);
+                            maxPoint.X = Math.Max(p.X, maxPoint.X);
+                            maxPoint.Y = Math.Max(p.Y, maxPoint.Y);
                             foreach (var direction in directions)
                             {
                                 Point neighbour = p + direction;
@@ -134,7 +132,21 @@ namespace DeepWoods.World.Generators
                             }
                         }
 
-                        region.anchor = region.tiles.ToList()[rng.Next(region.tiles.Count)];
+                        Point centerPoint = (minPoint + maxPoint) / new Point(2, 2);
+                        Point mostCenterPoint = new(int.MaxValue, int.MaxValue);
+                        float lastLengthSquared = float.MaxValue;
+
+                        foreach (var tile in region.tiles)
+                        {
+                            float lengthSquared = (tile - centerPoint).ToVector2().LengthSquared();
+                            if (lengthSquared < lastLengthSquared)
+                            {
+                                mostCenterPoint = tile;
+                                lastLengthSquared = lengthSquared;
+                            }
+                        }
+
+                        region.center = mostCenterPoint;
                         regions.Add(region);
                     }
                 }
@@ -155,7 +167,9 @@ namespace DeepWoods.World.Generators
                 while (regions.Count > 1 && !debugbreaker)
                 {
                     Region regionA = regions[rng.Next(regions.Count)];
-                    Region regionB = regions[rng.Next(regions.Count)];
+                    //Region regionB = regions[rng.Next(regions.Count)];
+                    regions.Sort((r1, r2) => (r1.center - regionA.center).ToVector2().LengthSquared().CompareTo((r2.center - regionA.center).ToVector2().LengthSquared()));
+                    Region regionB = regions[1]; // 0 is itself
                     if (TryConnectTwoRegions(regionA, regionB, biome))
                     {
                         regions = CollectRegions(biome);
@@ -197,10 +211,41 @@ namespace DeepWoods.World.Generators
                 return false;
             }
 
+            int numPaths = 3;
+
+            for (int i = 0; i < numPaths; i++)
+            {
+                List<Point> pointsToOpen = [];
+
+                int numAttempts = 100;
+                for (int j = 0; j < numAttempts; j++)
+                {
+                    var attemptPointsToOpen = TryFindPathBetweenRegions(regionA, regionB, highestAllowedBiome);
+                    if (attemptPointsToOpen == null)
+                    {
+                        continue;
+                    }
+                    if (pointsToOpen.Count == 0 || attemptPointsToOpen.Count < pointsToOpen.Count)
+                    {
+                        pointsToOpen = attemptPointsToOpen;
+                    }
+                }
+
+                foreach (Point point in pointsToOpen)
+                {
+                    tiles[point.X, point.Y].isOpen = true;
+                }
+            }
+
+            return true;
+        }
+
+        private List<Point> TryFindPathBetweenRegions(Region regionA, Region regionB, IBiome highestAllowedBiome)
+        {
+            List<Point> pointsToOpen = [];
+
             Point anchorA = regionA.tiles.ToList()[rng.Next(regionA.tiles.Count)];
             Point anchorB = regionB.tiles.ToList()[rng.Next(regionB.tiles.Count)];
-
-            List<Point> pointsToOpen = [];
 
             Point currentPoint = anchorA;
             while (currentPoint != anchorB)
@@ -220,18 +265,13 @@ namespace DeepWoods.World.Generators
                 if (!CanGenerateHere(currentPoint)
                     || biomes.IndexOf(tiles[currentPoint.X, currentPoint.Y].biome) > biomes.IndexOf(highestAllowedBiome))
                 {
-                    return false;
+                    return null;
                 }
 
                 pointsToOpen.Add(currentPoint);
             }
 
-            foreach (Point point in pointsToOpen)
-            {
-                tiles[point.X, point.Y].isOpen = true;
-            }
-
-            return true;
+            return pointsToOpen;
         }
 
         private void GenerateOpenPatch(Point p, int steps)

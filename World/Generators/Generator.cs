@@ -1,23 +1,31 @@
 ﻿
+using DeepWoods.World.Biomes;
 using Microsoft.Xna.Framework;
 using System;
+using System.Collections.Generic;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace DeepWoods.World.Generators
 {
     internal abstract class Generator
     {
-        protected readonly Tile[,] tiles;
-        protected readonly int width;
-        protected readonly int height;
+        protected Random rng;
+        protected List<IBiome> biomes;
+        protected Tile[,] tiles;
+        protected int width;
+        protected int height;
 
-        protected Generator(Tile[,] tiles)
+        public void Generate(Tile[,] tiles, List<IBiome> biomes, int seed)
         {
+            this.biomes = biomes;
             this.tiles = tiles;
             width = tiles.GetLength(0);
             height = tiles.GetLength(1);
+            rng = new Random(seed);
+            GenerateImpl();
         }
 
-        public abstract void Generate();
+        protected abstract void GenerateImpl();
 
         protected bool IsInsideGrid(Point p)
         {
