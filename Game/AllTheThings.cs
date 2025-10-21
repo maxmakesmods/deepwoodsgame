@@ -16,9 +16,7 @@ namespace DeepWoods.Game
         public GraphicsDeviceManager GraphicsDeviceManager { get; set; }
         public GraphicsDevice GraphicsDevice { get; set; }
         public GameWindow GameWindow { get; set; }
-        public Terrain Terrain { get; set; }
-        public LightManager LightManager { get; set; }
-        public ObjectManager ObjectManager { get; set; }
+        public GameWorld World { get; set; }
         public InGameClock Clock { get; set; }
         public DWRenderer Renderer { get; set; }
         public PlayerManager PlayerManager { get; set; }

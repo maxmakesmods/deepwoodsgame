@@ -47,7 +47,11 @@ namespace DeepWoods.World
             public IBiome biome;
         }
 
-        public Terrain(AllTheThings att, int seed, int width, int height)
+        public Terrain(AllTheThings att, int seed, int width, int height,
+            List<IBiome> biomes,
+            Generator biomeGenerator,
+            Generator forestGenerator,
+            Generator groundTypeGenerator)
         {
             rng = new Random(seed);
             this.seed = seed;
@@ -56,32 +60,9 @@ namespace DeepWoods.World
 
             tiles = new Tile[width, height];
 
-            /*
-            List<IBiome> biomes = [
-                new TemperateForestBiome(),
-                //new GenericBiome(GroundType.Grass),
-                new GenericBiome(GroundType.Sand),
-                new GenericBiome(GroundType.Mud),
-                new GenericBiome(GroundType.Snow),
-                new GenericBiome(GroundType.ForestFloor),
-                new GenericBiome(GroundType.PlaceHolder6),
-                new GenericBiome(GroundType.PlaceHolder7)
-            ];
-            */
-            List<IBiome> biomes = [new GenericBiome(GroundType.Sand, GroundType.Mud)];
-
-            //Generator generator = new LabyrinthGenerator(width, height, rng.Next());
-            //SpiralBiomeGenerator biomeGenerator = new SpiralBiomeGenerator(tiles, biomes);
-            //EightFigureBiomeGenerator biomeGenerator = new EightFigureBiomeGenerator(tiles, biomes);
-            SingleBiomeGenerator biomeGenerator = new SingleBiomeGenerator(tiles, biomes[0]);
-            //ForestGenerator forestGenerator = new ForestGenerator(tiles, biomes, rng.Next());
-            UndergroundGenerator forestGenerator = new UndergroundGenerator(tiles, biomes, rng.Next());
-            GroundTypeGenerator groundTypeGenerator = new GroundTypeGenerator(tiles);
-            biomeGenerator.Generate();
-            forestGenerator.Generate();
-            groundTypeGenerator.Generate();
-
-
+            biomeGenerator.Generate(tiles, biomes, rng.Next());
+            forestGenerator.Generate(tiles, biomes, rng.Next());
+            groundTypeGenerator.Generate(tiles, biomes, rng.Next());
 
             terrainGridTexture = GenerateTerrainTexture(att.GraphicsDevice);
             drawingQuad = CreateVertices();
@@ -374,6 +355,9 @@ namespace DeepWoods.World
             if (tiles[x, y].isOpen)
                 return false;
 
+            if (tiles[x, y].biome == null || tiles[x, y].biome.IsVoid)
+                return false;
+
             return HasOpenNeighbours(x, y);
         }
 
@@ -448,6 +432,38 @@ namespace DeepWoods.World
                 spawnY = spawnY + rng.Next(-1, 2);
             }
             return new Point(spawnX, spawnY);
+        }
+
+        internal Rectangle GetBiomeRectangle(IBiome biome)
+        {
+            bool foundAny = false;
+
+            int xstart = int.MaxValue;
+            int ystart = int.MaxValue;
+            int xend = int.MinValue;
+            int yend = int.MinValue;
+
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    if (tiles[x, y].biome == biome)
+                    {
+                        foundAny = true;
+                        xstart = Math.Min(x, xstart);
+                        ystart = Math.Min(y, ystart);
+                        xend = Math.Max(x, xend);
+                        yend = Math.Max(y, yend);
+                    }
+                }
+            }
+
+            if (!foundAny)
+            {
+                return Rectangle.Empty;
+            }
+
+            return new Rectangle(xstart, ystart, xend - xstart, yend - ystart);
         }
     }
 }

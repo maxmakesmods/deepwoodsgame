@@ -10,10 +10,11 @@ namespace DeepWoods.World.Biomes
         public List<string> Trees { get; }
         public List<string> Buildings { get; }
         public List<string> Stuff { get; }
+        public string CaveObjectId { get; }
         public List<CritterDefinitions.Critter> Critters { get; }
         public GroundType OpenGroundType { get; }
         public GroundType ClosedGroundType { get; }
         public bool CanSpawnInThisBiome { get; }
-        bool IsVoid { get; }
+        public bool IsVoid { get; }
     }
 }

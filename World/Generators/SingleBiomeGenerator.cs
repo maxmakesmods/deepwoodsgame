@@ -1,25 +1,23 @@
 ﻿
 using DeepWoods.World.Biomes;
+using System;
 
 namespace DeepWoods.World.Generators
 {
     internal class SingleBiomeGenerator : Generator
     {
-        private readonly IBiome biome;
-
-        public SingleBiomeGenerator(Tile[,] tiles, IBiome biome)
-            : base(tiles)
+        protected override void GenerateImpl()
         {
-            this.biome = biome;
-        }
+            if (biomes.Count != 1)
+            {
+                throw new ArgumentException("must be 1 biome!");
+            }
 
-        public override void Generate()
-        {
             for (int x = 0; x < width; x++)
             {
                 for (int y = 0; y < height; y++)
                 {
-                    tiles[x, y].biome = biome;
+                    tiles[x, y].biome = biomes[0];
                 }
             }
         }

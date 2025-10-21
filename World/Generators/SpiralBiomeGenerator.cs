@@ -14,33 +14,20 @@ namespace DeepWoods.World.Generators
         private static readonly int repeats = 3;
         private static readonly VoidBiome voidBiome = new();
 
-        private readonly List<IBiome> biomes;
+        private int xcenter;
+        private int ycenter;
+        private int xradius;
+        private int yradius;
+        private int spiralRadius;
 
-        private readonly int xcenter;
-        private readonly int ycenter;
-        private readonly int xradius;
-        private readonly int yradius;
-        private readonly int spiralRadius;
-
-        private readonly float biomeSeparatorWaveAmplitude;
-        private readonly float biomeSeparatorWaveWavelength;
-
-        public SpiralBiomeGenerator(Tile[,] tiles, List<IBiome> biomes)
-            : base(tiles)
+        protected override void GenerateImpl()
         {
-            this.biomes = biomes;
             xcenter = width / 2;
             ycenter = height / 2;
             xradius = width / 6;
             yradius = height / 6;
             spiralRadius = Math.Max(2, Math.Min(width / 64, height / 64));
 
-            biomeSeparatorWaveAmplitude = spiralRadius / 2f;
-            biomeSeparatorWaveWavelength = spiralRadius;
-        }
-
-        public override void Generate()
-        {
             for (int x = 1; x < width - 1; x++)
             {
                 for (int y = 1; y < height - 1; y++)
@@ -63,8 +50,6 @@ namespace DeepWoods.World.Generators
                         {
                             int biomeIndex;
 
-                            float biomeSeparatorWave = 0;// MathF.Sin(ourDistToMapCenter / biomeSeparatorWaveWavelength) * biomeSeparatorWaveAmplitude;
-
                             if (j == 0)
                             {
                                 biomeIndex = 0;
@@ -72,15 +57,15 @@ namespace DeepWoods.World.Generators
                             else if (j == 1)
                             {
                                 int anglesPerBiome = 150;
-                                biomeIndex = (int)((angle.Degrees + biomeSeparatorWave) / anglesPerBiome);
+                                biomeIndex = (int)(angle.Degrees / anglesPerBiome);
                             }
                             else if (j == 2)
                             {
                                 int anglesPerBiome = 70;
-                                biomeIndex = (int)(2 + (angle.Degrees + biomeSeparatorWave) / anglesPerBiome);
+                                biomeIndex = (int)(2 + angle.Degrees / anglesPerBiome);
                                 if (biomeIndex > 6)
                                 {
-                                    Debug.WriteLine($"angle.Degrees: {angle.Degrees}");
+                                    Debug.WriteLine($"biomeIndex > 6: angle.Degrees: {angle.Degrees}");
                                 }
                             }
                             else

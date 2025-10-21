@@ -25,11 +25,11 @@ namespace DeepWoods.World
 
         Vector3 ambientLightColor = AMBIENT_DAY;
 
-        public LightManager(AllTheThings att, int seed)
+        public LightManager(AllTheThings att, Terrain terrain, int seed)
         {
             rng = new Random(seed);
-            width = att.Terrain.Width;
-            height = att.Terrain.Height;
+            width = terrain.Width;
+            height = terrain.Height;
 
             // TODO TEMP light test
             for (int i = 0; i < numLights; i++)

@@ -64,10 +64,7 @@ namespace DeepWoods.Game
 
             int terrainSeed = rng.Next();//382081431;
 
-            ATT.Terrain = new Terrain(ATT, terrainSeed, gridSize, gridSize);
-            ATT.Terrain.Apply();
-            ATT.LightManager = new LightManager(ATT, rng.Next());
-            ATT.ObjectManager = new ObjectManager(ATT, rng.Next());
+            ATT.World = new GameWorld(ATT, terrainSeed, gridSize, gridSize);
 
 
 
@@ -127,11 +124,10 @@ namespace DeepWoods.Game
         {
             float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-            ATT.LightManager.Update(ATT.Clock.DayDelta, deltaTime);
-            ATT.LightManager.Apply();
+            ATT.World.Update(ATT.Clock.DayDelta, deltaTime);
 
 
-            string debugstring = $"Seed: {ATT.Terrain.Seed}," +
+            string debugstring = $"Seed: {ATT.World.Seed}," +
                 $" Time: {ATT.Clock.Day:D2}:{ATT.Clock.Hour:D2}:{ATT.Clock.Minute:D2}," +
                 $" FPS: {ATT.FPS.FPS}, ms/f: {ATT.FPS.SPF}";
 
