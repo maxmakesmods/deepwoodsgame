@@ -1,3 +1,4 @@
+from asyncio.windows_events import NULL
 import os
 import json
 from PIL import Image
@@ -45,27 +46,51 @@ def pack_images(images):
         size *= 2
 
 def main():
+    # load existing objects.json if present
+    old_data = {}
+    if os.path.exists('objects.json'):
+        with open('objects.json', 'r') as f:
+            try:
+                for obj in json.load(f):
+                    old_data[obj["name"]] = obj
+            except Exception:
+                pass
+            
+    glow_maps = {}
     images = []
     for fname in os.listdir('raw'):
-        if fname.lower().endswith('.png'):
+        if fname.lower().endswith('.png') and not fname.lower().endswith('_glow.png'):
             path = os.path.join('raw', fname)
             img = Image.open(path).convert('RGBA')
             images.append((fname[:-4], img))
+            glow_map_path = os.path.join('raw', fname[:-4] + '_glow.png')
+            if os.path.exists(glow_map_path):
+                glow_map = Image.open(glow_map_path).convert('RGBA')
+                glow_maps[fname[:-4]] = glow_map
 
     atlas_size, placements = pack_images(images)
     atlas = Image.new('RGBA', (atlas_size, atlas_size), (0, 0, 0, 0))
+    glow_atlas = Image.new('RGBA', (atlas_size, atlas_size), (0, 0, 0, 0))
 
     data = []
     for name, img, x, y in placements:
         atlas.paste(img, (x, y))
-        data.append({
+        glow_map = glow_maps.get(name, False)
+        if glow_map:
+            glow_atlas.paste(glow_map, (x, y))
+        obj = old_data.get(name, {}).copy()
+        obj.update({
             "name": name,
             "x": x,
             "y": y,
             "width": img.width,
-            "height": img.height
+            "height": img.height,
+            "glowing": bool(glow_map)
         })
+        data.append(obj)
+
     atlas.save('objects_tileset.png')
+    glow_atlas.save('objects_glowmap.png')
 
     with open('objects.json', 'w') as f:
         json.dump(data, f, indent=2)

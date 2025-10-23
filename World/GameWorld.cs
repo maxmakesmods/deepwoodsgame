@@ -80,12 +80,13 @@ namespace DeepWoods.World
         {
             return [
                 new BiomePair(new TemperateForestBiome(), new GenericBiome(GroundType.Sand, GroundType.Mud)),
-                new BiomePair(new GenericBiome(GroundType.Sand) { Trees = ["tree1"] }, new GenericBiome(GroundType.Sand, GroundType.Mud)),
-                new BiomePair(new GenericBiome(GroundType.Mud) { Trees = ["tree1"] }, new GenericBiome(GroundType.Sand, GroundType.Mud)),
-                new BiomePair(new GenericBiome(GroundType.Snow) { Trees = ["tree1"] }, new GenericBiome(GroundType.Sand, GroundType.Mud)),
-                new BiomePair(new GenericBiome(GroundType.ForestFloor) { Trees = ["tree1"] }, new GenericBiome(GroundType.Sand, GroundType.Mud)),
-                new BiomePair(new GenericBiome(GroundType.PlaceHolder6) { Trees = ["tree1"] }, new GenericBiome(GroundType.Sand, GroundType.Mud)),
-                new BiomePair(new GenericBiome(GroundType.PlaceHolder7) { Trees = ["tree1"] }, new GenericBiome(GroundType.Sand, GroundType.Mud)),
+                new BiomePair(new GenericBiome(1) { Trees = ["tree3", "tree4"] }, new GenericBiome(GroundType.Sand, GroundType.Mud)),
+                new BiomePair(new GenericBiome(2) { Trees = ["swamp_tree1", "swamp_tree2"] }, new GenericBiome(GroundType.Sand, GroundType.Mud)),
+                new BiomePair(new GenericBiome(3) { Trees = ["volcanic_tree1", "volcanic_tree2"] }, new GenericBiome(GroundType.Sand, GroundType.Mud)),
+                new BiomePair(new GenericBiome(4) { Trees = ["lake_tree1", "lake_tree2"] }, new GenericBiome(GroundType.Sand, GroundType.Mud)),
+                //new BiomePair(new GenericBiome(5) { Trees = ["lakeunderwater_tree1", "lakeunderwater_tree2"] }, new GenericBiome(GroundType.Sand, GroundType.Mud)),
+                new BiomePair(new GenericBiome(6) { Trees = ["borealforest_tree1", "borealforest_tree2"] }, new GenericBiome(GroundType.Sand, GroundType.Mud)),
+                new BiomePair(new GenericBiome(7) { Trees = ["magic_tree1", "magic_tree2", "magic_tree1_color2", "magic_tree2_color2"] }, new GenericBiome(GroundType.Sand, GroundType.Mud)),
             ];
         }
 
@@ -160,23 +161,37 @@ namespace DeepWoods.World
             }
         }
 
-        internal void SwitchOverUnderground(Player player, int x, int y)
+        internal void SwitchOverUnderground(Player player, int caveX, int caveY)
         {
+            int oppositeCaveX, oppositeCaveY;
             var subWorld = GetPlayerSubWorld(player);
-            IBiome biome = subWorld.Terrain.GetBiome(x, y);
+            IBiome biome = subWorld.Terrain.GetBiome(caveX, caveY);
             if (subWorld == SubWorlds[OverGroundId])
             {
                 var biomeRectangle = subWorld.Terrain.GetBiomeRectangle(biome);
                 int biomeIndex = biomePairs.FindIndex(p => p.Overground == biome);
                 SwitchToUnderground(player, biomeIndex);
-                player.position = new Vector2(x - biomeRectangle.X, y - biomeRectangle.Y);
+                oppositeCaveX = caveX - biomeRectangle.X;
+                oppositeCaveY = caveY - biomeRectangle.Y;
             }
             else
             {
                 int biomeIndex = biomePairs.FindIndex(p => p.Underground == biome);
                 var biomeRectangle = SubWorlds[OverGroundId].Terrain.GetBiomeRectangle(biomePairs[biomeIndex].Overground);
                 SwitchToOverground(player);
-                player.position = new Vector2(x + biomeRectangle.X, y + biomeRectangle.Y);
+                oppositeCaveX = caveX + biomeRectangle.X;
+                oppositeCaveY = caveY + biomeRectangle.Y;
+            }
+
+            subWorld = GetPlayerSubWorld(player);
+            Point[] directions = [new Point(-1, 0), new Point(1, 0), new Point(0, -1), new Point(0, 1)];
+            foreach (var direction in directions)
+            {
+                if (subWorld.Terrain.CanWalkHere(oppositeCaveX + direction.X, oppositeCaveY + direction.Y))
+                {
+                    player.position = new Vector2(oppositeCaveX + direction.X, oppositeCaveY + direction.Y);
+                    break;
+                }
             }
         }
     }

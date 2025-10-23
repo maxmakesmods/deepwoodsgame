@@ -43,6 +43,16 @@ sampler2D GroundTilesTextureSampler = sampler_state
     AddressV = CLAMP;
 };
 
+sampler2D GlowMapSampler = sampler_state
+{
+    Texture = <GlowMap>;
+    MinFilter = POINT;
+    MagFilter = POINT;
+    MipFilter = POINT;
+    AddressU = CLAMP;
+    AddressV = CLAMP;
+};
+
 sampler2D TerrainGridTextureSampler = sampler_state
 {
     Texture = <TerrainGridTexture>;
@@ -127,7 +137,7 @@ int getGroundType(float2 uv)
     return groundType;
 }
 
-float3 getGroundTypeColor(float2 uv, int groundType)
+float4 getGroundTypeColorAndGlow(float2 uv, int groundType)
 {
     float x = frac(uv.x * GridSize.x) * CellSize / GroundTilesTextureSize.x;
     float y = (1.0 - frac(uv.y * GridSize.y)) * CellSize / GroundTilesTextureSize.y;
@@ -141,8 +151,9 @@ float3 getGroundTypeColor(float2 uv, int groundType)
     float groundTypeColumn = float(groundType) / (GroundTilesTextureSize.x / CellSize);
     float groundTypeVariantRow = float(variantIndex) / (GroundTilesTextureSize.y / CellSize);
     float3 color = tex2D(GroundTilesTextureSampler, float2(x, y) + float2(groundTypeColumn, groundTypeVariantRow)).rgb;
+    float glow = tex2D(GlowMapSampler, float2(x, y) + float2(groundTypeColumn, groundTypeVariantRow)).r;
 
-    return color;
+    return float4(color, glow);
 }
 
 float calcDistSqrd(float2 p1, float2 p2)
@@ -150,7 +161,7 @@ float calcDistSqrd(float2 p1, float2 p2)
     return (p2.x - p1.x) * (p2.x - p1.x) + (p2.y - p1.y) * (p2.y - p1.y);
 }
 
-float3 applyLights(float2 pos, float3 color)
+float3 applyLights(float2 pos, float3 color, float glow)
 {
     float3 light = AmbientLightColor;
 
@@ -161,11 +172,11 @@ float3 applyLights(float2 pos, float3 color)
         float strength = clamp(1.0 - distSqrd / maxDistSqrd, 0.0, 1.0);
         light += Lights[i].rgb * strength;
     }
-
-    return color * light;
+    
+    return glow * color + (1.0 - glow) * color * light;
 }
 
-float3 applyShadows(float2 pos, float3 color)
+float3 applyShadows(float2 pos, float3 color, float glow)
 {
     if (pos.x < ShadowMapBounds.x || pos.x > ShadowMapBounds.z
         || pos.y < ShadowMapBounds.y || pos.y > ShadowMapBounds.w)
@@ -181,7 +192,7 @@ float3 applyShadows(float2 pos, float3 color)
         return color;
     }
 
-    return color * (1.0 - ShadowStrength);
+    return color * (1.0 - ShadowStrength * (1.0 - glow));
 }
 
 float4 MainPS(VertexShaderOutput input) : COLOR
@@ -199,11 +210,12 @@ float4 MainPS(VertexShaderOutput input) : COLOR
     int groundType = getGroundType(input.Tex + float2(pixelX - BlurHalfSize, pixelY - BlurHalfSize) * gridTexelSize);
     clip(groundType);
 
-    float3 color = getGroundTypeColor(input.Tex, groundType);
+    float4 color_and_glow = getGroundTypeColorAndGlow(input.Tex, groundType);
 
-    float3 litColor = applyLights(input.WorldPos, color);
-    float3 shadowedLitColor = applyShadows(input.WorldPos, litColor);
-    return float4(shadowedLitColor, 1.0);
+    float3 litColor = applyLights(input.WorldPos, color_and_glow.rgb, color_and_glow.a);
+    float3 shadowedLitColor = applyShadows(input.WorldPos, litColor, color_and_glow.a);
+
+    return float4(shadowedLitColor * (1.0 + color_and_glow.a * 0.5), 1.0);
 }
 
 technique BasicColorDrawing

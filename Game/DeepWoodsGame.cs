@@ -62,10 +62,9 @@ namespace DeepWoods.Game
             ATT.Renderer = new DWRenderer(ATT);
             ATT.DialogueManager = new DialogueManager();
 
-            int terrainSeed = rng.Next();//382081431;
-
-            ATT.World = new GameWorld(ATT, terrainSeed, gridSize, gridSize);
-
+            //int worldSeed = rng.Next();
+            int worldSeed = 382081431;
+            ATT.World = new GameWorld(ATT, worldSeed, gridSize, gridSize);
 
 
             ATT.Clock.TimeScale = 0;

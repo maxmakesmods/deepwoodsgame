@@ -12,6 +12,7 @@ namespace DeepWoods.Objects
         private DynamicVertexBuffer instanceBuffer;
         private InstanceData[] instances;
         private Texture2D texture;
+        private Texture2D glowmap;
 
         private struct InstanceData : IVertexType
         {
@@ -34,11 +35,12 @@ namespace DeepWoods.Objects
             public readonly VertexDeclaration VertexDeclaration => vertexDeclaration;
         }
 
-        public InstancedObjects(GraphicsDevice graphicsDevice, List<DWObject> sprites, Texture2D texture)
+        public InstancedObjects(GraphicsDevice graphicsDevice, List<DWObject> sprites, Texture2D texture, Texture2D glowmap)
         {
             this.texture = texture;
             CreateBasicBuffers(graphicsDevice);
             CreateInstanceBuffer(graphicsDevice, sprites);
+            this.glowmap = glowmap;
         }
 
         private void CreateInstanceBuffer(GraphicsDevice graphicsDevice, List<DWObject> sprites)
@@ -82,6 +84,7 @@ namespace DeepWoods.Objects
             graphicsDevice.Indices = indexBuffer;
             EffectLoader.SpriteEffect.Parameters["ObjectTextureSize"].SetValue(new Vector2(texture.Width, texture.Height));
             EffectLoader.SpriteEffect.Parameters["SpriteTexture"].SetValue(texture);
+            EffectLoader.SpriteEffect.Parameters["GlowMap"].SetValue(glowmap);
             foreach (EffectPass pass in EffectLoader.SpriteEffect.CurrentTechnique.Passes)
             {
                 pass.Apply();

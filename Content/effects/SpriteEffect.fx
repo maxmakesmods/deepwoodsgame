@@ -36,6 +36,16 @@ sampler2D SpriteTextureSampler = sampler_state
     AddressV = CLAMP;
 };
 
+sampler2D GlowMapSampler = sampler_state
+{
+    Texture = <GlowMap>;
+    MinFilter = POINT;
+    MagFilter = POINT;
+    MipFilter = POINT;
+    AddressU = CLAMP;
+    AddressV = CLAMP;
+};
+
 sampler2D ShadowMapSampler = sampler_state
 {
     Texture = <ShadowMap>;
@@ -152,7 +162,7 @@ float calcDistSqrd(float2 p1, float2 p2)
     return (p2.x - p1.x) * (p2.x - p1.x) + (p2.y - p1.y) * (p2.y - p1.y);
 }
 
-float3 applyLights(float2 pos, float3 color)
+float3 applyLights(float2 pos, float3 color, float glow)
 {
     float3 light = AmbientLightColor;
 
@@ -163,11 +173,11 @@ float3 applyLights(float2 pos, float3 color)
         float strength = clamp(1.0 - distSqrd / maxDistSqrd, 0.0, 1.0);
         light += Lights[i].rgb * strength;
     }
-
-    return color * light;
+    
+    return glow * color + (1.0 - glow) * color * light;
 }
 
-float3 applyShadows(float2 pos, float rowIndex, float3 color)
+float3 applyShadows(float2 pos, float rowIndex, float3 color, float glow)
 {
     pos.x = pos.x + ShadowSkew * (pos.y - rowIndex);
 
@@ -191,7 +201,7 @@ float3 applyShadows(float2 pos, float rowIndex, float3 color)
         return color;
     }
 
-    return color * (1.0 - ShadowStrength);
+    return color * (1.0 - ShadowStrength * (1.0 - glow));
 }
 
 float4 MainPS(VertexShaderOutput input) : COLOR
@@ -205,15 +215,13 @@ float4 MainPS(VertexShaderOutput input) : COLOR
         clip(-step(color.a, 0.9));
         return float4(input.RowIndex + 1.0, 0.0, 0.0, 1.0);
     }
-    else if (input.IsGlowing)
-    {
-        return float4(color.rgb * 1.5, color.a);
-    }
     else
     {
-        float3 litColor = applyLights(input.WorldPos, color.rgb);
-        float3 shadowedLitColor = applyShadows(input.WorldPos, input.RowIndex, litColor);
-        return float4(shadowedLitColor, color.a);
+        float glow = tex2D(GlowMapSampler, input.TexCoord).r * input.IsGlowing;
+        
+        float3 litColor = applyLights(input.WorldPos, color.rgb, glow);
+        float3 shadowedLitColor = applyShadows(input.WorldPos, input.RowIndex, litColor, glow);
+        return float4(shadowedLitColor * (1.0 + glow * 0.5), color.a);
     }
 }
 
