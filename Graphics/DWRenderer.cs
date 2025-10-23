@@ -95,8 +95,14 @@ namespace DeepWoods.Graphics
                     new Rectangle(mouseState.X, mouseState.Y, TextureLoader.MouseCursor.Width * 2, TextureLoader.MouseCursor.Height * 2),
                     colors[i % 2]);
 
+                var terrain = ATT.World.GetTerrain(player);
+
+
                 var tilePos = player.myCamera.GetTileAtScreenPos(mouseState.Position);
-                ATT.TextHelper.DrawStringOnScreen(spriteBatch, new Vector2(mouseState.X, mouseState.Y + 32), $"{tilePos.X},{tilePos.Y}");
+                var biome = terrain.GetBiome(tilePos.X, tilePos.Y);
+
+                string mouseString = $"{tilePos.X},{tilePos.Y},{biome?.IsVoid??true}";
+                ATT.TextHelper.DrawStringOnScreen(spriteBatch, new Vector2(mouseState.X, mouseState.Y + 32), mouseString);
 
                 i++;
             }

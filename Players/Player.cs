@@ -69,7 +69,7 @@ namespace DeepWoods.Players
 
         private readonly RectangleF relativeViewport;
         private KeyboardState previousKeyboardState;
-
+        private bool noclip;
         private readonly Inventory inventory;
 
         public Player(GraphicsDevice graphicsDevice, PlayerIndex playerIndex, RectangleF relativeViewport, Vector2 startPos)
@@ -187,7 +187,10 @@ namespace DeepWoods.Players
             }
 
             // clip velocity against terrain
-            velocity = ClipVelocity(att.World.GetTerrain(this), velocity, timeDelta);
+            if (!noclip)
+            {
+                velocity = ClipVelocity(att.World.GetTerrain(this), velocity, timeDelta);
+            }
 
             // apply velocity
             position += velocity * timeDelta;
@@ -226,12 +229,13 @@ namespace DeepWoods.Players
 
             if (keyboardState.IsKeyDown(Keys.K) && !previousKeyboardState.IsKeyDown(Keys.K))
             {
-                att.World.SwitchToUnderground(this, 0);
+                noclip = !noclip;
+                //att.World.SwitchToUnderground(this, 0);
             }
 
             if (keyboardState.IsKeyDown(Keys.J) && !previousKeyboardState.IsKeyDown(Keys.J))
             {
-                att.World.SwitchToOverground(this);
+                //att.World.SwitchToOverground(this);
             }
 
             if (keyboardState.IsKeyDown(Keys.H) && !previousKeyboardState.IsKeyDown(Keys.H))

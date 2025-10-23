@@ -25,6 +25,8 @@ namespace DeepWoods.World
         private readonly int seed;
         private readonly int width;
         private readonly int height;
+        private readonly int renderwidth;
+        private readonly int renderheight;
         private readonly int blueNoiseDitherChannel;
         private readonly Vector2 blueNoiseDitherOffset;
         private readonly int blueNoiseVariantChannel;
@@ -57,6 +59,9 @@ namespace DeepWoods.World
             this.seed = seed;
             this.width = width;
             this.height = height;
+
+            this.renderwidth = (int)System.Numerics.BitOperations.RoundUpToPowerOf2((uint)width);
+            this.renderheight = (int)System.Numerics.BitOperations.RoundUpToPowerOf2((uint)height);
 
             tiles = new Tile[width, height];
 
@@ -264,13 +269,13 @@ namespace DeepWoods.World
 
         private Texture2D GenerateTerrainTexture(GraphicsDevice graphicsDevice)
         {
-            var texture = new Texture2D(graphicsDevice, width, height, false, SurfaceFormat.Single);
-            float[] pixelData = new float[width * height];
+            var texture = new Texture2D(graphicsDevice, renderwidth, renderheight, false, SurfaceFormat.Single);
+            float[] pixelData = new float[renderwidth * renderheight];
             for (int x = 0; x < width; x++)
             {
                 for (int y = 0; y < height; y++)
                 {
-                    int pixelIndex = y * width + x;
+                    int pixelIndex = y * renderwidth + x;
                     pixelData[pixelIndex] = (byte)tiles[x, y].groundType * 256.0f;
                 }
             }
@@ -282,9 +287,9 @@ namespace DeepWoods.World
         {
             var drawingQuad = new VertexPositionColorTexture[4];
             drawingQuad[0] = new VertexPositionColorTexture(new Vector3(0, 0, 0), Color.White, new Vector2(0f, 0f));
-            drawingQuad[1] = new VertexPositionColorTexture(new Vector3(0, height, 0), Color.Red, new Vector2(0f, 1f));
-            drawingQuad[2] = new VertexPositionColorTexture(new Vector3(width, height, 0), Color.Green, new Vector2(1f, 1f));
-            drawingQuad[3] = new VertexPositionColorTexture(new Vector3(width, 0, 0), Color.Blue, new Vector2(1f, 0f));
+            drawingQuad[1] = new VertexPositionColorTexture(new Vector3(0, renderheight, 0), Color.Red, new Vector2(0f, 1f));
+            drawingQuad[2] = new VertexPositionColorTexture(new Vector3(renderwidth, renderheight, 0), Color.Green, new Vector2(1f, 1f));
+            drawingQuad[3] = new VertexPositionColorTexture(new Vector3(renderwidth, 0, 0), Color.Blue, new Vector2(1f, 0f));
             return drawingQuad;
         }
 
@@ -307,9 +312,10 @@ namespace DeepWoods.World
 
         internal void Apply()
         {
-            EffectLoader.GroundEffect.Parameters["GridSize"].SetValue(new Vector2(width, height));
+            EffectLoader.GroundEffect.Parameters["GridSize"].SetValue(new Vector2(renderwidth, renderheight));
             EffectLoader.GroundEffect.Parameters["GroundTilesTexture"].SetValue(TextureLoader.GroundTilesTexture);
             EffectLoader.GroundEffect.Parameters["GroundTilesTextureSize"].SetValue(new Vector2(TextureLoader.GroundTilesTexture.Width, TextureLoader.GroundTilesTexture.Height));
+            EffectLoader.GroundEffect.Parameters["GlowMap"].SetValue(TextureLoader.GroundTilesGlowMap);
             EffectLoader.GroundEffect.Parameters["CellSize"].SetValue((float)CellSize);
             EffectLoader.GroundEffect.Parameters["BlueNoiseTexture"].SetValue(TextureLoader.BluenoiseTexture);
             EffectLoader.GroundEffect.Parameters["BlueNoiseDitherChannel"].SetValue(blueNoiseDitherChannel);

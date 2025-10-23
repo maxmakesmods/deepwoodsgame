@@ -101,11 +101,11 @@ namespace DeepWoods.Objects
 
             if (objects.Count > 0)
             {
-                instancedObjects = new InstancedObjects(ATT.GraphicsDevice, objects, TextureLoader.ObjectsTexture);
+                instancedObjects = new InstancedObjects(ATT.GraphicsDevice, objects, TextureLoader.ObjectsTexture, TextureLoader.ObjectsGlowMap);
             }
             if (critters.Count > 0)
             {
-                instancedCritters = new InstancedObjects(ATT.GraphicsDevice, critters, TextureLoader.Critters);
+                instancedCritters = new InstancedObjects(ATT.GraphicsDevice, critters, TextureLoader.Critters, TextureLoader.BlackTexture);
             }
         }
 

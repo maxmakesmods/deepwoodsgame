@@ -70,6 +70,18 @@
 /processorParam:TextureFormat=Color
 /build:icons/cursor.png
 
+#begin objects/objects_glowmap.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:objects/objects_glowmap.png
+
 #begin objects/objects_tileset.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -99,6 +111,18 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:textures/bluenoise_rgba.png
+
+#begin textures/groundtiles_glow.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:textures/groundtiles_glow.png
 
 #begin textures/groundtiles.png
 /importer:TextureImporter

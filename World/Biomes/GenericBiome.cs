@@ -19,6 +19,18 @@ namespace DeepWoods.World.Biomes
         public float StuffDensity { get; set; } = 0.2f;
         public float BuildingDensity { get; set; } = 0.1f;
 
+        public GenericBiome(int index)
+        {
+            OpenGroundType = (GroundType)(index * 2 + 1);
+            ClosedGroundType = (GroundType)(index * 2 + 2);
+
+            if (OpenGroundType == GroundType.Magma)
+            {
+                OpenGroundType = GroundType.Obsidian;
+                ClosedGroundType = GroundType.Magma;
+            }
+        }
+
         public GenericBiome(GroundType groundType)
         {
             OpenGroundType = groundType;

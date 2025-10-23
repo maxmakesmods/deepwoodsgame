@@ -6,16 +6,34 @@
     "width": 32,
     "height": 32,
     "standing": true,
-    "glowing": true
+    "glowing": false
   },
   {
-    "name": "campfire",
+    "name": "borealforest_tree1",
     "x": 0,
     "y": 32,
     "width": 32,
     "height": 64,
     "standing": true,
-    "glowing": true
+    "glowing": false
+  },
+  {
+    "name": "borealforest_tree2",
+    "x": 32,
+    "y": 32,
+    "width": 32,
+    "height": 64,
+    "standing": true,
+    "glowing": false
+  },
+  {
+    "name": "campfire",
+    "x": 64,
+    "y": 32,
+    "width": 32,
+    "height": 64,
+    "standing": true,
+    "glowing": false
   },
   {
     "name": "campfire_abandoned",
@@ -23,7 +41,8 @@
     "y": 0,
     "width": 32,
     "height": 32,
-    "standing": false
+    "standing": false,
+    "glowing": false
   },
   {
     "name": "crystal ball",
@@ -32,7 +51,15 @@
     "width": 32,
     "height": 32,
     "standing": true,
-    "glowing": true
+    "glowing": false
+  },
+  {
+    "name": "dead_tree",
+    "x": 96,
+    "y": 32,
+    "width": 32,
+    "height": 59,
+    "glowing": false
   },
   {
     "name": "fairyring",
@@ -41,7 +68,7 @@
     "width": 32,
     "height": 32,
     "standing": false,
-    "glowing": true
+    "glowing": false
   },
   {
     "name": "flower1",
@@ -50,7 +77,7 @@
     "width": 32,
     "height": 32,
     "standing": true,
-    "glowing": true
+    "glowing": false
   },
   {
     "name": "flower2",
@@ -59,7 +86,7 @@
     "width": 32,
     "height": 32,
     "standing": true,
-    "glowing": true
+    "glowing": false
   },
   {
     "name": "flower3",
@@ -68,7 +95,7 @@
     "width": 32,
     "height": 32,
     "standing": true,
-    "glowing": true
+    "glowing": false
   },
   {
     "name": "flower4",
@@ -77,231 +104,357 @@
     "width": 32,
     "height": 32,
     "standing": true,
-    "glowing": true
+    "glowing": false
   },
   {
     "name": "greencrystal",
-    "x": 32,
-    "y": 32,
+    "x": 256,
+    "y": 0,
     "width": 32,
     "height": 32,
     "standing": true,
-    "glowing": true
+    "glowing": false
   },
   {
     "name": "helmet",
-    "x": 64,
-    "y": 32,
+    "x": 288,
+    "y": 0,
     "width": 32,
     "height": 32,
     "standing": true,
-    "glowing": true
+    "glowing": false
   },
   {
     "name": "herb1",
-    "x": 96,
-    "y": 32,
+    "x": 320,
+    "y": 0,
     "width": 32,
     "height": 32,
     "standing": true,
-    "glowing": true
+    "glowing": false
   },
   {
     "name": "herb2",
-    "x": 128,
-    "y": 32,
+    "x": 352,
+    "y": 0,
     "width": 32,
     "height": 32,
     "standing": true,
-    "glowing": true
+    "glowing": false
   },
   {
     "name": "herb3",
-    "x": 160,
-    "y": 32,
+    "x": 384,
+    "y": 0,
     "width": 32,
     "height": 32,
     "standing": true,
-    "glowing": true
+    "glowing": false
   },
   {
     "name": "herb4",
+    "x": 416,
+    "y": 0,
+    "width": 32,
+    "height": 32,
+    "standing": true,
+    "glowing": false
+  },
+  {
+    "name": "lakeunderwater_tree1",
+    "x": 0,
+    "y": 96,
+    "width": 32,
+    "height": 64,
+    "standing": true,
+    "glowing": false
+  },
+  {
+    "name": "lakeunderwater_tree2",
+    "x": 128,
+    "y": 32,
+    "width": 32,
+    "height": 48,
+    "standing": true,
+    "glowing": false
+  },
+  {
+    "name": "lake_tree1",
+    "x": 448,
+    "y": 0,
+    "width": 32,
+    "height": 32,
+    "standing": true,
+    "glowing": false
+  },
+  {
+    "name": "lake_tree2",
+    "x": 480,
+    "y": 0,
+    "width": 32,
+    "height": 32,
+    "standing": true,
+    "glowing": false
+  },
+  {
+    "name": "magic_tree1",
+    "x": 32,
+    "y": 96,
+    "width": 32,
+    "height": 62,
+    "standing": true,
+    "glowing": false
+  },
+  {
+    "name": "magic_tree1_color2",
+    "x": 64,
+    "y": 96,
+    "width": 32,
+    "height": 62,
+    "standing": true,
+    "glowing": false
+  },
+  {
+    "name": "magic_tree2",
+    "x": 160,
+    "y": 32,
+    "width": 32,
+    "height": 46,
+    "standing": true,
+    "glowing": false
+  },
+  {
+    "name": "magic_tree2_color2",
     "x": 192,
     "y": 32,
     "width": 32,
-    "height": 32,
+    "height": 46,
     "standing": true,
-    "glowing": true
+    "glowing": false
+  },
+  {
+    "name": "marsh_tree",
+    "x": 224,
+    "y": 32,
+    "width": 32,
+    "height": 43,
+    "standing": true,
+    "glowing": false
   },
   {
     "name": "pendant",
-    "x": 224,
+    "x": 256,
     "y": 32,
     "width": 32,
     "height": 32,
     "standing": true,
-    "glowing": true
+    "glowing": false
   },
   {
     "name": "pileofbooks",
-    "x": 32,
-    "y": 64,
+    "x": 288,
+    "y": 32,
     "width": 32,
     "height": 32,
     "standing": true,
-    "glowing": true
+    "glowing": false
   },
   {
     "name": "pileofrocks",
-    "x": 64,
-    "y": 64,
+    "x": 320,
+    "y": 32,
     "width": 32,
     "height": 32,
     "standing": true,
-    "glowing": true
+    "glowing": false
   },
   {
     "name": "pinkcrystal",
-    "x": 96,
-    "y": 64,
+    "x": 352,
+    "y": 32,
     "width": 32,
     "height": 32,
     "standing": true,
-    "glowing": true
+    "glowing": false
   },
   {
     "name": "portal_obsidian",
     "x": 0,
-    "y": 96,
+    "y": 160,
     "width": 32,
     "height": 64,
-    "standing": true
+    "standing": true,
+    "glowing": false
   },
   {
     "name": "portal_stone",
     "x": 32,
-    "y": 96,
+    "y": 160,
     "width": 32,
     "height": 64,
-    "standing": true
+    "standing": true,
+    "glowing": false
   },
   {
     "name": "portal_wood",
     "x": 64,
-    "y": 96,
+    "y": 160,
     "width": 32,
     "height": 64,
-    "standing": true
+    "standing": true,
+    "glowing": false
   },
   {
     "name": "purplecrystal",
-    "x": 128,
-    "y": 64,
+    "x": 384,
+    "y": 32,
     "width": 32,
     "height": 32,
     "standing": true,
-    "glowing": true
+    "glowing": false
   },
   {
     "name": "redcrystal",
-    "x": 160,
-    "y": 64,
+    "x": 416,
+    "y": 32,
     "width": 32,
     "height": 32,
     "standing": true,
-    "glowing": true
+    "glowing": false
   },
   {
     "name": "ring",
-    "x": 192,
-    "y": 64,
+    "x": 448,
+    "y": 32,
     "width": 32,
     "height": 32,
     "standing": true,
-    "glowing": true
+    "glowing": false
+  },
+  {
+    "name": "swamp_tree1",
+    "x": 0,
+    "y": 224,
+    "width": 32,
+    "height": 71,
+    "standing": true,
+    "glowing": false
+  },
+  {
+    "name": "swamp_tree2",
+    "x": 32,
+    "y": 224,
+    "width": 32,
+    "height": 71,
+    "standing": true,
+    "glowing": false
   },
   {
     "name": "tower",
     "x": 0,
-    "y": 160,
+    "y": 295,
     "width": 32,
     "height": 96,
-    "standing": true
+    "standing": true,
+    "glowing": false
   },
   {
     "name": "tree1",
-    "x": 128,
-    "y": 96,
-    "width": 32,
-    "height": 64,
-    "standing": true
-  },
-  {
-    "name": "tree2",
-    "x": 160,
-    "y": 96,
-    "width": 32,
-    "height": 64,
-    "standing": true
-  },
-  {
-    "name": "tree3",
-    "x": 192,
-    "y": 96,
-    "width": 32,
-    "height": 64,
-    "standing": true
-  },
-  {
-    "name": "tree4",
-    "x": 224,
-    "y": 96,
-    "width": 32,
-    "height": 64,
-    "standing": true
-  },
-  {
-    "name": "well",
-    "x": 224,
-    "y": 64,
-    "width": 32,
-    "height": 32,
-    "standing": true
-  },
-  {
-    "name": "whitecrystal",
-    "x": 32,
-    "y": 160,
-    "width": 32,
-    "height": 32,
-    "standing": true,
-    "glowing": true
-  },
-  {
-    "name": "wizardhat",
-    "x": 64,
-    "y": 160,
-    "width": 32,
-    "height": 32,
-    "standing": true,
-    "glowing": true
-  },
-  {
-    "name": "woodpile",
     "x": 96,
     "y": 160,
     "width": 32,
-    "height": 32,
+    "height": 64,
+    "standing": true,
+    "glowing": false
+  },
+  {
+    "name": "tree2",
+    "x": 128,
+    "y": 160,
+    "width": 32,
+    "height": 64,
+    "standing": true,
+    "glowing": false
+  },
+  {
+    "name": "tree3",
+    "x": 160,
+    "y": 160,
+    "width": 32,
+    "height": 64,
+    "standing": true,
+    "glowing": false
+  },
+  {
+    "name": "tree4",
+    "x": 192,
+    "y": 160,
+    "width": 32,
+    "height": 64,
+    "standing": true,
+    "glowing": false
+  },
+  {
+    "name": "volcanic_tree1",
+    "x": 224,
+    "y": 160,
+    "width": 32,
+    "height": 64,
     "standing": true,
     "glowing": true
   },
   {
-    "name": "yellowcrystal",
-    "x": 128,
+    "name": "volcanic_tree2",
+    "x": 256,
     "y": 160,
+    "width": 32,
+    "height": 64,
+    "standing": true,
+    "glowing": true
+  },
+  {
+    "name": "well",
+    "x": 480,
+    "y": 32,
     "width": 32,
     "height": 32,
     "standing": true,
-    "glowing": true
+    "glowing": false
+  },
+  {
+    "name": "whitecrystal",
+    "x": 96,
+    "y": 96,
+    "width": 32,
+    "height": 32,
+    "standing": true,
+    "glowing": false
+  },
+  {
+    "name": "wizardhat",
+    "x": 128,
+    "y": 96,
+    "width": 32,
+    "height": 32,
+    "standing": true,
+    "glowing": false
+  },
+  {
+    "name": "woodpile",
+    "x": 160,
+    "y": 96,
+    "width": 32,
+    "height": 32,
+    "standing": true,
+    "glowing": false
+  },
+  {
+    "name": "yellowcrystal",
+    "x": 192,
+    "y": 96,
+    "width": 32,
+    "height": 32,
+    "standing": true,
+    "glowing": false
   }
 ]
