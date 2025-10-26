@@ -189,7 +189,8 @@ namespace DeepWoods.World
             {
                 if (subWorld.Terrain.CanWalkHere(oppositeCaveX + direction.X, oppositeCaveY + direction.Y))
                 {
-                    player.position = new Vector2(oppositeCaveX + direction.X, oppositeCaveY + direction.Y);
+                    Vector2 newPosition = new Vector2(oppositeCaveX + direction.X, oppositeCaveY + direction.Y);
+                    player.SetPosition(newPosition, direction);
                     break;
                 }
             }

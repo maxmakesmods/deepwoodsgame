@@ -7,6 +7,21 @@ namespace DeepWoods.Helpers
 {
     internal static class Extensions
     {
+        public static Vector2 Abs(this Vector2 v)
+        {
+            return new Vector2(MathF.Abs(v.X), MathF.Abs(v.Y));
+        }
+
+        public static Vector2 Normalized(this Vector2 v)
+        {
+            return Vector2.Normalize(v);
+        }
+
+        public static Vector2 ToVector2(this Vector3 v)
+        {
+            return new Vector2(v.X, v.Y);
+        }
+
         public static Point RoundToPoint(this Vector2 v)
         {
             return new Point((int)MathF.Round(v.X), (int)MathF.Round(v.Y));

@@ -103,5 +103,11 @@ namespace DeepWoods.World
 
             return new((int)Math.Floor(worldPosGround.X), (int)Math.Floor(worldPosGround.Y));
         }
+
+        public Vector2 GetScreenPosAtTile(Point tilePos)
+        {
+            var screenPos = Viewport.Project(new(tilePos.X, tilePos.Y, 0), Projection, View, Matrix.Identity);
+            return screenPos.ToVector2();
+        }
     }
 }
