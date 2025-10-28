@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework;
 
 namespace DeepWoods.World
 {
-    internal class LightManager
+    public class LightManager
     {
         private int numLights = 0;
 
@@ -25,7 +25,7 @@ namespace DeepWoods.World
 
         Vector3 ambientLightColor = AMBIENT_DAY;
 
-        public LightManager(AllTheThings att, Terrain terrain, int seed)
+        public LightManager(Terrain terrain, int seed)
         {
             rng = new Random(seed);
             width = terrain.Width;

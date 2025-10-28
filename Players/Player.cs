@@ -2,6 +2,7 @@
 using DeepWoods.Game;
 using DeepWoods.Helpers;
 using DeepWoods.Loaders;
+using DeepWoods.Main;
 using DeepWoods.UI;
 using DeepWoods.World;
 using Microsoft.Xna.Framework;
@@ -13,7 +14,7 @@ using System.Runtime.InteropServices;
 
 namespace DeepWoods.Players
 {
-    internal class Player
+    public class Player
     {
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public struct VertexCharacterData : IVertexType
@@ -60,24 +61,25 @@ namespace DeepWoods.Players
         public PlayerIndex PlayerIndex { get; private set; }
         public Rectangle PlayerViewport { get; private set; }
 
+        private readonly DeepWoodsGame game;
         private readonly RectangleF relativeViewport;
         private KeyboardState previousKeyboardState;
         private bool noclip;
         private readonly Inventory inventory;
 
-        public Player(GraphicsDevice graphicsDevice, PlayerIndex playerIndex, RectangleF relativeViewport, Vector2 startPos)
+        public Player(DeepWoodsGame game, PlayerIndex playerIndex, RectangleF relativeViewport, Vector2 startPos)
         {
+            this.game = game;
             this.relativeViewport = relativeViewport;
-            PlayerViewport = relativeViewport.Scale(graphicsDevice.Viewport.Bounds).ToRectangle();
+            PlayerViewport = relativeViewport.Scale(DeepWoodsMain.Instance.GraphicsDevice.Viewport.Bounds).ToRectangle();
 
             PlayerIndex = playerIndex;
             position = startPos;
-            myCamera = new Camera(graphicsDevice);
+            myCamera = new Camera(DWMouse.GetState(this));
+            inventory = new Inventory();
 
-            inventory = new Inventory(graphicsDevice);
-
-            myRenderTarget = RecreateRenderTarget(graphicsDevice, SurfaceFormat.Color);
-            myShadowMap = RecreateRenderTarget(graphicsDevice, SurfaceFormat.Single);
+            myRenderTarget = RecreateRenderTarget(SurfaceFormat.Color);
+            myShadowMap = RecreateRenderTarget(SurfaceFormat.Single);
 
             vertices = new VertexCharacterData[4];
 
@@ -124,9 +126,9 @@ namespace DeepWoods.Players
             indices = [0, 1, 2, 0, 2, 3];
         }
 
-        private RenderTarget2D RecreateRenderTarget(GraphicsDevice graphicsDevice, SurfaceFormat format)
+        private RenderTarget2D RecreateRenderTarget(SurfaceFormat format)
         {
-            return new RenderTarget2D(graphicsDevice,
+            return new RenderTarget2D(DeepWoodsMain.Instance.GraphicsDevice,
                 PlayerViewport.Width, PlayerViewport.Height,
                 false,
                 format,
@@ -141,20 +143,20 @@ namespace DeepWoods.Players
         }
 
 
-        public void Update(AllTheThings att, float timeDelta)
+        public void Update(float timeDelta)
         {
             var keyboardState = DWKeyboard.GetState(PlayerIndex);
 
-            PlayerViewport = relativeViewport.Scale(att.GraphicsDevice.Viewport.Bounds).ToRectangle();
+            PlayerViewport = relativeViewport.Scale(DeepWoodsMain.Instance.GraphicsDevice.Viewport.Bounds).ToRectangle();
             if (PlayerViewport.Width != myRenderTarget.Width || PlayerViewport.Height != myRenderTarget.Height)
             {
                 myRenderTarget.Dispose();
-                myRenderTarget = RecreateRenderTarget(att.GraphicsDevice, SurfaceFormat.Color);
+                myRenderTarget = RecreateRenderTarget(SurfaceFormat.Color);
             }
             if (PlayerViewport.Width != myRenderTarget.Width || myShadowMap.Height != myShadowMap.Height)
             {
                 myShadowMap.Dispose();
-                myShadowMap = RecreateRenderTarget(att.GraphicsDevice, SurfaceFormat.Single);
+                myShadowMap = RecreateRenderTarget(SurfaceFormat.Single);
             }
 
             // get input velocity
@@ -184,7 +186,7 @@ namespace DeepWoods.Players
             // clip velocity against terrain
             if (!noclip)
             {
-                velocity = ClipVelocity(att.World.GetTerrain(this), velocity, timeDelta);
+                velocity = ClipVelocity(game.World.GetTerrain(this), velocity, timeDelta);
             }
 
             // apply velocity
@@ -202,9 +204,9 @@ namespace DeepWoods.Players
 
             if (keyboardState.IsKeyDown(Keys.E) && !previousKeyboardState.IsKeyDown(Keys.E))
             {
-                if (!DoInteract(att, lookAt))
+                if (!DoInteract(lookAt))
                 {
-                    DoInteract(att, position.RoundToPoint());
+                    DoInteract(position.RoundToPoint());
                 }
             }
 
@@ -226,13 +228,13 @@ namespace DeepWoods.Players
 
             if (keyboardState.IsKeyDown(Keys.H) && !previousKeyboardState.IsKeyDown(Keys.H))
             {
-                if (att.DialogueManager.HasOpenDialogue(this))
+                if (game.DialogueManager.HasOpenDialogue(this))
                 {
-                    att.DialogueManager.CloseDialogue(this);
+                    game.DialogueManager.CloseDialogue(this);
                 }
                 else
                 {
-                    att.DialogueManager.OpenDialogue(this, new("hello", ["yes", "no", "why even"]));
+                    game.DialogueManager.OpenDialogue(this, new("hello", ["yes", "no", "why even"]));
                 }
             }
 
@@ -259,15 +261,15 @@ namespace DeepWoods.Players
             SetLookDir(lookDir);
         }
 
-        private bool DoInteract(AllTheThings att, Point p)
+        private bool DoInteract(Point p)
         {
-            if (att.World.IsCave(this, p.X, p.Y))
+            if (game.World.IsCave(this, p.X, p.Y))
             {
-                att.World.SwitchOverUnderground(this, p.X, p.Y);
+                game.World.SwitchOverUnderground(this, p.X, p.Y);
                 return true;
             }
 
-            var dwobj = att.World.TryPickUpObject(this, p.X, p.Y);
+            var dwobj = game.World.TryPickUpObject(this, p.X, p.Y);
             if (dwobj != null)
             {
                 inventory.Add(dwobj);
@@ -353,17 +355,17 @@ namespace DeepWoods.Players
             return velocity;
         }
 
-        public void DrawShadow(GraphicsDevice graphicsDevice, Camera camera)
+        public void DrawShadow(Camera camera)
         {
-            DoDraw(graphicsDevice, EffectLoader.SpriteEffect, camera.ShadowView, camera.ShadowProjection, true);
+            DoDraw(EffectLoader.SpriteEffect, camera.ShadowView, camera.ShadowProjection, true);
         }
 
-        public void Draw(GraphicsDevice graphicsDevice, Camera camera)
+        public void Draw(Camera camera)
         {
-            DoDraw(graphicsDevice, EffectLoader.SpriteEffect, camera.View, camera.Projection, false);
+            DoDraw(EffectLoader.SpriteEffect, camera.View, camera.Projection, false);
         }
 
-        private void DoDraw(GraphicsDevice graphicsDevice, Effect spriteEffect, Matrix view, Matrix projection, bool isShadow)
+        private void DoDraw(Effect spriteEffect, Matrix view, Matrix projection, bool isShadow)
         {
             spriteEffect.Parameters["ObjectTextureSize"].SetValue(new Vector2(TextureLoader.CharacterTileSet.Width, TextureLoader.CharacterTileSet.Height));
             spriteEffect.Parameters["CellSize"].SetValue(Terrain.CellSize);
@@ -374,21 +376,25 @@ namespace DeepWoods.Players
             foreach (EffectPass pass in spriteEffect.CurrentTechnique.Passes)
             {
                 pass.Apply();
-                graphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, vertices, 0, 4, indices, 0, 2);
+                DeepWoodsMain.Instance.GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, vertices, 0, 4, indices, 0, 2);
             }
         }
 
-        public void DrawUI(AllTheThings att, SpriteBatch spriteBatch)
+        public void DrawUI(SpriteBatch spriteBatch)
         {
             Vector2 screenPosTopLeft = myCamera.GetScreenPosAtTile(lookAt);
             Vector2 screenPosBottomRight = myCamera.GetScreenPosAtTile(lookAt + new Point(1, 1));
             Vector2 screenPosBottomLeft = new Vector2(screenPosTopLeft.X, screenPosBottomRight.Y);
             SizeF screenPosRectangleSize = (screenPosTopLeft - screenPosBottomRight).Abs();
             RectangleF lookAtRectangle = new(screenPosBottomLeft, screenPosRectangleSize);
+
+            lookAtRectangle.X -= myCamera.Viewport.X;
+            lookAtRectangle.Y -= myCamera.Viewport.Y;
+
             spriteBatch.DrawRectangle(lookAtRectangle, Color.DarkOrchid, 3f);
 
-            inventory.DrawUI(att, spriteBatch);
-            att.DialogueManager.DrawUI(att, spriteBatch, this);
+            inventory.DrawUI(spriteBatch);
+            game.DialogueManager.DrawUI(spriteBatch, this);
         }
     }
 }

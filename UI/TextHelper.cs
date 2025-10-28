@@ -1,18 +1,19 @@
 ﻿
 using DeepWoods.Game;
+using DeepWoods.Main;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace DeepWoods.UI
 {
-    internal class TextHelper
+    public class TextHelper
     {
         private SpriteFont ft88RegularFont;
 
-        public TextHelper(AllTheThings att)
+        public TextHelper()
         {
-            ft88RegularFont = att.Content.Load<SpriteFont>("fonts/FT88-Regular");
+            ft88RegularFont = DeepWoodsMain.Instance.Content.Load<SpriteFont>("fonts/FT88-Regular");
         }
 
         public void DrawStringOnScreen(SpriteBatch spriteBatch, Vector2 position, string text)

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace DeepWoods.UI
 {
-    internal class DialogueManager
+    public class DialogueManager
     {
         private Dictionary<Player, Dialogue> openDialogues = new();
 
@@ -20,11 +20,11 @@ namespace DeepWoods.UI
             openDialogues.Remove(player);
         }
 
-        public void DrawUI(AllTheThings att, SpriteBatch spriteBatch, Player player)
+        public void DrawUI(SpriteBatch spriteBatch, Player player)
         {
             if (openDialogues.TryGetValue(player, out Dialogue dialogue))
             {
-                dialogue.DrawUI(att, spriteBatch);
+                dialogue.DrawUI(spriteBatch);
             }
         }
 

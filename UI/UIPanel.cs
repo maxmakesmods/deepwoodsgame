@@ -1,11 +1,12 @@
 ﻿using DeepWoods.Loaders;
+using DeepWoods.Main;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 
 namespace DeepWoods.UI
 {
-    internal class UIPanel
+    public class UIPanel
     {
         protected class PanelData
         {
@@ -32,10 +33,10 @@ namespace DeepWoods.UI
             }
         }
 
-        protected PanelData DoThePanelThing(GraphicsDevice graphicsDevice, SpriteBatch spriteBatch, int numColumns, int numRows, float top)
+        protected PanelData DoThePanelThing(SpriteBatch spriteBatch, int numColumns, int numRows, float top)
         {
-            int w = graphicsDevice.Viewport.Width;
-            int h = graphicsDevice.Viewport.Height;
+            int w = DeepWoodsMain.Instance.GraphicsDevice.Viewport.Width;
+            int h = DeepWoodsMain.Instance.GraphicsDevice.Viewport.Height;
 
             int cellsize = (int)(h * 0.1);
             int width = cellsize * numColumns;

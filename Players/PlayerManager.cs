@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace DeepWoods.Players
 {
-    internal class PlayerManager
+    public class PlayerManager
     {
         private List<List<RectangleF>> playerRectangles = [
             [new(0f, 0f, 1f, 1f)],
@@ -15,26 +15,24 @@ namespace DeepWoods.Players
             [new(0f, 0f, 0.5f, 0.5f), new(0.5f, 0f, 0.5f, 0.5f), new(0f, 0.5f, 0.5f, 0.5f), new(0.5f, 0.5f, 0.5f, 0.5f)]
         ];
 
-        private List<Player> players = new();
-
-        private AllTheThings ATT { get; set; }
-
-        private Random rng;
+        private readonly List<Player> players = [];
+        private readonly DeepWoodsGame game;
+        private readonly Random rng;
 
         public List<Player> Players => players;
 
-        public PlayerManager(AllTheThings att, int seed)
+        public PlayerManager(DeepWoodsGame game, int seed)
         {
-            ATT = att;
+            this.game = game;
             rng = new Random(seed);
         }
 
         public void SpawnPlayers(int numPlayers)
         {
-            Point spawnPos = ATT.World.GetSpawnPosition();
+            Point spawnPos = game.World.GetSpawnPosition();
             for (int i = 0; i < numPlayers; i++)
             {
-                players.Add(new Player(ATT.GraphicsDevice, (PlayerIndex)i, playerRectangles[numPlayers - 1][i], new Vector2(spawnPos.X, spawnPos.Y)));
+                players.Add(new Player(game, (PlayerIndex)i, playerRectangles[numPlayers - 1][i], new Vector2(spawnPos.X, spawnPos.Y)));
             }
         }
 
@@ -42,7 +40,7 @@ namespace DeepWoods.Players
         {
             foreach (var player in players)
             {
-                player.Update(ATT, (float)deltaTime);
+                player.Update((float)deltaTime);
             }
         }
     }

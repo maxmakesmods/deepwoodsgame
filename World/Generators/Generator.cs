@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace DeepWoods.World.Generators
 {
-    internal abstract class Generator
+    public abstract class Generator
     {
         protected Random rng;
         protected List<IBiome> biomes;

@@ -1,5 +1,6 @@
 ﻿using DeepWoods.Game;
 using DeepWoods.Graphics;
+using DeepWoods.Main;
 using DeepWoods.Objects;
 using DeepWoods.Players;
 using DeepWoods.World.Biomes;
@@ -13,7 +14,7 @@ using System.Linq;
 
 namespace DeepWoods.World
 {
-    internal class GameWorld
+    public class GameWorld
     {
         public static readonly string OverGroundId = "Overground";
 
@@ -29,26 +30,26 @@ namespace DeepWoods.World
         public static Generator UndergroundGenerator => new UndergroundGenerator();
         public static Generator GroundTypeGenerator => new GroundTypeGenerator();
 
-        private AllTheThings ATT { get; set; }
-
         private readonly List<BiomePair> biomePairs;
 
         public Dictionary<string, SubWorld> SubWorlds { get; private set; } = [];
         private readonly Random rng;
 
         private readonly Dictionary<PlayerIndex, SubWorld> playerSubWorlds = new();
+        private readonly DeepWoodsGame game;
+
         public int Seed { get; private set; }
 
-        public GameWorld(AllTheThings att, int seed, int width, int height)
+        public GameWorld(DeepWoodsGame game, int seed, int width, int height)
         {
-            ATT = att;
+            this.game = game;
             Seed = seed;
             rng = new Random(seed);
 
             // TODO: actual biomes
             biomePairs = TemporaryGetHardcodedBiomes();
 
-            var overground = new SubWorld(att, rng.Next(), width, height, biomePairs.Select(b => b.Overground).ToList(), SpiralBiomeGenerator, ForestGenerator, GroundTypeGenerator);
+            var overground = new SubWorld(rng.Next(), width, height, biomePairs.Select(b => b.Overground).ToList(), SpiralBiomeGenerator, ForestGenerator, GroundTypeGenerator);
             SubWorlds.Add(OverGroundId, overground);
         
             for (int i = 0; i < biomePairs.Count; i++)
@@ -61,7 +62,7 @@ namespace DeepWoods.World
                     int counter = 0;
                     while (!cavesGenerated)
                     {
-                        underground = new SubWorld(att, rng.Next(), biomeRectangle.Width, biomeRectangle.Height, [biomePairs[i].Underground], SingleBiomeGenerator, UndergroundGenerator, GroundTypeGenerator);
+                        underground = new SubWorld(rng.Next(), biomeRectangle.Width, biomeRectangle.Height, [biomePairs[i].Underground], SingleBiomeGenerator, UndergroundGenerator, GroundTypeGenerator);
                         cavesGenerated = overground.ObjectManager.GenerateCaves(biomePairs[i].Overground, biomeRectangle, underground, 10);
                         counter++;
                     }
@@ -134,17 +135,17 @@ namespace DeepWoods.World
             return SubWorlds[OverGroundId].Terrain.GetSpawnPosition();
         }
 
-        internal void Draw(GraphicsDevice graphicsDevice, Player player)
+        internal void Draw(Player player)
         {
             var subWorld = GetPlayerSubWorld(player);
             subWorld.Apply();
-            subWorld.ObjectManager.DrawShadowMap(ATT.GraphicsDevice, ATT.PlayerManager.Players, player);
-            ATT.GraphicsDevice.SetRenderTarget(player.myRenderTarget);
-            ATT.GraphicsDevice.Clear(DWRenderer.ClearColor);
-            ATT.GraphicsDevice.DepthStencilState = DepthStencilState.None;
-            subWorld.Terrain.Draw(ATT.GraphicsDevice, player);
-            ATT.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
-            subWorld.ObjectManager.Draw(ATT.GraphicsDevice, player);
+            subWorld.ObjectManager.DrawShadowMap(game.PlayerManager.Players, player);
+            DeepWoodsMain.Instance.GraphicsDevice.SetRenderTarget(player.myRenderTarget);
+            DeepWoodsMain.Instance.GraphicsDevice.Clear(GameRenderer.ClearColor);
+            DeepWoodsMain.Instance.GraphicsDevice.DepthStencilState = DepthStencilState.None;
+            subWorld.Terrain.Draw(player);
+            DeepWoodsMain.Instance.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+            subWorld.ObjectManager.Draw(player);
         }
 
         internal Terrain GetTerrain(Player player)

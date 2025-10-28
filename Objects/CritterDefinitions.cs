@@ -1,7 +1,7 @@
 ﻿
 namespace DeepWoods.Objects
 {
-    internal class CritterDefinitions
+    public class CritterDefinitions
     {
         public enum Critter
         {

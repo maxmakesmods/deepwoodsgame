@@ -1,6 +1,7 @@
 ﻿using DeepWoods.Game;
 using DeepWoods.Helpers;
 using DeepWoods.Loaders;
+using DeepWoods.Main;
 using DeepWoods.Objects;
 using DeepWoods.UI;
 using Microsoft.Xna.Framework;
@@ -25,13 +26,13 @@ namespace DeepWoods.Players
 
         private readonly List<InventorySlot> slots = [];
 
-        public Inventory(GraphicsDevice graphicsDevice)
+        public Inventory()
         {
         }
 
-        public void DrawUI(AllTheThings att, SpriteBatch spriteBatch)
+        public void DrawUI(SpriteBatch spriteBatch)
         {
-            PanelData panelData = DoThePanelThing(att.GraphicsDevice, spriteBatch, NumRowSlots, 1, 0.85f);
+            PanelData panelData = DoThePanelThing(spriteBatch, NumRowSlots, 1, 0.85f);
 
             for (int i = 0; i < slots.Count && i < NumRowSlots; i++)
             {
@@ -39,19 +40,19 @@ namespace DeepWoods.Players
                 {
                     var cell = panelData.MakeCell(i, 0);
                     spriteBatch.Draw(TextureLoader.ObjectsTexture, cell, slots[i].dwobj.TexRect, Color.White);
-                    att.TextHelper.DrawStringOnScreen(spriteBatch, cell.Position(), slots[i].count.ToString());
+                    DeepWoodsMain.Instance.TextHelper.DrawStringOnScreen(spriteBatch, cell.Position(), slots[i].count.ToString());
                 }
             }
 
             if (IsOpen)
             {
-                DrawOpenInventory(att, spriteBatch);
+                DrawOpenInventory(spriteBatch);
             }
         }
 
-        private void DrawOpenInventory(AllTheThings att, SpriteBatch spriteBatch)
+        private void DrawOpenInventory(SpriteBatch spriteBatch)
         {
-            var panelData = DoThePanelThing(att.GraphicsDevice, spriteBatch, NumRowSlots, NumRows, 0.1f);
+            var panelData = DoThePanelThing(spriteBatch, NumRowSlots, NumRows, 0.1f);
 
             for (int i = NumRowSlots; i < slots.Count; i++)
             {
@@ -60,7 +61,7 @@ namespace DeepWoods.Players
                     int slotIndex = i - NumRowSlots;
                     var cell = panelData.MakeCell(slotIndex);
                     spriteBatch.Draw(TextureLoader.ObjectsTexture, cell, slots[i].dwobj.TexRect, Color.White);
-                    att.TextHelper.DrawStringOnScreen(spriteBatch, cell.Position(), slots[i].count.ToString());
+                    DeepWoodsMain.Instance.TextHelper.DrawStringOnScreen(spriteBatch, cell.Position(), slots[i].count.ToString());
                 }
             }
         }

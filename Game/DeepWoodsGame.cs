@@ -1,5 +1,6 @@
 ﻿using DeepWoods.Graphics;
 using DeepWoods.Loaders;
+using DeepWoods.Main;
 using DeepWoods.Objects;
 using DeepWoods.Players;
 using DeepWoods.UI;
@@ -11,73 +12,46 @@ using System;
 
 namespace DeepWoods.Game
 {
-    public class DeepWoodsGame : Microsoft.Xna.Framework.Game
+    public class DeepWoodsGame
     {
-        private AllTheThings ATT { get; set; } = new();
-        private Random rng = new();
+        private readonly DeepWoodsMain parent;
+        private readonly Random rng = new();
 
-        private int numPlayers = 1;
-        private int gridSize = 128;
+        public GameRenderer Renderer { get; private set; }
+        public GameWorld World { get; private set; }
+        public InGameClock Clock { get; private set; }
+        public PlayerManager PlayerManager { get; private set; }
+        public DialogueManager DialogueManager { get; private set; }
 
         private bool wasESCPressed = false;
-        private bool isGamePaused = false;
+        public bool isGamePaused = false;
 
-        public DeepWoodsGame()
+        public DeepWoodsGame(DeepWoodsMain parent, int seed, int numPlayers, int gridSize)
         {
-            Content.RootDirectory = "Content";
-            IsMouseVisible = true;
-            ATT.GraphicsDeviceManager = new GraphicsDeviceManager(this);
-        }
+            this.parent = parent;
+            rng = new(seed);
 
-        protected override void Initialize()
-        {
-            base.Initialize();
-            RawInput.Initialize(WindowHelper.GetRealHWNDFromSDL(Window.Handle));
-            IsFixedTimeStep = false;
-            Window.AllowUserResizing = true;
+            Clock = new InGameClock();
+            PlayerManager = new PlayerManager(this, rng.Next());
+            DialogueManager = new DialogueManager();
+            Renderer = new GameRenderer(this);
 
-
-
-            ATT.GameWindow = Window;
-            ATT.Content = Content;
-            ATT.GraphicsDevice = GraphicsDevice;
-            ATT.FPS = new FPSCounter();
-            ATT.Clock = new InGameClock();
-
-            ATT.GraphicsDeviceManager.SynchronizeWithVerticalRetrace = false;
-            ATT.GraphicsDeviceManager.PreferredBackBufferWidth = 1920;
-            ATT.GraphicsDeviceManager.PreferredBackBufferHeight = 1080;
-            ATT.GraphicsDeviceManager.ApplyChanges();
-
-            ATT.GraphicsDevice.BlendState = BlendState.Opaque;
-            ATT.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
-            ATT.GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
-            ATT.GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-
-            EffectLoader.Load(Content);
-            TextureLoader.Load(Content, GraphicsDevice);
-
-            ATT.TextHelper = new TextHelper(ATT);
-            ATT.PlayerManager = new PlayerManager(ATT, rng.Next());
-            ATT.Renderer = new DWRenderer(ATT);
-            ATT.DialogueManager = new DialogueManager();
-
-            //int worldSeed = rng.Next();
-            int worldSeed = 382081431;
-            ATT.World = new GameWorld(ATT, worldSeed, gridSize, gridSize);
+            int worldSeed = rng.Next();
+            //int worldSeed = 382081431;
+            World = new GameWorld(this, worldSeed, gridSize, gridSize);
 
 
-            ATT.Clock.TimeScale = 0;
-            ATT.Clock.SetTime(1, 10, 0);
+            Clock.TimeScale = 0;
+            Clock.SetTime(1, 10, 0);
 
-            ATT.PlayerManager.SpawnPlayers(numPlayers);
+            PlayerManager.SpawnPlayers(numPlayers);
 
 
             // TODO
             GameState.IsMultiplayerGame = true;
         }
 
-        protected override void Update(GameTime gameTime)
+        public void Update(GameTime gameTime)
         {
             if (Keyboard.GetState().IsKeyDown(Keys.Escape))
             {
@@ -86,7 +60,7 @@ namespace DeepWoods.Game
                     isGamePaused = !isGamePaused;
                     if (isGamePaused)
                     {
-                        MouseState ms = DWMouse.GetState(ATT.PlayerManager.Players[0]);
+                        MouseState ms = DWMouse.GetState(PlayerManager.Players[0]);
                         Mouse.SetPosition(ms.X, ms.Y);
                     }
                 }
@@ -97,44 +71,35 @@ namespace DeepWoods.Game
                 wasESCPressed = false;
             }
 
-            if (IsActive && !isGamePaused)
+            if (parent.IsActive && !isGamePaused)
             {
-                IsMouseVisible = false;
-                Mouse.SetPosition(Window.ClientBounds.Width / 2, Window.ClientBounds.Height / 2);
+                parent.IsMouseVisible = false;
+                Mouse.SetPosition(parent.Window.ClientBounds.Width / 2, parent.Window.ClientBounds.Height / 2);
             }
             else
             {
-                IsMouseVisible = true;
+                parent.IsMouseVisible = true;
             }
-
-            EffectLoader.SpriteEffect.Parameters["GlobalTime"].SetValue((float)gameTime.TotalGameTime.TotalSeconds);
-            //EffectLoader.GroundEffect.Parameters["GlobalTime"].SetValue(1);
-            //EffectLoader.SpriteEffect.Parameters["GlobalTime"].SetValue(0f);
 
             double deltaTime = gameTime.ElapsedGameTime.TotalSeconds;
 
-            ATT.FPS.CountFrame(deltaTime);
-            ATT.PlayerManager.Update((float)deltaTime);
-            ATT.Clock.Update(deltaTime);
-            base.Update(gameTime);
+            EffectLoader.SpriteEffect.Parameters["GlobalTime"].SetValue((float)gameTime.TotalGameTime.TotalSeconds);
+
+            PlayerManager.Update((float)deltaTime);
+            Clock.Update(deltaTime);
         }
 
-        protected override void Draw(GameTime gameTime)
+        public void Draw(GameTime gameTime)
         {
             float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-            ATT.World.Update(ATT.Clock.DayDelta, deltaTime);
+            World.Update(Clock.DayDelta, deltaTime);
 
+            string debugstring = $"Seed: {World.Seed}," +
+                $" Time: {Clock.Day:D2}:{Clock.Hour:D2}:{Clock.Minute:D2}," +
+                $" FPS: {parent.FPS.FPS}, ms/f: {parent.FPS.SPF}";
 
-            string debugstring = $"Seed: {ATT.World.Seed}," +
-                $" Time: {ATT.Clock.Day:D2}:{ATT.Clock.Hour:D2}:{ATT.Clock.Minute:D2}," +
-                $" FPS: {ATT.FPS.FPS}, ms/f: {ATT.FPS.SPF}";
-
-            ATT.Renderer.Draw(debugstring, isGamePaused);
-
-
-
-            base.Draw(gameTime);
+            Renderer.Draw(debugstring, isGamePaused);
         }
     }
 }

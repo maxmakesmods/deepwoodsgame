@@ -1,6 +1,7 @@
 ﻿
 using DeepWoods.Game;
 using DeepWoods.Loaders;
+using DeepWoods.Main;
 using DeepWoods.Objects;
 using DeepWoods.Players;
 using DeepWoods.UI;
@@ -12,35 +13,35 @@ using System.Collections.Generic;
 
 namespace DeepWoods.Graphics
 {
-    internal class DWRenderer
+    public class GameRenderer
     {
         public static readonly Color ClearColor = Color.Black;
 
-        private AllTheThings ATT { get; set; }
+        private readonly DeepWoodsGame game;
         private readonly SpriteBatch spriteBatch;
 
-        public DWRenderer(AllTheThings att)
+        public GameRenderer(DeepWoodsGame game)
         {
-            ATT = att;
-            spriteBatch = new SpriteBatch(att.GraphicsDevice);
+            this.game = game;
+            spriteBatch = new SpriteBatch(DeepWoodsMain.Instance.GraphicsDevice);
         }
 
         public void Draw(string debugstring, bool isGamePaused)
         {
-            foreach (var player in ATT.PlayerManager.Players)
+            foreach (var player in game.PlayerManager.Players)
             {
                 DrawPlayerScreen(player);
             }
 
             spriteBatch.Begin(samplerState: SamplerState.PointClamp);
 
-            ATT.GraphicsDevice.Clear(ClearColor);
-            foreach (var player in ATT.PlayerManager.Players)
+            DeepWoodsMain.Instance.GraphicsDevice.Clear(ClearColor);
+            foreach (var player in game.PlayerManager.Players)
             {
                 spriteBatch.Draw(player.myRenderTarget, player.PlayerViewport, Color.White);
             }
 
-            DrawPlayerMouseCursors(ATT.PlayerManager.Players, isGamePaused);
+            DrawPlayerMouseCursors(game.PlayerManager.Players, isGamePaused);
             DrawDebugString(debugstring);
 
             spriteBatch.End();
@@ -48,23 +49,23 @@ namespace DeepWoods.Graphics
 
         private void DrawPlayerScreen(Player player)
         {
-            ATT.World.Draw(ATT.GraphicsDevice, player);
+            game.World.Draw(player);
 
-            foreach (var pl in ATT.PlayerManager.Players)
+            foreach (var pl in game.PlayerManager.Players)
             {
-                pl.Draw(ATT.GraphicsDevice, player.myCamera);
+                pl.Draw(player.myCamera);
             }
 
             spriteBatch.Begin(samplerState: SamplerState.PointClamp);
-            player.DrawUI(ATT, spriteBatch);
+            player.DrawUI(spriteBatch);
             spriteBatch.End();
 
-            ATT.GraphicsDevice.SetRenderTarget(null);
+            DeepWoodsMain.Instance.GraphicsDevice.SetRenderTarget(null);
         }
 
         private void DrawDebugString(string debugstring)
         {
-            ATT.TextHelper.DrawStringOnScreen(spriteBatch, new Vector2(20f, 20f), debugstring);
+            DeepWoodsMain.Instance.TextHelper.DrawStringOnScreen(spriteBatch, new Vector2(20f, 20f), debugstring);
 
             /*
             int i = 0;
@@ -95,14 +96,14 @@ namespace DeepWoods.Graphics
                     new Rectangle(mouseState.X, mouseState.Y, TextureLoader.MouseCursor.Width * 2, TextureLoader.MouseCursor.Height * 2),
                     colors[i % 2]);
 
-                var terrain = ATT.World.GetTerrain(player);
+                var terrain = game.World.GetTerrain(player);
 
 
                 var tilePos = player.myCamera.GetTileAtScreenPos(mouseState.Position);
                 var biome = terrain.GetBiome(tilePos.X, tilePos.Y);
 
                 string mouseString = $"{tilePos.X},{tilePos.Y},{biome?.IsVoid??true}";
-                ATT.TextHelper.DrawStringOnScreen(spriteBatch, new Vector2(mouseState.X, mouseState.Y + 32), mouseString);
+                DeepWoodsMain.Instance.TextHelper.DrawStringOnScreen(spriteBatch, new Vector2(mouseState.X, mouseState.Y + 32), mouseString);
 
                 i++;
             }

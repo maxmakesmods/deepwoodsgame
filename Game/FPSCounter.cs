@@ -1,6 +1,8 @@
-﻿namespace DeepWoods.Game
+﻿using Microsoft.Xna.Framework;
+
+namespace DeepWoods.Game
 {
-    internal class FPSCounter
+    public class FPSCounter
     {
         public int FPS { get; private set; } = 0;
         public int SPF { get; private set; } = 0;
@@ -8,9 +10,9 @@
         private int counter;
         private double frameTimeSum;
 
-        public void CountFrame(double frameTime)
+        public void CountFrame(GameTime gameTime)
         {
-            frameTimeSum += frameTime;
+            frameTimeSum += gameTime.ElapsedGameTime.TotalSeconds;
             counter++;
             if (frameTimeSum > 1)
             {

@@ -1,4 +1,5 @@
 ﻿using DeepWoods.Loaders;
+using DeepWoods.Main;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
@@ -35,15 +36,15 @@ namespace DeepWoods.Objects
             public readonly VertexDeclaration VertexDeclaration => vertexDeclaration;
         }
 
-        public InstancedObjects(GraphicsDevice graphicsDevice, List<DWObject> sprites, Texture2D texture, Texture2D glowmap)
+        public InstancedObjects(List<DWObject> sprites, Texture2D texture, Texture2D glowmap)
         {
             this.texture = texture;
-            CreateBasicBuffers(graphicsDevice);
-            CreateInstanceBuffer(graphicsDevice, sprites);
+            CreateBasicBuffers();
+            CreateInstanceBuffer(sprites);
             this.glowmap = glowmap;
         }
 
-        private void CreateInstanceBuffer(GraphicsDevice graphicsDevice, List<DWObject> sprites)
+        private void CreateInstanceBuffer(List<DWObject> sprites)
         {
             instances = new InstanceData[sprites.Count];
             for (int i = 0; i < sprites.Count; i++)
@@ -58,11 +59,11 @@ namespace DeepWoods.Objects
                     IsHidden = 0f
                 };
             }
-            instanceBuffer = new(graphicsDevice, InstanceData.vertexDeclaration, instances.Length, BufferUsage.WriteOnly);
+            instanceBuffer = new(DeepWoodsMain.Instance.GraphicsDevice, InstanceData.vertexDeclaration, instances.Length, BufferUsage.WriteOnly);
             instanceBuffer.SetData(instances);
         }
 
-        private void CreateBasicBuffers(GraphicsDevice graphicsDevice)
+        private void CreateBasicBuffers()
         {
             VertexPositionTexture[] vertices = new VertexPositionTexture[4];
             vertices[0] = new VertexPositionTexture(new Vector3(0, 0, 0), new Vector2(0, 1));
@@ -72,23 +73,23 @@ namespace DeepWoods.Objects
 
             ushort[] indices = [0, 1, 2, 0, 2, 3];
 
-            vertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionTexture), 4, BufferUsage.WriteOnly);
+            vertexBuffer = new VertexBuffer(DeepWoodsMain.Instance.GraphicsDevice, typeof(VertexPositionTexture), 4, BufferUsage.WriteOnly);
             vertexBuffer.SetData(vertices);
-            indexBuffer = new IndexBuffer(graphicsDevice, IndexElementSize.SixteenBits, 6, BufferUsage.WriteOnly);
+            indexBuffer = new IndexBuffer(DeepWoodsMain.Instance.GraphicsDevice, IndexElementSize.SixteenBits, 6, BufferUsage.WriteOnly);
             indexBuffer.SetData(indices);
         }
 
-        public void Draw(GraphicsDevice graphicsDevice)
+        public void Draw()
         {
-            graphicsDevice.SetVertexBuffers(new VertexBufferBinding(vertexBuffer, 0, 0), new VertexBufferBinding(instanceBuffer, 0, 1));
-            graphicsDevice.Indices = indexBuffer;
+            DeepWoodsMain.Instance.GraphicsDevice.SetVertexBuffers(new VertexBufferBinding(vertexBuffer, 0, 0), new VertexBufferBinding(instanceBuffer, 0, 1));
+            DeepWoodsMain.Instance.GraphicsDevice.Indices = indexBuffer;
             EffectLoader.SpriteEffect.Parameters["ObjectTextureSize"].SetValue(new Vector2(texture.Width, texture.Height));
             EffectLoader.SpriteEffect.Parameters["SpriteTexture"].SetValue(texture);
             EffectLoader.SpriteEffect.Parameters["GlowMap"].SetValue(glowmap);
             foreach (EffectPass pass in EffectLoader.SpriteEffect.CurrentTechnique.Passes)
             {
                 pass.Apply();
-                graphicsDevice.DrawInstancedPrimitives(PrimitiveType.TriangleList, 0, 0, 2, instances.Length);
+                DeepWoodsMain.Instance.GraphicsDevice.DrawInstancedPrimitives(PrimitiveType.TriangleList, 0, 0, 2, instances.Length);
             }
         }
 

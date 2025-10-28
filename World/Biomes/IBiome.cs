@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace DeepWoods.World.Biomes
 {
-    internal interface IBiome
+    public interface IBiome
     {
         public float StuffDensity { get; }
         public float BuildingDensity { get; }

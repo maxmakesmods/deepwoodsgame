@@ -1,7 +1,7 @@
 ﻿
 namespace DeepWoods.World
 {
-    internal class InGameClock
+    public class InGameClock
     {
         private static readonly double DefaultTimeScale = 60.0;
 

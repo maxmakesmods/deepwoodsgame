@@ -1,6 +1,7 @@
 ﻿using DeepWoods.Game;
 using DeepWoods.Helpers;
 using DeepWoods.Loaders;
+using DeepWoods.Main;
 using DeepWoods.Players;
 using DeepWoods.World.Biomes;
 using DeepWoods.World.Generators;
@@ -13,7 +14,7 @@ using System.Collections.Generic;
 
 namespace DeepWoods.World
 {
-    internal class Terrain
+    public class Terrain
     {
         public readonly static int CellSize = 32;
         private readonly static int DitherSize = 4;
@@ -49,7 +50,7 @@ namespace DeepWoods.World
             public IBiome biome;
         }
 
-        public Terrain(AllTheThings att, int seed, int width, int height,
+        public Terrain(int seed, int width, int height,
             List<IBiome> biomes,
             Generator biomeGenerator,
             Generator forestGenerator,
@@ -69,7 +70,7 @@ namespace DeepWoods.World
             forestGenerator.Generate(tiles, biomes, rng.Next());
             groundTypeGenerator.Generate(tiles, biomes, rng.Next());
 
-            terrainGridTexture = GenerateTerrainTexture(att.GraphicsDevice);
+            terrainGridTexture = GenerateTerrainTexture();
             drawingQuad = CreateVertices();
 
             List<int> bluenoiseChannels = [0, 1, 2, 3];
@@ -267,9 +268,9 @@ namespace DeepWoods.World
             }
         }
 
-        private Texture2D GenerateTerrainTexture(GraphicsDevice graphicsDevice)
+        private Texture2D GenerateTerrainTexture()
         {
-            var texture = new Texture2D(graphicsDevice, renderwidth, renderheight, false, SurfaceFormat.Single);
+            var texture = new Texture2D(DeepWoodsMain.Instance.GraphicsDevice, renderwidth, renderheight, false, SurfaceFormat.Single);
             float[] pixelData = new float[renderwidth * renderheight];
             for (int x = 0; x < width; x++)
             {
@@ -293,7 +294,7 @@ namespace DeepWoods.World
             return drawingQuad;
         }
 
-        public void Draw(GraphicsDevice graphicsDevice, Player player)
+        public void Draw(Player player)
         {
             Matrix view = player.myCamera.View;
             Matrix projection = player.myCamera.Projection;
@@ -306,7 +307,7 @@ namespace DeepWoods.World
             foreach (EffectPass pass in EffectLoader.GroundEffect.CurrentTechnique.Passes)
             {
                 pass.Apply();
-                graphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, drawingQuad, 0, 4, drawingIndices, 0, 2);
+                DeepWoodsMain.Instance.GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, drawingQuad, 0, 4, drawingIndices, 0, 2);
             }
         }
 

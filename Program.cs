@@ -1,2 +1,2 @@
-﻿using var game = new DeepWoods.Game.DeepWoodsGame();
+﻿using var game = new DeepWoods.Main.DeepWoodsMain();
 game.Run();

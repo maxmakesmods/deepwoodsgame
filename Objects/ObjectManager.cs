@@ -1,6 +1,7 @@
 ﻿using DeepWoods.Game;
 using DeepWoods.Helpers;
 using DeepWoods.Loaders;
+using DeepWoods.Main;
 using DeepWoods.Players;
 using DeepWoods.World;
 using DeepWoods.World.Biomes;
@@ -14,12 +15,10 @@ using System.Linq;
 
 namespace DeepWoods.Objects
 {
-    internal class ObjectManager
+    public class ObjectManager
     {
         private readonly List<DWObjectDefinition> objectDefinitions;
         private readonly Random rng;
-
-        private AllTheThings ATT { get; set; }
 
         private readonly Terrain terrain;
 
@@ -33,12 +32,11 @@ namespace DeepWoods.Objects
         private InstancedObjects instancedObjects;
         private InstancedObjects instancedCritters;
 
-        public ObjectManager(AllTheThings att, Terrain terrain, int seed)
+        public ObjectManager(Terrain terrain, int seed)
         {
-            ATT = att;
             this.terrain = terrain;
             rng = new Random(seed);
-            objectDefinitions = att.Content.Load<List<DWObjectDefinition>>("objects/objects");
+            objectDefinitions = DeepWoodsMain.Instance.Content.Load<List<DWObjectDefinition>>("objects/objects");
 
             width = terrain.Width;
             height = terrain.Height;
@@ -101,11 +99,11 @@ namespace DeepWoods.Objects
 
             if (objects.Count > 0)
             {
-                instancedObjects = new InstancedObjects(ATT.GraphicsDevice, objects, TextureLoader.ObjectsTexture, TextureLoader.ObjectsGlowMap);
+                instancedObjects = new InstancedObjects(objects, TextureLoader.ObjectsTexture, TextureLoader.ObjectsGlowMap);
             }
             if (critters.Count > 0)
             {
-                instancedCritters = new InstancedObjects(ATT.GraphicsDevice, critters, TextureLoader.Critters, TextureLoader.BlackTexture);
+                instancedCritters = new InstancedObjects(critters, TextureLoader.Critters, TextureLoader.BlackTexture);
             }
         }
 
@@ -206,34 +204,34 @@ namespace DeepWoods.Objects
         }
 
 
-        internal void DrawShadowMap(GraphicsDevice graphicsDevice, List<Player> players, Player player)
+        internal void DrawShadowMap(List<Player> players, Player player)
         {
             Matrix view = player.myCamera.ShadowView;
             Matrix projection = player.myCamera.ShadowProjection;
 
-            graphicsDevice.SetRenderTarget(player.myShadowMap);
-            graphicsDevice.Clear(Color.Black);
-            graphicsDevice.DepthStencilState = DepthStencilState.Default;
+            DeepWoodsMain.Instance.GraphicsDevice.SetRenderTarget(player.myShadowMap);
+            DeepWoodsMain.Instance.GraphicsDevice.Clear(Color.Black);
+            DeepWoodsMain.Instance.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 
             EffectLoader.SpriteEffect.Parameters["CellSize"].SetValue(Terrain.CellSize);
             EffectLoader.SpriteEffect.Parameters["ViewProjection"].SetValue(view * projection);
             EffectLoader.SpriteEffect.Parameters["IsShadow"].SetValue(1);
 
 
-            instancedObjects?.Draw(graphicsDevice);
-            instancedCritters?.Draw(graphicsDevice);
+            instancedObjects?.Draw();
+            instancedCritters?.Draw();
 
 
             foreach (var pl in players)
             {
-                pl.DrawShadow(graphicsDevice, player.myCamera);
+                pl.DrawShadow(player.myCamera);
             }
 
-            graphicsDevice.SetRenderTarget(null);
+            DeepWoodsMain.Instance.GraphicsDevice.SetRenderTarget(null);
         }
 
 
-        internal void Draw(GraphicsDevice graphicsDevice, Player player)
+        internal void Draw(Player player)
         {
             Matrix view = player.myCamera.View;
             Matrix projection = player.myCamera.Projection;
@@ -247,8 +245,8 @@ namespace DeepWoods.Objects
             spriteEffect.Parameters["ShadowMapBounds"].SetValue(player.myCamera.ShadowRectangle.GetBoundsV4());
             spriteEffect.Parameters["ShadowMapTileSize"].SetValue(player.myCamera.ShadowRectangle.GetSizeV2());
 
-            instancedObjects?.Draw(graphicsDevice);
-            instancedCritters?.Draw(graphicsDevice);
+            instancedObjects?.Draw();
+            instancedCritters?.Draw();
         }
 
         internal bool IsCave(int x, int y)

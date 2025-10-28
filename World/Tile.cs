@@ -3,7 +3,7 @@ using DeepWoods.World.Biomes;
 
 namespace DeepWoods.World
 {
-    internal struct Tile
+    public struct Tile
     {
         public IBiome biome;
         public GroundType groundType;

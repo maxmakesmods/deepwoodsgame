@@ -3,10 +3,12 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
+using System.Diagnostics;
+using System.Diagnostics.Metrics;
 
 namespace DeepWoods.World
 {
-    internal class Camera
+    public class Camera
     {
         private static readonly float NearPlane = 1f;
         private static readonly float FarPlane = 10000f;
@@ -18,9 +20,8 @@ namespace DeepWoods.World
         private float fov = 45f;
         private float cameraZoomSpeed = 1.2f;
         private int lastMouseWheel = 0;
-        private readonly GraphicsDevice graphicsDevice;
 
-        private Viewport Viewport { get; set; }
+        public Viewport Viewport { get; set; }
 
         public Rectangle ShadowRectangle { get; private set; }
 
@@ -30,9 +31,9 @@ namespace DeepWoods.World
         public Matrix ShadowView => Matrix.Invert(Matrix.CreateTranslation(ShadowRectangle.CenterV3(10f)));
         public Matrix ShadowProjection => Matrix.CreateOrthographic(ShadowRectangle.Width, ShadowRectangle.Height, NearPlane, FarPlane);
 
-        public Camera(GraphicsDevice graphicsDevice)
+        public Camera(MouseState mouseState)
         {
-            this.graphicsDevice = graphicsDevice;
+            lastMouseWheel = mouseState.ScrollWheelValue;
             position.Z = 16;
         }
 
@@ -54,10 +55,12 @@ namespace DeepWoods.World
 
             if (mouseWheelDelta > 0)
             {
+                Debug.WriteLine($"mouseWheelDelta: {mouseWheelDelta}, Z: {position.Z}");
                 position.Z /= mouseWheelDelta * cameraZoomSpeed;
             }
             else if (mouseWheelDelta < 0)
             {
+                Debug.WriteLine($"mouseWheelDelta: {mouseWheelDelta}, Z: {position.Z}");
                 position.Z *= -mouseWheelDelta * cameraZoomSpeed;
             }
             if (position.Z < MinimumCameraZ)
