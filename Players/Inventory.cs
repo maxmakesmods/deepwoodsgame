@@ -11,7 +11,7 @@ using System.Runtime.CompilerServices;
 
 namespace DeepWoods.Players
 {
-    internal class Inventory : UIPanel
+    public class Inventory : UIPanel
     {
         private static readonly int NumRowSlots = 10;
         private static readonly int NumRows = 7;

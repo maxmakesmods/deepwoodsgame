@@ -194,8 +194,8 @@ namespace DeepWoods.UI
 
         private static MouseState ClampMouseXY(MouseState original, Rectangle playerViewport)
         {
-            return new(Math.Clamp(original.X, playerViewport.X, playerViewport.X + playerViewport.Width - 16),
-                Math.Clamp(original.Y, playerViewport.Y, playerViewport.Y + playerViewport.Height - 16),
+            return new(Math.Clamp(original.X, playerViewport.X, playerViewport.X + Math.Max(0, playerViewport.Width - 16)),
+                Math.Clamp(original.Y, playerViewport.Y, playerViewport.Y + Math.Max(0, playerViewport.Height - 16)),
                 original.ScrollWheelValue,
                 original.LeftButton,
                 original.MiddleButton,

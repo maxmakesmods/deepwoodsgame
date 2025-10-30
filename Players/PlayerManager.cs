@@ -15,30 +15,55 @@ namespace DeepWoods.Players
             [new(0f, 0f, 0.5f, 0.5f), new(0.5f, 0f, 0.5f, 0.5f), new(0f, 0.5f, 0.5f, 0.5f), new(0.5f, 0.5f, 0.5f, 0.5f)]
         ];
 
-        private readonly List<Player> players = [];
+        private readonly List<RemotePlayer> remotePlayers = [];
+        private readonly List<LocalPlayer> localPlayers = [];
+        private readonly List<Player> allPlayers = [];
         private readonly DeepWoodsGame game;
-        private readonly Random rng;
 
-        public List<Player> Players => players;
+        public List<Player> Players => allPlayers;
 
-        public PlayerManager(DeepWoodsGame game, int seed)
+        public List<LocalPlayer> LocalPlayers => localPlayers;
+
+        public List<RemotePlayer> RemotePlayers => remotePlayers;
+
+        public PlayerManager(DeepWoodsGame game)
         {
             this.game = game;
-            rng = new Random(seed);
         }
 
-        public void SpawnPlayers(int numPlayers)
+        public bool SpawnLocalPlayer()
+        {
+            if (localPlayers.Count >= playerRectangles.Count)
+            {
+                return false;
+            }
+
+            Point spawnPos = game.World.GetSpawnPosition();
+            PlayerIndex playerIndex = (PlayerIndex)localPlayers.Count;
+
+            var player = new LocalPlayer(game, playerIndex, new Vector2(spawnPos.X, spawnPos.Y));
+            allPlayers.Add(player);
+            localPlayers.Add(player);
+
+            for (int i = 0; i < localPlayers.Count; i++)
+            {
+                localPlayers[i].SetPlayerViewport(playerRectangles[localPlayers.Count - 1][i]);
+            }
+
+            return true;
+        }
+
+        public void SpawnRemotePlayer()
         {
             Point spawnPos = game.World.GetSpawnPosition();
-            for (int i = 0; i < numPlayers; i++)
-            {
-                players.Add(new Player(game, (PlayerIndex)i, playerRectangles[numPlayers - 1][i], new Vector2(spawnPos.X, spawnPos.Y)));
-            }
+            var player = new RemotePlayer(game, new Vector2(spawnPos.X, spawnPos.Y));
+            allPlayers.Add(player);
+            remotePlayers.Add(player);
         }
 
         internal void Update(float deltaTime)
         {
-            foreach (var player in players)
+            foreach (var player in Players)
             {
                 player.Update((float)deltaTime);
             }

@@ -28,7 +28,7 @@ namespace DeepWoods.Graphics
 
         public void Draw(string debugstring, bool isGamePaused)
         {
-            foreach (var player in game.PlayerManager.Players)
+            foreach (var player in game.PlayerManager.LocalPlayers)
             {
                 DrawPlayerScreen(player);
             }
@@ -36,18 +36,18 @@ namespace DeepWoods.Graphics
             spriteBatch.Begin(samplerState: SamplerState.PointClamp);
 
             DeepWoodsMain.Instance.GraphicsDevice.Clear(ClearColor);
-            foreach (var player in game.PlayerManager.Players)
+            foreach (var player in game.PlayerManager.LocalPlayers)
             {
                 spriteBatch.Draw(player.myRenderTarget, player.PlayerViewport, Color.White);
             }
 
-            DrawPlayerMouseCursors(game.PlayerManager.Players, isGamePaused);
+            DrawPlayerMouseCursors(game.PlayerManager.LocalPlayers, isGamePaused);
             DrawDebugString(debugstring);
 
             spriteBatch.End();
         }
 
-        private void DrawPlayerScreen(Player player)
+        private void DrawPlayerScreen(LocalPlayer player)
         {
             game.World.Draw(player);
 
@@ -77,7 +77,7 @@ namespace DeepWoods.Graphics
             */
         }
 
-        private void DrawPlayerMouseCursors(List<Player> players, bool isGamePaused)
+        private void DrawPlayerMouseCursors(List<LocalPlayer> players, bool isGamePaused)
         {
             if (isGamePaused)
                 return;

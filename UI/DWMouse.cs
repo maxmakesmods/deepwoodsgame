@@ -8,7 +8,7 @@ namespace DeepWoods.UI
 {
     internal static class DWMouse
     {
-        public static MouseState GetState(Player player)
+        public static MouseState GetState(LocalPlayer player)
         {
             if (OperatingSystem.IsWindows() && GameState.IsMultiplayerGame)
             {

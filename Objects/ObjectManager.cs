@@ -204,7 +204,7 @@ namespace DeepWoods.Objects
         }
 
 
-        internal void DrawShadowMap(List<Player> players, Player player)
+        internal void DrawShadowMap(List<Player> players, LocalPlayer player)
         {
             Matrix view = player.myCamera.ShadowView;
             Matrix projection = player.myCamera.ShadowProjection;
@@ -231,7 +231,7 @@ namespace DeepWoods.Objects
         }
 
 
-        internal void Draw(Player player)
+        internal void Draw(LocalPlayer player)
         {
             Matrix view = player.myCamera.View;
             Matrix projection = player.myCamera.Projection;

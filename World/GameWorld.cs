@@ -35,7 +35,7 @@ namespace DeepWoods.World
         public Dictionary<string, SubWorld> SubWorlds { get; private set; } = [];
         private readonly Random rng;
 
-        private readonly Dictionary<PlayerIndex, SubWorld> playerSubWorlds = new();
+        private readonly Dictionary<Guid, SubWorld> playerSubWorlds = new();
         private readonly DeepWoodsGame game;
 
         public int Seed { get; private set; }
@@ -105,13 +105,13 @@ namespace DeepWoods.World
         {
             if (SubWorlds.TryGetValue(id, out SubWorld subWorld))
             {
-                playerSubWorlds[player.PlayerIndex] = subWorld;
+                playerSubWorlds[player.ID] = subWorld;
             }
         }
 
         private SubWorld GetPlayerSubWorld(Player player)
         {
-            if (playerSubWorlds.TryGetValue(player.PlayerIndex, out SubWorld subWorld))
+            if (playerSubWorlds.TryGetValue(player.ID, out SubWorld subWorld))
             {
                 return subWorld;
             }
@@ -135,7 +135,7 @@ namespace DeepWoods.World
             return SubWorlds[OverGroundId].Terrain.GetSpawnPosition();
         }
 
-        internal void Draw(Player player)
+        internal void Draw(LocalPlayer player)
         {
             var subWorld = GetPlayerSubWorld(player);
             subWorld.Apply();

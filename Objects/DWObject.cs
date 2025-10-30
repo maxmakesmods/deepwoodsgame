@@ -2,7 +2,7 @@
 
 namespace DeepWoods.Objects
 {
-    internal class DWObject
+    public class DWObject
     {
         public DWObjectDefinition Def { get; private set; }
 

@@ -294,7 +294,7 @@ namespace DeepWoods.World
             return drawingQuad;
         }
 
-        public void Draw(Player player)
+        public void Draw(LocalPlayer player)
         {
             Matrix view = player.myCamera.View;
             Matrix projection = player.myCamera.Projection;

@@ -55,12 +55,10 @@ namespace DeepWoods.World
 
             if (mouseWheelDelta > 0)
             {
-                Debug.WriteLine($"mouseWheelDelta: {mouseWheelDelta}, Z: {position.Z}");
                 position.Z /= mouseWheelDelta * cameraZoomSpeed;
             }
             else if (mouseWheelDelta < 0)
             {
-                Debug.WriteLine($"mouseWheelDelta: {mouseWheelDelta}, Z: {position.Z}");
                 position.Z *= -mouseWheelDelta * cameraZoomSpeed;
             }
             if (position.Z < MinimumCameraZ)

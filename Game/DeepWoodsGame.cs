@@ -1,4 +1,5 @@
 ﻿using DeepWoods.Graphics;
+using DeepWoods.Helpers;
 using DeepWoods.Loaders;
 using DeepWoods.Main;
 using DeepWoods.Objects;
@@ -17,6 +18,7 @@ namespace DeepWoods.Game
         private readonly DeepWoodsMain parent;
         private readonly Random rng = new();
 
+
         public GameRenderer Renderer { get; private set; }
         public GameWorld World { get; private set; }
         public InGameClock Clock { get; private set; }
@@ -26,25 +28,25 @@ namespace DeepWoods.Game
         private bool wasESCPressed = false;
         public bool isGamePaused = false;
 
-        public DeepWoodsGame(DeepWoodsMain parent, int seed, int numPlayers, int gridSize)
+        public DeepWoodsGame(DeepWoodsMain parent, SaveLoadHelper.SaveData saveData)
         {
             this.parent = parent;
-            rng = new(seed);
+            rng = new(saveData.Seed);
 
             Clock = new InGameClock();
-            PlayerManager = new PlayerManager(this, rng.Next());
+            PlayerManager = new PlayerManager(this);
             DialogueManager = new DialogueManager();
             Renderer = new GameRenderer(this);
 
             int worldSeed = rng.Next();
             //int worldSeed = 382081431;
-            World = new GameWorld(this, worldSeed, gridSize, gridSize);
+            World = new GameWorld(this, worldSeed, saveData.GridSize, saveData.GridSize);
 
 
-            Clock.TimeScale = 0;
+            Clock.TimeScale = 60;
             Clock.SetTime(1, 10, 0);
 
-            PlayerManager.SpawnPlayers(numPlayers);
+            PlayerManager.SpawnLocalPlayer();
 
 
             // TODO
@@ -60,7 +62,7 @@ namespace DeepWoods.Game
                     isGamePaused = !isGamePaused;
                     if (isGamePaused)
                     {
-                        MouseState ms = DWMouse.GetState(PlayerManager.Players[0]);
+                        MouseState ms = DWMouse.GetState(PlayerManager.LocalPlayers[0]);
                         Mouse.SetPosition(ms.X, ms.Y);
                     }
                 }
