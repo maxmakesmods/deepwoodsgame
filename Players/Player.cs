@@ -59,7 +59,7 @@ namespace DeepWoods.Players
         protected readonly DeepWoodsGame game;
         protected readonly Inventory inventory;
 
-        public Guid ID { get; private set; } = Guid.NewGuid();
+        public PlayerId ID { get; set; }
 
         public Player(DeepWoodsGame game, Vector2 startPos)
         {

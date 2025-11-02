@@ -35,7 +35,7 @@ namespace DeepWoods.World
         public Dictionary<string, SubWorld> SubWorlds { get; private set; } = [];
         private readonly Random rng;
 
-        private readonly Dictionary<Guid, SubWorld> playerSubWorlds = new();
+        private readonly Dictionary<PlayerId, SubWorld> playerSubWorlds = new();
         private readonly DeepWoodsGame game;
 
         public int Seed { get; private set; }
