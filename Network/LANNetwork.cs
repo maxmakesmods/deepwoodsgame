@@ -7,25 +7,16 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
-using static DeepWoods.Network.INetworkInterface;
 
 namespace DeepWoods.Network
 {
-    internal class LANNetwork : INetworkInterface, INetEventListener
+    internal class LANNetwork : NetworkInterface, INetEventListener
     {
         private NetManager manager;
 
 
-        public bool IsConnected => manager?.IsRunning ?? false;
+        public override bool IsConnected => manager?.IsRunning ?? false;
 
-        public int Ping { get; private set; } = 0;
-
-
-        private readonly ReceiveMessage receiver;
-
-        private readonly AcceptPlayer accepter;
-
-        private readonly PlayerDisconnected disconnectedHandler;
 
         private HashSet<NetPeer> peers = new();
 
@@ -33,22 +24,14 @@ namespace DeepWoods.Network
 
         private Dictionary<PlayerId, NetPeer> playerToPeer = new();
 
-
-        public LANNetwork(ReceiveMessage receiver, AcceptPlayer accepter, PlayerDisconnected disconnectedHandler)
-        {
-            this.receiver = receiver;
-            this.accepter = accepter;
-            this.disconnectedHandler = disconnectedHandler;
-        }
-
-        public bool StartHost()
+        public override bool StartHost()
         {
             Disconnect();
             manager = new NetManager(this);
             return manager.Start(10000);
         }
 
-        public bool StartClient(string host, byte[] data, int dataSize)
+        public override bool StartClient(string host, byte[] data, int dataSize)
         {
             Disconnect();
             manager = new NetManager(this);
@@ -57,7 +40,7 @@ namespace DeepWoods.Network
             return peer != null;
         }
 
-        public bool Disconnect()
+        public override bool Disconnect()
         {
             manager?.Stop();
             manager = null;
@@ -67,12 +50,12 @@ namespace DeepWoods.Network
             return true;
         }
 
-        public void Update(float deltaTime)
+        public override void Update(float deltaTime)
         {
             manager?.PollEvents();
         }
 
-        public void SwitchPlayers(PlayerId id1, PlayerId id2)
+        public override void SwitchPlayers(PlayerId id1, PlayerId id2)
         {
             bool hasPeer1 = playerToPeer.TryGetValue(id1, out NetPeer peer1);
             bool hasPeer2 = playerToPeer.TryGetValue(id2, out NetPeer peer2);
@@ -93,7 +76,7 @@ namespace DeepWoods.Network
             }
         }
 
-        public bool SendMessage(PlayerId recipient, byte[] data, int dataSize, MessageMode mode)
+        public override bool SendMessage(PlayerId recipient, byte[] data, int dataSize, MessageMode mode)
         {
             if (IsConnected)
             {
@@ -106,7 +89,7 @@ namespace DeepWoods.Network
             return false;
         }
 
-        public bool SendMessageToAll(byte[] data, int dataSize, MessageMode mode)
+        public override bool SendMessageToAll(byte[] data, int dataSize, MessageMode mode)
         {
             if (IsConnected)
             {

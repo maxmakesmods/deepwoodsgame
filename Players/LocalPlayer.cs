@@ -70,20 +70,24 @@ namespace DeepWoods.Players
 
         public override void Update(float timeDelta)
         {
-            var keyboardState = DWKeyboard.GetState(PlayerIndex);
+            if (!game.isGamePaused)
+            {
+                var keyboardState = DWKeyboard.GetState(PlayerIndex);
+                velocity = GetVelocity(keyboardState, timeDelta);
+                SetPosition(position + velocity * timeDelta);
+                DoInteractions(keyboardState);
+                previousKeyboardState = keyboardState;
+            }
+            else
+            {
+                previousKeyboardState = default;
+            }
 
-            velocity = GetVelocity(keyboardState, timeDelta);
-            SetPosition(position + velocity * timeDelta);
-
-            DoRenderUpdate(timeDelta);
-            DoInteractions(keyboardState);
-
-            previousKeyboardState = keyboardState;
-
+            DoRenderUpdate();
             base.Update(timeDelta);
         }
 
-        private void DoRenderUpdate(float timeDelta)
+        private void DoRenderUpdate()
         {
             PlayerViewport = relativeViewport.Scale(DeepWoodsMain.Instance.GraphicsDevice.Viewport.Bounds).ToRectangle();
             if (PlayerViewport.Width != myRenderTarget.Width || PlayerViewport.Height != myRenderTarget.Height)
@@ -97,7 +101,7 @@ namespace DeepWoods.Players
                 myShadowMap = RecreateRenderTarget(SurfaceFormat.Single);
             }
 
-            myCamera.Update(position, PlayerViewport, DWMouse.GetState(this), timeDelta);
+            myCamera.Update(position, PlayerViewport, DWMouse.GetState(this), game.isGamePaused);
         }
 
         private void DoInteractions(KeyboardState keyboardState)

@@ -37,7 +37,7 @@ namespace DeepWoods.World
             position.Z = 16;
         }
 
-        public void Update(Vector2 playerPos, Rectangle viewport, MouseState mouseState, float timeDelta)
+        public void Update(Vector2 playerPos, Rectangle viewport, MouseState mouseState, bool isGamePaused)
         {
             Viewport = new(viewport);
 
@@ -48,19 +48,23 @@ namespace DeepWoods.World
             int mouseWheelDelta = mouseWheel - lastMouseWheel;
             lastMouseWheel = mouseWheel;
 
-            if (System.Math.Abs(mouseWheelDelta) >= 120)
+            if (Math.Abs(mouseWheelDelta) >= 120)
             {
                 mouseWheelDelta /= 120;
             }
 
-            if (mouseWheelDelta > 0)
+            if (!isGamePaused)
             {
-                position.Z /= mouseWheelDelta * cameraZoomSpeed;
+                if (mouseWheelDelta > 0)
+                {
+                    position.Z /= mouseWheelDelta * cameraZoomSpeed;
+                }
+                else if (mouseWheelDelta < 0)
+                {
+                    position.Z *= -mouseWheelDelta * cameraZoomSpeed;
+                }
             }
-            else if (mouseWheelDelta < 0)
-            {
-                position.Z *= -mouseWheelDelta * cameraZoomSpeed;
-            }
+
             if (position.Z < MinimumCameraZ)
             {
                 position.Z = MinimumCameraZ;

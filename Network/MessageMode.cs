@@ -1,7 +1,7 @@
 ﻿
 namespace DeepWoods.Network
 {
-    internal enum MessageMode
+    public enum MessageMode
     {
         UnreliableUnordered = 0,
         UnreliableSequenced = 1,

@@ -24,5 +24,7 @@ namespace DeepWoods.World
         public int Day => (int)(accumulatedTime / 86400.0);
         public int Hour => (int)(accumulatedTime / 3600.0) % 24;
         public int Minute => (int)(accumulatedTime / 60.0) % 60;
+
+        public double Total => accumulatedTime;
     }
 }

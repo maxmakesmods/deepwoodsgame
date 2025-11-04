@@ -18,7 +18,6 @@ namespace DeepWoods.Game
         private readonly DeepWoodsMain parent;
         private readonly Random rng = new();
 
-
         public GameRenderer Renderer { get; private set; }
         public GameWorld World { get; private set; }
         public InGameClock Clock { get; private set; }
@@ -83,20 +82,17 @@ namespace DeepWoods.Game
                 parent.IsMouseVisible = true;
             }
 
-            double deltaTime = gameTime.ElapsedGameTime.TotalSeconds;
+            double deltaTime = isGamePaused ? 0 : gameTime.ElapsedGameTime.TotalSeconds;
 
-            EffectLoader.SpriteEffect.Parameters["GlobalTime"].SetValue((float)gameTime.TotalGameTime.TotalSeconds);
-
+            World.Update(Clock.DayDelta, (float)deltaTime);
             PlayerManager.Update((float)deltaTime);
             Clock.Update(deltaTime);
+
+            EffectLoader.SpriteEffect.Parameters["GlobalTime"].SetValue((float)gameTime.TotalGameTime.TotalSeconds);
         }
 
         public void Draw(GameTime gameTime)
         {
-            float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
-
-            World.Update(Clock.DayDelta, deltaTime);
-
             string debugstring = $"Seed: {World.Seed}," +
                 $" Time: {Clock.Day:D2}:{Clock.Hour:D2}:{Clock.Minute:D2}," +
                 $" FPS: {parent.FPS.FPS}, ms/f: {parent.FPS.SPF}";
