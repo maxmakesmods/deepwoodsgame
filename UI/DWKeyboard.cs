@@ -1,4 +1,5 @@
 ﻿using DeepWoods.Game;
+using DeepWoods.Main;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using System;
@@ -9,7 +10,7 @@ namespace DeepWoods.UI
     {
         public static KeyboardState GetState(PlayerIndex playerIndex)
         {
-            if (OperatingSystem.IsWindows() && GameState.IsMultiplayerGame)
+            if (OperatingSystem.IsWindows() && DeepWoodsMain.Instance.IsLocalCoop)
             {
                 return RawInput.GetKeyboardState(playerIndex);
             }

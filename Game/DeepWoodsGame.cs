@@ -16,7 +16,8 @@ namespace DeepWoods.Game
     public class DeepWoodsGame
     {
         private readonly DeepWoodsMain parent;
-        private readonly Random rng = new();
+
+        public SaveLoadHelper.SaveData SaveData { get; private set; }
 
         public GameRenderer Renderer { get; private set; }
         public GameWorld World { get; private set; }
@@ -27,33 +28,38 @@ namespace DeepWoods.Game
         private bool wasESCPressed = false;
         public bool isGamePaused = false;
 
-        public DeepWoodsGame(DeepWoodsMain parent, SaveLoadHelper.SaveData saveData)
+        public DeepWoodsGame(DeepWoodsMain parent)
         {
             this.parent = parent;
-            rng = new(saveData.Seed);
-
             Clock = new InGameClock();
             PlayerManager = new PlayerManager(this);
             DialogueManager = new DialogueManager();
             Renderer = new GameRenderer(this);
 
-            int worldSeed = rng.Next();
-            //int worldSeed = 382081431;
-            World = new GameWorld(this, worldSeed, saveData.GridSize, saveData.GridSize);
-
 
             Clock.TimeScale = 60;
             Clock.SetTime(1, 10, 0);
 
-            PlayerManager.SpawnLocalPlayer();
-
 
             // TODO
-            GameState.IsMultiplayerGame = true;
+        }
+
+        public void StartGame(SaveLoadHelper.SaveData saveData)
+        {
+            SaveData = saveData;
+            int worldSeed = saveData.Seed;
+            //int worldSeed = 382081431;
+            World = new GameWorld(this, worldSeed, saveData.GridSize, saveData.GridSize);
+            PlayerManager.SpawnLocalPlayer();
         }
 
         public void Update(GameTime gameTime)
         {
+            if (World == null)
+            {
+                return;
+            }
+
             if (Keyboard.GetState().IsKeyDown(Keys.Escape))
             {
                 if (!wasESCPressed)
@@ -93,6 +99,11 @@ namespace DeepWoods.Game
 
         public void Draw(GameTime gameTime)
         {
+            if (World == null)
+            {
+                return;
+            }
+
             string debugstring = $"Seed: {World.Seed}," +
                 $" Time: {Clock.Day:D2}:{Clock.Hour:D2}:{Clock.Minute:D2}," +
                 $" FPS: {parent.FPS.FPS}, ms/f: {parent.FPS.SPF}";

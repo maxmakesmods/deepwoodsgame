@@ -1,6 +1,5 @@
 ﻿
 using DeepWoods.Game;
-using DeepWoods.Graphics;
 using DeepWoods.Helpers;
 using DeepWoods.Loaders;
 using DeepWoods.Network;
@@ -8,7 +7,6 @@ using DeepWoods.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using static DeepWoods.Helpers.SaveLoadHelper;
 
 namespace DeepWoods.Main
 {
@@ -22,7 +20,8 @@ namespace DeepWoods.Main
 
         public NetworkManager NetworkManager { get; private set; }
 
-        private DeepWoodsGame game;
+        public DeepWoodsGame Game { get; private set; }
+        public bool IsLocalCoop => (Game?.PlayerManager?.LocalPlayers?.Count ?? 0) > 1;
 
         private SpriteBatch spriteBatch;
 
@@ -84,9 +83,16 @@ namespace DeepWoods.Main
                         NumPlayers = 3,
                         Seed = rng.Next()
                     };
-                    game = new DeepWoodsGame(this, saveData);
-                    NetworkManager = new(game, new LANNetwork());
-                    NetworkManager.StartHost();
+                    Game = new DeepWoodsGame(this);
+                    Game.StartGame(saveData);
+                    NetworkManager = NetworkManager.StartHost(new LANNetwork());
+                }
+                if (joinButton.IsClicked(mouse))
+                {
+                    Game = new DeepWoodsGame(this);
+                    // TODO: get host string from UI
+                    string host = "127.0.0.1";
+                    NetworkManager = NetworkManager.StartClient(new LANNetwork(), host);
                 }
                 if (newButton.IsClicked(mouse))
                 {
@@ -96,31 +102,35 @@ namespace DeepWoods.Main
                         NumPlayers = 3,
                         Seed = rng.Next()
                     };
-                    game = new DeepWoodsGame(this, saveData);
+                    Game = new DeepWoodsGame(this);
+                    Game.StartGame(saveData);
                 }
                 if (loadButton.IsClicked(mouse))
                 {
                     saveData = SaveLoadHelper.Instance.Load("test");
-                    game = new DeepWoodsGame(this, saveData);
+                    Game = new DeepWoodsGame(this);
+                    Game.StartGame(saveData);
                 }
                 if (saveButton.IsClicked(mouse))
                 {
                     SaveLoadHelper.Instance.Save("test", saveData);
                 }
-                if (game != null)
+                if (Game != null)
                 {
                     if (addLocalPlayerButton.IsClicked(mouse))
                     {
-                        game.PlayerManager.SpawnLocalPlayer();
+                        Game.PlayerManager.SpawnLocalPlayer();
                     }
                     if (addRemotePlayerButton.IsClicked(mouse))
                     {
-                        game.PlayerManager.SpawnRemotePlayer();
+                        Game.PlayerManager.SpawnRemotePlayer();
                     }
                 }
             }
 
-            game?.Update(gameTime);
+            Game?.Update(gameTime);
+
+            NetworkManager?.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
 
             base.Update(gameTime);
         }
@@ -137,12 +147,9 @@ namespace DeepWoods.Main
         {
             GraphicsDevice.Clear(Color.Black);
 
-            if (game != null)
-            {
-                game.Draw(gameTime);
-            }
+            Game?.Draw(gameTime);
 
-            if (game == null || game.isGamePaused)
+            if (Game == null || Game.isGamePaused)
             {
                 spriteBatch.Begin();
                 newButton.Draw(spriteBatch);

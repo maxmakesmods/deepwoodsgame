@@ -1,4 +1,5 @@
 ﻿using DeepWoods.Game;
+using DeepWoods.Main;
 using DeepWoods.Players;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -10,7 +11,7 @@ namespace DeepWoods.UI
     {
         public static MouseState GetState(LocalPlayer player)
         {
-            if (OperatingSystem.IsWindows() && GameState.IsMultiplayerGame)
+            if (OperatingSystem.IsWindows() && DeepWoodsMain.Instance.IsLocalCoop)
             {
                 return RawInput.GetMouseState(player.PlayerIndex, player.PlayerViewport);
             }

@@ -5,6 +5,7 @@ using LiteNetLib.Utils;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 
@@ -114,7 +115,8 @@ namespace DeepWoods.Network
 
         public void OnConnectionRequest(ConnectionRequest request)
         {
-            if (accepter.Invoke(request.Data.RawData, request.Data.RawDataSize, out PlayerId playerId))
+            Debug.WriteLine("OnConnectionRequest");
+            if (accepter.Invoke(request.Data.RawData, request.Data.UserDataOffset, request.Data.UserDataSize, out PlayerId playerId))
             {
                 var peer = request.Accept();
                 playerToPeer.Add(playerId, peer);
@@ -129,9 +131,10 @@ namespace DeepWoods.Network
 
         public void OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channelNumber, DeliveryMethod deliveryMethod)
         {
+            Debug.WriteLine("OnNetworkReceive");
             if (peerToPlayer.TryGetValue(peer, out PlayerId playerId))
             {
-                receiver.Invoke(playerId, reader.RawData, reader.RawDataSize);
+                receiver.Invoke(playerId, reader.RawData, reader.UserDataOffset, reader.UserDataSize);
             }
             else
             {
@@ -141,6 +144,7 @@ namespace DeepWoods.Network
 
         public void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectInfo)
         {
+            Debug.WriteLine("OnPeerDisconnected");
             if (peerToPlayer.TryGetValue(peer, out PlayerId playerId))
             {
                 disconnectedHandler.Invoke(playerId);
@@ -153,21 +157,28 @@ namespace DeepWoods.Network
 
         public void OnPeerConnected(NetPeer peer)
         {
-            // TODO: Do we need this?
+            Debug.WriteLine("OnPeerConnected");
+            if (peerToPlayer.TryGetValue(peer, out PlayerId playerId))
+            {
+                connectedHandler.Invoke(playerId);
+            }
         }
 
         public void OnNetworkLatencyUpdate(NetPeer peer, int latency)
         {
+            Debug.WriteLine("OnNetworkLatencyUpdate");
             // TODO: Do we need this?
         }
 
         public void OnNetworkError(IPEndPoint endPoint, SocketError socketError)
         {
+            Debug.WriteLine("OnNetworkError");
             // TODO: Do we need this?
         }
 
         public void OnNetworkReceiveUnconnected(IPEndPoint remoteEndPoint, NetPacketReader reader, UnconnectedMessageType messageType)
         {
+            Debug.WriteLine("OnNetworkReceiveUnconnected");
             // TODO: Do we need this?
         }
 
