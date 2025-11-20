@@ -5,8 +5,8 @@ namespace DeepWoods.Players
 {
     public class RemotePlayer : Player
     {
-        public RemotePlayer(DeepWoodsGame game, Vector2 startPos)
-            : base(game, startPos)
+        public RemotePlayer(DeepWoodsGame game, PlayerId id, Vector2 startPos)
+            : base(game, id, startPos)
         {
 
         }

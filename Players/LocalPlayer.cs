@@ -25,8 +25,8 @@ namespace DeepWoods.Players
         public PlayerIndex PlayerIndex { get; private set; }
         public Rectangle PlayerViewport { get; private set; }
 
-        public LocalPlayer(DeepWoodsGame game, PlayerIndex playerIndex, Vector2 startPos)
-            :base(game, startPos)
+        public LocalPlayer(DeepWoodsGame game, PlayerIndex playerIndex, PlayerId id, Vector2 startPos)
+            :base(game, id, startPos)
         {
             PlayerIndex = playerIndex;
             myCamera = new Camera(DWMouse.GetState(this));

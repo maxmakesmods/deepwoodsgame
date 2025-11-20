@@ -2,12 +2,12 @@
 using DeepWoods.Players;
 using LiteNetLib;
 using LiteNetLib.Utils;
-using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection.PortableExecutable;
 
 namespace DeepWoods.Network
 {
@@ -25,17 +25,29 @@ namespace DeepWoods.Network
 
         private Dictionary<PlayerId, NetPeer> playerToPeer = new();
 
+        private NetworkMode mode = NetworkMode.None;
+
+        public override NetworkMode Mode => mode;
+
         public override bool StartHost()
         {
             Disconnect();
-            manager = new NetManager(this);
+            mode = NetworkMode.Host;
+            manager = new NetManager(this)
+            {
+                DisconnectTimeout = int.MaxValue
+            };
             return manager.Start(10000);
         }
 
         public override bool StartClient(string host, byte[] data, int dataSize)
         {
             Disconnect();
-            manager = new NetManager(this);
+            mode = NetworkMode.Client;
+            manager = new NetManager(this)
+            {
+                DisconnectTimeout = int.MaxValue
+            };
             manager.Start();
             var peer = manager.Connect(host, 10000, NetDataWriter.FromBytes(data, 0, dataSize));
             return peer != null;
@@ -43,6 +55,7 @@ namespace DeepWoods.Network
 
         public override bool Disconnect()
         {
+            mode = NetworkMode.None;
             manager?.Stop();
             manager = null;
             peers.Clear();
@@ -51,7 +64,7 @@ namespace DeepWoods.Network
             return true;
         }
 
-        public override void Update(float deltaTime)
+        public override void Update()
         {
             manager?.PollEvents();
         }
@@ -81,11 +94,17 @@ namespace DeepWoods.Network
         {
             if (IsConnected)
             {
+                if (this.mode == NetworkMode.Client)
+                {
+                    manager.FirstPeer.Send(data, 0, dataSize, ModeToMethod(mode));
+                    return true;
+                }
+
                 if (playerToPeer.TryGetValue(recipient, out NetPeer peer))
                 {
                     peer.Send(data, 0, dataSize, ModeToMethod(mode));
+                    return true;
                 }
-                return true;
             }
             return false;
         }
@@ -116,6 +135,12 @@ namespace DeepWoods.Network
         public void OnConnectionRequest(ConnectionRequest request)
         {
             Debug.WriteLine("OnConnectionRequest");
+            if (mode != NetworkMode.Host)
+            {
+                request.Reject();
+                return;
+            }
+
             if (accepter.Invoke(request.Data.RawData, request.Data.UserDataOffset, request.Data.UserDataSize, out PlayerId playerId))
             {
                 var peer = request.Accept();
@@ -132,6 +157,13 @@ namespace DeepWoods.Network
         public void OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channelNumber, DeliveryMethod deliveryMethod)
         {
             Debug.WriteLine("OnNetworkReceive");
+
+            if (mode == NetworkMode.Client)
+            {
+                receiver.Invoke(PlayerId.HostId, reader.RawData, reader.UserDataOffset, reader.UserDataSize);
+                return;
+            }
+
             if (peerToPlayer.TryGetValue(peer, out PlayerId playerId))
             {
                 receiver.Invoke(playerId, reader.RawData, reader.UserDataOffset, reader.UserDataSize);
@@ -139,6 +171,7 @@ namespace DeepWoods.Network
             else
             {
                 // TODO Handle unknown peer error
+                Debug.WriteLine("unknown peer!");
             }
         }
 

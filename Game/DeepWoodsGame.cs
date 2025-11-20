@@ -50,7 +50,6 @@ namespace DeepWoods.Game
             int worldSeed = saveData.Seed;
             //int worldSeed = 382081431;
             World = new GameWorld(this, worldSeed, saveData.GridSize, saveData.GridSize);
-            PlayerManager.SpawnLocalPlayer();
         }
 
         public void Update(GameTime gameTime)

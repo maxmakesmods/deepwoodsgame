@@ -2,8 +2,20 @@
 
 namespace DeepWoods.Players
 {
-    public struct PlayerId
+    public readonly struct PlayerId
     {
-        public Guid id;
+        public static readonly PlayerId HostId = new(Guid.Empty);
+
+        public readonly Guid id;
+
+        public PlayerId()
+        {
+            id = Guid.NewGuid();
+        }
+
+        public PlayerId(Guid id)
+        {
+            this.id = id;
+        }
     }
 }

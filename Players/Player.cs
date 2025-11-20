@@ -59,10 +59,11 @@ namespace DeepWoods.Players
         protected readonly DeepWoodsGame game;
         protected readonly Inventory inventory;
 
-        public PlayerId ID { get; set; }
+        public PlayerId ID { get; private set; }
 
-        public Player(DeepWoodsGame game, Vector2 startPos)
+        public Player(DeepWoodsGame game, PlayerId id, Vector2 startPos)
         {
+            ID = id;
             this.game = game;
             CalculateLookDir(Vector2.Zero);
             SetPosition(startPos);

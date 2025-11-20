@@ -17,7 +17,6 @@ namespace DeepWoods.Helpers
             try
             {
                 string json = JsonSerializer.Serialize(o, Options);
-                Debug.WriteLine($"ToBytes.json: {json}");
                 return Encoding.UTF8.GetBytes(json);
             }
             catch (System.Exception e)
@@ -33,7 +32,6 @@ namespace DeepWoods.Helpers
             try
             {
                 string json = Encoding.UTF8.GetString(data, dataOffset, dataSize);
-                Debug.WriteLine($"FromBytes.json: {json}");
                 T result = JsonSerializer.Deserialize<T>(json, Options);
                 return result;
             }

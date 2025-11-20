@@ -5,6 +5,13 @@ namespace DeepWoods.Network
 {
     public abstract class NetworkInterface
     {
+        public enum NetworkMode
+        {
+            None,
+            Client,
+            Host
+        }
+
         public delegate bool AcceptPlayer(byte[] data, int dataOffset, int dataSize, out PlayerId playerId);
         public delegate bool ReceiveMessage(PlayerId sender, byte[] data, int dataOffset, int dataSize);
         public delegate bool PlayerConnected(PlayerId playerId);
@@ -29,8 +36,11 @@ namespace DeepWoods.Network
         public abstract bool SendMessage(PlayerId recipient, byte[] data, int dataSize, MessageMode mode);
         public abstract bool SendMessageToAll(byte[] data, int dataSize, MessageMode mode);
         public abstract void SwitchPlayers(PlayerId id1, PlayerId id2);
-        public abstract void Update(float deltaTime);
+        public abstract void Update();
 
         public abstract bool IsConnected { get; }
+
+        public abstract NetworkMode Mode { get; }
+
     }
 }

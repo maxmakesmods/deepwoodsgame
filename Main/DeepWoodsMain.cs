@@ -85,6 +85,7 @@ namespace DeepWoods.Main
                     };
                     Game = new DeepWoodsGame(this);
                     Game.StartGame(saveData);
+                    Game.PlayerManager.SpawnLocalPlayer();
                     NetworkManager = NetworkManager.StartHost(new LANNetwork());
                 }
                 if (joinButton.IsClicked(mouse))
@@ -104,12 +105,14 @@ namespace DeepWoods.Main
                     };
                     Game = new DeepWoodsGame(this);
                     Game.StartGame(saveData);
+                    Game.PlayerManager.SpawnLocalPlayer();
                 }
                 if (loadButton.IsClicked(mouse))
                 {
                     saveData = SaveLoadHelper.Instance.Load("test");
                     Game = new DeepWoodsGame(this);
                     Game.StartGame(saveData);
+                    Game.PlayerManager.SpawnLocalPlayer();
                 }
                 if (saveButton.IsClicked(mouse))
                 {
@@ -130,7 +133,7 @@ namespace DeepWoods.Main
 
             Game?.Update(gameTime);
 
-            NetworkManager?.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
+            NetworkManager?.Update();
 
             base.Update(gameTime);
         }
