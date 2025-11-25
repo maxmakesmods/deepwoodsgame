@@ -3,6 +3,7 @@ using DeepWoods.Game;
 using DeepWoods.Helpers;
 using DeepWoods.Loaders;
 using DeepWoods.Network;
+using DeepWoods.Network.LAN;
 using DeepWoods.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;

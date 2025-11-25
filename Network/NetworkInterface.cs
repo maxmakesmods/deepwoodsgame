@@ -30,8 +30,8 @@ namespace DeepWoods.Network
             this.disconnectedHandler = disconnectedHandler;
         }
 
-        public abstract bool StartHost();
-        public abstract bool StartClient(string host, byte[] data, int dataSize);
+        public abstract bool StartHost(string encryptionKey);
+        public abstract bool StartClient(string host, byte[] data, int dataSize, string encryptionKey);
         public abstract bool Disconnect();
         public abstract bool SendMessage(PlayerId recipient, byte[] data, int dataSize, MessageMode mode);
         public abstract bool SendMessageToAll(byte[] data, int dataSize, MessageMode mode);

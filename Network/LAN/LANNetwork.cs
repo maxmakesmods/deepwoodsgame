@@ -1,5 +1,4 @@
-﻿
-using DeepWoods.Players;
+﻿using DeepWoods.Players;
 using LiteNetLib;
 using LiteNetLib.Utils;
 using System;
@@ -7,9 +6,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
-using System.Reflection.PortableExecutable;
 
-namespace DeepWoods.Network
+namespace DeepWoods.Network.LAN
 {
     internal class LANNetwork : NetworkInterface, INetEventListener
     {
@@ -29,22 +27,22 @@ namespace DeepWoods.Network
 
         public override NetworkMode Mode => mode;
 
-        public override bool StartHost()
+        public override bool StartHost(string encryptionKey)
         {
             Disconnect();
             mode = NetworkMode.Host;
-            manager = new NetManager(this)
+            manager = new NetManager(this, new DeepWoodsPacketLayer(encryptionKey))
             {
                 DisconnectTimeout = int.MaxValue
             };
             return manager.Start(10000);
         }
 
-        public override bool StartClient(string host, byte[] data, int dataSize)
+        public override bool StartClient(string host, byte[] data, int dataSize, string encryptionKey)
         {
             Disconnect();
             mode = NetworkMode.Client;
-            manager = new NetManager(this)
+            manager = new NetManager(this, new DeepWoodsPacketLayer(encryptionKey))
             {
                 DisconnectTimeout = int.MaxValue
             };

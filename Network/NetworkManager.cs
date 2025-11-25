@@ -32,7 +32,7 @@ namespace DeepWoods.Network
             stopwatch = new Stopwatch();
             stopwatch.Start();
             network.Init(ReceiveMessage, AcceptPlayer, PlayerConnected, PlayerDisconnected);
-            bool result = network.StartHost();
+            bool result = network.StartHost(InviteCode);
             Debug.WriteLine($"NetworkManager.StartHost(): {result}");
         }
 
@@ -50,7 +50,7 @@ namespace DeepWoods.Network
                 PlayerId = 0
             };
             byte[] data = payload.ToBytes();
-            bool result = network.StartClient(host, data, data.Length);
+            bool result = network.StartClient(host, data, data.Length, InviteCode);
             Debug.WriteLine($"NetworkManager.StartClient(): {result}");
         }
 
