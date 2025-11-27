@@ -3,6 +3,8 @@
     public enum GroundType
     {
         Void,
+
+        // overground
         Grass,
         ForestFloor,
         Moss,
@@ -19,20 +21,23 @@
         IcyForestFloor,
         Meadow,
         CloverField,
-        Mud,
-        Placeholder18,
-        Placeholder19,
-        Placeholder20,
-        Placeholder21,
-        Placeholder22,
-        Placeholder23,
-        Placeholder24,
-        Placeholder25,
-        Placeholder26,
-        Placeholder27,
-        Placeholder28,
-        Placeholder29,
-        Placeholder30,
+
+        // underground
+        UndergroundMud,
+        UndergroundRoots,
+        UndergroundSandstone,
+        UndergroundSandstoneRocks,
+        UndergroundSwamp1,
+        UndergroundSwamp2,
+        UndergroundObsidian,
+        UndergroundLava,
+        UndergroundLakeFloor,
+        UndergroundLakeRocks,
+        UndergroundIcyFloor,
+        UndergroundIcyRocks,
+        UndergroundCrystalFloor,
+        UndergroundCrystalRocks,
+
         Placeholder31,
         Placeholder32,
     }

@@ -37,7 +37,7 @@ namespace DeepWoods.Game
             Renderer = new GameRenderer(this);
 
 
-            Clock.TimeScale = 60;
+            Clock.TimeScale = 00;
             Clock.SetTime(1, 10, 0);
 
 
@@ -80,7 +80,10 @@ namespace DeepWoods.Game
             if (parent.IsActive && !isGamePaused)
             {
                 parent.IsMouseVisible = false;
-                Mouse.SetPosition(parent.Window.ClientBounds.Width / 2, parent.Window.ClientBounds.Height / 2);
+                if (OperatingSystem.IsWindows() && DeepWoodsMain.Instance.IsLocalCoop)
+                {
+                    Mouse.SetPosition(parent.Window.ClientBounds.Width / 2, parent.Window.ClientBounds.Height / 2);
+                }
             }
             else
             {

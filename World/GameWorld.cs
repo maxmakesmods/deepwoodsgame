@@ -80,14 +80,20 @@ namespace DeepWoods.World
         private static List<BiomePair> TemporaryGetHardcodedBiomes()
         {
             return [
-                new BiomePair(new TemperateForestBiome(), new GenericBiome(GroundType.Sand, GroundType.Mud)),
-                new BiomePair(new GenericBiome(1) { Trees = ["tree3", "tree4"] }, new GenericBiome(GroundType.Sand, GroundType.Mud)),
-                new BiomePair(new GenericBiome(2) { Trees = ["swamp_tree1", "swamp_tree2"] }, new GenericBiome(GroundType.Sand, GroundType.Mud)),
-                new BiomePair(new GenericBiome(3) { Trees = ["volcanic_tree1", "volcanic_tree2"] }, new GenericBiome(GroundType.Sand, GroundType.Mud)),
-                new BiomePair(new GenericBiome(4) { Trees = ["lake_tree1", "lake_tree2"] }, new GenericBiome(GroundType.Sand, GroundType.Mud)),
-                //new BiomePair(new GenericBiome(5) { Trees = ["lakeunderwater_tree1", "lakeunderwater_tree2"] }, new GenericBiome(GroundType.Sand, GroundType.Mud)),
-                new BiomePair(new GenericBiome(6) { Trees = ["borealforest_tree1", "borealforest_tree2"] }, new GenericBiome(GroundType.Sand, GroundType.Mud)),
-                new BiomePair(new GenericBiome(7) { Trees = ["magic_tree1", "magic_tree2", "magic_tree1_color2", "magic_tree2_color2"] }, new GenericBiome(GroundType.Sand, GroundType.Mud)),
+                new BiomePair(new TemperateForestBiome(), new GenericBiome(8) { Trees = ["temperate_deciduous_underground_tree1", "temperate_deciduous_underground_tree2"] }),
+                new BiomePair(new GenericBiome(1) { Trees = ["tree3", "tree4"] }, new GenericBiome(9) { Trees = ["temperate_conifers_underground_tree1", "temperate_conifers_underground_tree2"] }),
+                new BiomePair(new GenericBiome(2) { Trees = ["swamp_tree1", "swamp_tree2"] }, new GenericBiome(10) { Trees = ["swamp_underground_tree1", "swamp_underground_tree2"] }),
+                new BiomePair(new GenericBiome(3) { Trees = ["volcanic_tree1", "volcanic_tree2"] }, new GenericBiome(11) { Trees = ["volcanic_underground_tree1", "volcanic_underground_tree2"] }),
+                new BiomePair(new GenericBiome(4) { Trees = ["lake_tree1", "lake_tree2"] }, new GenericBiome(12) { Trees = ["lake_underground_tree1", "lake_underground_tree2"] }),
+                //new BiomePair(new GenericBiome(5) { Trees = ["lakeunderwater_tree1", "lakeunderwater_tree2"] }, new GenericBiome(12) { Trees = ["tree3", "tree4"] }),
+                new BiomePair(new GenericBiome(6) { Trees = ["borealforest_tree1", "borealforest_tree2"] }, new GenericBiome(13) { Trees = ["boreal_underground_tree1", "boreal_underground_tree2"] }),
+                new BiomePair(new GenericBiome(7) { Trees = ["magic_tree1", "magic_tree2", "magic_tree1_color2", "magic_tree2_color2"] },
+                
+                //new GenericBiome(14) { Trees = ["magic_underground_tree1", "magic_underground_tree2"] }
+                new GenericBiome(GroundType.UndergroundSwamp1, GroundType.UndergroundCrystalFloor) { Trees = ["magic_underground_tree1", "magic_underground_tree2"] }
+                
+                
+                ),
             ];
         }
 
