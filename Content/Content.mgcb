@@ -112,6 +112,18 @@
 /processorParam:TextureFormat=Color
 /build:textures/bluenoise_rgba.png
 
+#begin textures/dudvmap.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:textures/dudvmap.png
+
 #begin textures/groundtiles_glow.png
 /importer:TextureImporter
 /processor:TextureProcessor

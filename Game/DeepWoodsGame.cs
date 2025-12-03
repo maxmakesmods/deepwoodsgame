@@ -97,6 +97,7 @@ namespace DeepWoods.Game
             Clock.Update(deltaTime);
 
             EffectLoader.SpriteEffect.Parameters["GlobalTime"].SetValue((float)gameTime.TotalGameTime.TotalSeconds);
+            EffectLoader.GroundEffect.Parameters["GlobalTime"].SetValue((float)gameTime.TotalGameTime.TotalSeconds);
         }
 
         public void Draw(GameTime gameTime)

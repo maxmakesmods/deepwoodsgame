@@ -330,6 +330,7 @@ namespace DeepWoods.World
             EffectLoader.GroundEffect.Parameters["BlueNoiseTextureSize"].SetValue(new Vector2(TextureLoader.BluenoiseTexture.Width, TextureLoader.BluenoiseTexture.Height));
             EffectLoader.GroundEffect.Parameters["BlurHalfSize"].SetValue(DitherSize);
             EffectLoader.GroundEffect.Parameters["TerrainGridTexture"].SetValue(terrainGridTexture);
+            EffectLoader.GroundEffect.Parameters["DUDVTexture"].SetValue(TextureLoader.DUDVTexture);
         }
 
         private bool IsInsideGrid(int x, int y)

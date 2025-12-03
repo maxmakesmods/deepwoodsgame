@@ -90,7 +90,7 @@ namespace DeepWoods.World
                 new BiomePair(new GenericBiome(7) { Trees = ["magic_tree1", "magic_tree2", "magic_tree1_color2", "magic_tree2_color2"] },
                 
                 //new GenericBiome(14) { Trees = ["magic_underground_tree1", "magic_underground_tree2"] }
-                new GenericBiome(GroundType.UndergroundSwamp1, GroundType.UndergroundCrystalFloor) { Trees = ["magic_underground_tree1", "magic_underground_tree2"] }
+                new GenericBiome(GroundType.UndergroundCrystalFloor, GroundType.UndergroundCrystalFloor) { Trees = ["magic_underground_tree1", "magic_underground_tree2"] }
                 
                 
                 ),

@@ -13,6 +13,7 @@ namespace DeepWoods.Loaders
         public static Texture2D GroundTilesTexture { get; private set; }
         public static Texture2D GroundTilesGlowMap { get; private set; }
         public static Texture2D BluenoiseTexture { get; private set; }
+        public static Texture2D DUDVTexture { get; private set; }
         public static Texture2D ObjectsTexture { get; private set; }
         public static Texture2D ObjectsGlowMap { get; private set; }
         public static Texture2D MouseCursor { get; private set; }
@@ -25,6 +26,7 @@ namespace DeepWoods.Loaders
             GroundTilesTexture = content.Load<Texture2D>("textures/groundtiles");
             GroundTilesGlowMap = content.Load<Texture2D>("textures/groundtiles_glow");
             BluenoiseTexture = content.Load<Texture2D>("textures/bluenoise_rgba");
+            DUDVTexture = content.Load<Texture2D>("textures/dudvmap");
             ObjectsTexture = content.Load<Texture2D>("objects/objects_tileset");
             ObjectsGlowMap = content.Load<Texture2D>("objects/objects_glowmap");
             MouseCursor = content.Load<Texture2D>("icons/cursor");

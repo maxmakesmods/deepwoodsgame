@@ -7,24 +7,17 @@
 	#define PS_SHADERMODEL ps_4_0_level_9_1
 #endif
 
-matrix ViewProjection;
+#include "common.fxh"
+#include "common_lightsAndShadows.fxh"
+#include "common_BlueNoise.fxh"
+#include "common_Animations.fxh"
 
-float3 AmbientLightColor;
-float4 Lights[8];
-float2 LightPositions[8];
-int NumLights;
+matrix ViewProjection;
 
 int IsShadow;
 float ShadowSkew;
-float ShadowStrength;
 
 float2 ObjectTextureSize;
-float CellSize;
-
-float4 ShadowMapBounds;
-float2 ShadowMapTileSize;
-
-float GlobalTime;
 
 sampler2D SpriteTextureSampler = sampler_state
 {
@@ -39,16 +32,6 @@ sampler2D SpriteTextureSampler = sampler_state
 sampler2D GlowMapSampler = sampler_state
 {
     Texture = <GlowMap>;
-    MinFilter = POINT;
-    MagFilter = POINT;
-    MipFilter = POINT;
-    AddressU = CLAMP;
-    AddressV = CLAMP;
-};
-
-sampler2D ShadowMapSampler = sampler_state
-{
-    Texture = <ShadowMap>;
     MinFilter = POINT;
     MagFilter = POINT;
     MipFilter = POINT;
@@ -110,12 +93,7 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
         world = mul(rotation, translation);
     }
 
-    int animFrame = 0;
-    if (input.AnimationData.x > 0)
-    {
-        animFrame = int(fmod(input.AnimationData.z * GlobalTime, max(input.AnimationData.x, 1)));
-    }
-    float animY = input.TexRect.y + animFrame * input.AnimationData.y;
+    float animY = getAnimationY(input.AnimationData, input.TexRect);
 
     float tex_x = input.TexRect.x / ObjectTextureSize.x;
     float tex_y = animY / ObjectTextureSize.y;
@@ -157,53 +135,6 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
 	return output;
 }
 
-float calcDistSqrd(float2 p1, float2 p2)
-{
-    return (p2.x - p1.x) * (p2.x - p1.x) + (p2.y - p1.y) * (p2.y - p1.y);
-}
-
-float3 applyLights(float2 pos, float3 color, float glow)
-{
-    float3 light = AmbientLightColor;
-
-    for (int i = 0; i < NumLights; i++)
-    {
-        float distSqrd = calcDistSqrd(pos, LightPositions[i]);
-        float maxDistSqrd = Lights[i].a * Lights[i].a;
-        float strength = clamp(1.0 - distSqrd / maxDistSqrd, 0.0, 1.0);
-        light += Lights[i].rgb * strength;
-    }
-    
-    return glow * color + (1.0 - glow) * color * light;
-}
-
-float3 applyShadows(float2 pos, float rowIndex, float3 color, float glow)
-{
-    pos.x = pos.x + ShadowSkew * (pos.y - rowIndex);
-
-    if (pos.x < ShadowMapBounds.x || pos.x > ShadowMapBounds.z
-        || pos.y < ShadowMapBounds.y || pos.y > ShadowMapBounds.w)
-    {
-        return color;
-    }
-
-    float2 shadowMapUV = (pos - ShadowMapBounds.xy) / ShadowMapTileSize;
-    float shadow = tex2D(ShadowMapSampler, float2(shadowMapUV.x, 1.0 - shadowMapUV.y)).r;
-
-    if (!shadow)
-    {
-        return color;
-    }
-    
-    float shadowRowIndex = shadow - 1.0;
-    if (rowIndex < shadowRowIndex + 0.01)
-    {
-        return color;
-    }
-
-    return color * (1.0 - ShadowStrength * (1.0 - glow));
-}
-
 float4 MainPS(VertexShaderOutput input) : COLOR
 {
     clip(-input.IsHidden);
@@ -220,7 +151,7 @@ float4 MainPS(VertexShaderOutput input) : COLOR
         float glow = tex2D(GlowMapSampler, input.TexCoord).r * input.IsGlowing;
         
         float3 litColor = applyLights(input.WorldPos, color.rgb, glow);
-        float3 shadowedLitColor = applyShadows(input.WorldPos, input.RowIndex, litColor, glow);
+        float3 shadowedLitColor = applyShadows(input.WorldPos, litColor, glow, input.RowIndex, ShadowSkew);
         return float4(shadowedLitColor * (1.0 + glow * 0.5), color.a);
     }
 }

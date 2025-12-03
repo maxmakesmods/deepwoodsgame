@@ -7,31 +7,14 @@
 	#define PS_SHADERMODEL ps_4_0_level_9_1
 #endif
 
+#include "common.fxh"
+#include "common_lightsAndShadows.fxh"
+#include "common_BlueNoise.fxh"
+#include "common_Animations.fxh"
+
 matrix WorldViewProjection;
-
-float2 GridSize;
-float CellSize;
 float2 GroundTilesTextureSize;
-
-float2 BlueNoiseTextureSize;
-int BlueNoiseDitherChannel;
-float2 BlueNoiseDitherOffset;
-int BlueNoiseVariantChannel;
-float2 BlueNoiseVariantOffset;
-int BlueNoiseSineXChannel;
-float2 BlueNoiseSineXOffset;
-int BlueNoiseSineYChannel;
-float2 BlueNoiseSineYOffset;
 int BlurHalfSize;
-
-float3 AmbientLightColor;
-float4 Lights[8];
-float2 LightPositions[8];
-int NumLights;
-
-float4 ShadowMapBounds;
-float2 ShadowMapTileSize;
-float ShadowStrength;
 
 sampler2D GroundTilesTextureSampler = sampler_state
 {
@@ -56,26 +39,6 @@ sampler2D GlowMapSampler = sampler_state
 sampler2D TerrainGridTextureSampler = sampler_state
 {
     Texture = <TerrainGridTexture>;
-    MinFilter = POINT;
-    MagFilter = POINT;
-    MipFilter = POINT;
-    AddressU = CLAMP;
-    AddressV = CLAMP;
-};
-
-sampler2D BlueNoiseTextureSampler = sampler_state
-{
-    Texture = <BlueNoiseTexture>;
-    MinFilter = POINT;
-    MagFilter = POINT;
-    MipFilter = POINT;
-    AddressU = WRAP;
-    AddressV = WRAP;
-};
-
-sampler2D ShadowMapSampler = sampler_state
-{
-    Texture = <ShadowMap>;
     MinFilter = POINT;
     MagFilter = POINT;
     MipFilter = POINT;
@@ -108,13 +71,6 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
     output.WorldPos = input.Position.xy;
 
 	return output;
-}
-
-float getRandomFromBlueNoise(float2 uv, float2 offset, int channel)
-{
-    float2 bluenoiseUV = int2(uv * GridSize * CellSize) / BlueNoiseTextureSize;
-    float bluenoise = tex2D(BlueNoiseTextureSampler, bluenoiseUV + offset)[channel];
-    return frac(bluenoise);
 }
 
 int getGroundType(float2 uv)
@@ -156,45 +112,6 @@ float4 getGroundTypeColorAndGlow(float2 uv, int groundType)
     return float4(color, glow);
 }
 
-float calcDistSqrd(float2 p1, float2 p2)
-{
-    return (p2.x - p1.x) * (p2.x - p1.x) + (p2.y - p1.y) * (p2.y - p1.y);
-}
-
-float3 applyLights(float2 pos, float3 color, float glow)
-{
-    float3 light = AmbientLightColor;
-
-    for (int i = 0; i < NumLights; i++)
-    {
-        float distSqrd = calcDistSqrd(pos, LightPositions[i]);
-        float maxDistSqrd = Lights[i].a * Lights[i].a;
-        float strength = clamp(1.0 - distSqrd / maxDistSqrd, 0.0, 1.0);
-        light += Lights[i].rgb * strength;
-    }
-    
-    return glow * color + (1.0 - glow) * color * light;
-}
-
-float3 applyShadows(float2 pos, float3 color, float glow)
-{
-    if (pos.x < ShadowMapBounds.x || pos.x > ShadowMapBounds.z
-        || pos.y < ShadowMapBounds.y || pos.y > ShadowMapBounds.w)
-    {
-        return color;
-    }
-
-    float2 shadowMapUV = (pos - ShadowMapBounds.xy) / ShadowMapTileSize;
-    float shadow = tex2D(ShadowMapSampler, float2(shadowMapUV.x, 1.0 - shadowMapUV.y)).r;
-
-    if (!shadow)
-    {
-        return color;
-    }
-
-    return color * (1.0 - ShadowStrength * (1.0 - glow));
-}
-
 float4 MainPS(VertexShaderOutput input) : COLOR
 {
     float2 gridTexelSize = 1.0 / (GridSize * CellSize);
@@ -210,10 +127,11 @@ float4 MainPS(VertexShaderOutput input) : COLOR
     int groundType = getGroundType(input.Tex + float2(pixelX - BlurHalfSize, pixelY - BlurHalfSize) * gridTexelSize);
     clip(groundType);
 
-    float4 color_and_glow = getGroundTypeColorAndGlow(input.Tex, groundType);
-
+    float2 uv = animateWater(input.Tex, groundType);
+    float4 color_and_glow = getGroundTypeColorAndGlow(uv, groundType);
+    
     float3 litColor = applyLights(input.WorldPos, color_and_glow.rgb, color_and_glow.a);
-    float3 shadowedLitColor = applyShadows(input.WorldPos, litColor, color_and_glow.a);
+    float3 shadowedLitColor = applyShadows(input.WorldPos, litColor, color_and_glow.a, -1, 0);
 
     return float4(shadowedLitColor * (1.0 + color_and_glow.a * 0.5), 1.0);
 }
