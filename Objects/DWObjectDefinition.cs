@@ -1,4 +1,6 @@
 ﻿
+using System.Text.Json.Serialization;
+
 namespace DeepWoods.Objects
 {
     public class DWObjectDefinition
@@ -13,5 +15,7 @@ namespace DeepWoods.Objects
         public int AnimationFrames { get; set; } = 0;
         public int AnimationFrameOffset { get; set; } = 0;
         public int AnimationFPS { get; set; } = 0;
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public ShaderAnimation ShaderAnim { get; set; } = 0;
     }
 }

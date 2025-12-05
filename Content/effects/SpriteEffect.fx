@@ -17,8 +17,6 @@ matrix ViewProjection;
 int IsShadow;
 float ShadowSkew;
 
-float2 ObjectTextureSize;
-
 sampler2D SpriteTextureSampler = sampler_state
 {
     Texture = <SpriteTexture>;
@@ -49,7 +47,8 @@ struct VertexShaderInput
     float IsStanding : TEXCOORD3;
     float IsGlowing : TEXCOORD4;
     float3 AnimationData : TEXCOORD5;
-    float IsHidden : TEXCOORD6;
+    float ShaderAnim : TEXCOORD6;
+    float IsHidden : TEXCOORD7;
 };
 
 struct VertexShaderOutput
@@ -59,7 +58,9 @@ struct VertexShaderOutput
     float2 WorldPos : TEXCOORD1;
     float IsGlowing : TEXCOORD2;
     float RowIndex : TEXCOORD3;
-    float IsHidden : TEXCOORD4;
+    float ShaderAnim : TEXCOORD4;
+    float IsHidden : TEXCOORD5;
+    float4 UVBounds : TEXCOORD6;
 };
 
 VertexShaderOutput MainVS(in VertexShaderInput input)
@@ -94,7 +95,7 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
     }
 
     float animY = getAnimationY(input.AnimationData, input.TexRect);
-
+    
     float tex_x = input.TexRect.x / ObjectTextureSize.x;
     float tex_y = animY / ObjectTextureSize.y;
     float tex_width = input.TexRect.z / ObjectTextureSize.x;
@@ -128,18 +129,38 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
     output.WorldPos = mul(adjustedPos, world).xy;
     output.IsGlowing = input.IsGlowing;
     output.RowIndex = rowIndex;
+    output.ShaderAnim = input.ShaderAnim;
     output.IsHidden = input.IsHidden;
     
     output.Position = output.Position * (1.0 - input.IsHidden);
+    
+    output.UVBounds = float4(tex_x, tex_y, tex_x + tex_width, tex_y + tex_height);
 
 	return output;
+}
+
+float checkBounds(float2 uv, float4 uvBounds)
+{
+    if (uv.x < uvBounds.x || uv.x > uvBounds.z
+     || uv.y < uvBounds.y || uv.y > uvBounds.w)
+    {
+        return -1;
+    }
+    else
+    {
+        return 1;
+    }
 }
 
 float4 MainPS(VertexShaderOutput input) : COLOR
 {
     clip(-input.IsHidden);
-    
-    float4 color = tex2D(SpriteTextureSampler, input.TexCoord);
+
+    float2 uv = applyShaderAnimation(input.TexCoord, int(input.ShaderAnim + 0.5));
+
+    clip(checkBounds(uv, input.UVBounds));
+
+    float4 color = tex2D(SpriteTextureSampler, uv);
     clip(-step(color.a, 0.1));
     if (IsShadow)
     {
@@ -148,7 +169,7 @@ float4 MainPS(VertexShaderOutput input) : COLOR
     }
     else
     {
-        float glow = tex2D(GlowMapSampler, input.TexCoord).r * input.IsGlowing;
+        float glow = tex2D(GlowMapSampler, uv).r * input.IsGlowing;
         
         float3 litColor = applyLights(input.WorldPos, color.rgb, glow);
         float3 shadowedLitColor = applyShadows(input.WorldPos, litColor, glow, input.RowIndex, ShadowSkew);

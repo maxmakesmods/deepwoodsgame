@@ -59,9 +59,13 @@ namespace DeepWoods.Players
             if (keyboardState.IsKeyDown(Keys.A)) velocity.X -= WalkSpeed;
             if (keyboardState.IsKeyDown(Keys.D)) velocity.X += WalkSpeed;
             if (keyboardState.IsKeyDown(Keys.LeftShift)) velocity *= 2f;
-            // clip velocity against terrain
-            if (!noclip)
+            if (noclip)
             {
+                velocity *= 4f;
+            }
+            else
+            {
+                // clip velocity against terrain
                 velocity = ClipVelocity(game.World.GetTerrain(this), velocity, timeDelta);
             }
             return velocity;

@@ -22,6 +22,7 @@ namespace DeepWoods.Objects
             public float IsStanding;
             public float IsGlowing;
             public Vector3 AnimationData;
+            public float ShaderAnim;
             public float IsHidden;
 
             public static readonly VertexDeclaration vertexDeclaration = new(
@@ -30,7 +31,8 @@ namespace DeepWoods.Objects
                 new VertexElement(24, VertexElementFormat.Single, VertexElementUsage.TextureCoordinate, 3),
                 new VertexElement(28, VertexElementFormat.Single, VertexElementUsage.TextureCoordinate, 4),
                 new VertexElement(32, VertexElementFormat.Vector3, VertexElementUsage.TextureCoordinate, 5),
-                new VertexElement(44, VertexElementFormat.Single, VertexElementUsage.TextureCoordinate, 6)
+                new VertexElement(44, VertexElementFormat.Single, VertexElementUsage.TextureCoordinate, 6),
+                new VertexElement(48, VertexElementFormat.Single, VertexElementUsage.TextureCoordinate, 7)
             );
 
             public readonly VertexDeclaration VertexDeclaration => vertexDeclaration;
@@ -53,9 +55,10 @@ namespace DeepWoods.Objects
                 {
                     WorldPos = sprites[i].WorldPos,
                     TexRect = new(sprites[i].TexRect.X, sprites[i].TexRect.Y, sprites[i].TexRect.Width, sprites[i].TexRect.Height),
-                    IsStanding = sprites[i].IsStanding ? 1f : 0f,
-                    IsGlowing = sprites[i].IsGlowing ? 1f : 0f,
-                    AnimationData = new(sprites[i].AnimationFrames, sprites[i].AnimationFrameOffset, sprites[i].AnimationFPS),
+                    IsStanding = sprites[i].Def.Standing ? 1f : 0f,
+                    IsGlowing = sprites[i].Def.Glowing ? 1f : 0f,
+                    AnimationData = new(sprites[i].Def.AnimationFrames, sprites[i].Def.AnimationFrameOffset, sprites[i].Def.AnimationFPS),
+                    ShaderAnim = (int)sprites[i].Def.ShaderAnim,
                     IsHidden = 0f
                 };
             }

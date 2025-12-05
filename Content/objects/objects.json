@@ -221,7 +221,8 @@
     "width": 32,
     "height": 64,
     "standing": true,
-    "glowing": false
+    "glowing": false,
+    "shaderAnim": 1
   },
   {
     "name": "lake_underground_tree2",
@@ -230,7 +231,8 @@
     "width": 32,
     "height": 48,
     "standing": true,
-    "glowing": false
+    "glowing": false,
+    "shaderAnim": 1
   },
   {
     "name": "magic_tree1",

@@ -49,4 +49,19 @@ float2 animateWater(float2 uv, int groundType)
     return uv;
 }
 
+float2 applyShaderAnimation(float2 uv, int ShaderAnim)
+{
+    if (ShaderAnim == 1)
+    {
+        float yvalue = uv.y * ObjectTextureSize.y;// / CellSize;
+        float2 cellUVSize = 1 / ObjectTextureSize * CellSize;
+        float time = abs(frac((yvalue + GlobalTime) * 0.1) * 2 - 1) * 2 - 1;
+        
+        float xOffset = time * cellUVSize.x * 0.125;
+        uv.x = uv.x + xOffset;
+    }
+    
+    return uv;
+}
+
 #endif
