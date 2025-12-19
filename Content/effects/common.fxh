@@ -6,5 +6,6 @@ float2 GridSize;
 float CellSize;
 float GlobalTime;
 float2 ObjectTextureSize;
+float2 GroundTilesTextureSize;
 
 #endif

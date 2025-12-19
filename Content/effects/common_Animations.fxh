@@ -49,18 +49,57 @@ float2 animateWater(float2 uv, int groundType)
     return uv;
 }
 
-float2 applyShaderAnimation(float2 uv, int ShaderAnim)
+float4 applyVertexShaderAnimation(float4 vertexPos, float4 randvalues, int ShaderAnim)
 {
-    if (ShaderAnim == 1)
+    if (ShaderAnim == 2) // Movy
     {
-        float yvalue = uv.y * ObjectTextureSize.y;// / CellSize;
-        float2 cellUVSize = 1 / ObjectTextureSize * CellSize;
-        float time = abs(frac((yvalue + GlobalTime) * 0.1) * 2 - 1) * 2 - 1;
+        float totalTime = frac(GlobalTime / 8);
+        float time;
+        float rand;
         
-        float xOffset = time * cellUVSize.x * 0.125;
+        if (totalTime < 0.25)
+        {
+            time = 1.0 - abs((totalTime * 4) * 2 - 1);
+            rand = randvalues.x;
+        }
+        else if (totalTime < 0.5)
+        {
+            time = 1.0 - abs(((totalTime - 0.25) * 4) * 2 - 1);
+            rand = randvalues.y;
+        }
+        else if (totalTime < 0.75)
+        {
+            time = 1.0 - abs(((totalTime - 0.5) * 4) * 2 - 1);
+            rand = randvalues.z;
+        }
+        else
+        {
+            time = 1.0 - abs(((totalTime - 0.75) * 4) * 2 - 1);
+            rand = randvalues.w;
+        }
+        
+        vertexPos.x = vertexPos.x + time * cos(rand * 2 * 3.1415) * 0.02;
+        vertexPos.y = vertexPos.y + time * sin(rand * 2 * 3.1415) * 0.02;
+    }
+    return vertexPos;
+}
+
+float2 applyPixelShaderAnimation(float2 uv, float4 uvBounds, int ShaderAnim)
+{
+    if (ShaderAnim == 1) // Wavy
+    {
+        float2 cellUVSize = 1 / ObjectTextureSize * CellSize;
+        float time = abs(frac(GlobalTime * 0.1) * 2 - 1) * 2 - 1;
+        
+        float yvalue = frac((GlobalTime * 0.1) + uv.y * ObjectTextureSize.y / CellSize);
+        
+        yvalue = cos(yvalue * 2 - 1);
+        
+        
+        float xOffset = yvalue * cellUVSize.x * 0.125;
         uv.x = uv.x + xOffset;
     }
-    
+
     return uv;
 }
 

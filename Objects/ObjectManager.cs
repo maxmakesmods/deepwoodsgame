@@ -99,11 +99,11 @@ namespace DeepWoods.Objects
 
             if (objects.Count > 0)
             {
-                instancedObjects = new InstancedObjects(objects, TextureLoader.ObjectsTexture, TextureLoader.ObjectsGlowMap);
+                instancedObjects = new InstancedObjects(rng.Next(), objects, TextureLoader.ObjectsTexture, TextureLoader.ObjectsGlowMap);
             }
             if (critters.Count > 0)
             {
-                instancedCritters = new InstancedObjects(critters, TextureLoader.Critters, TextureLoader.BlackTexture);
+                instancedCritters = new InstancedObjects(rng.Next(), critters, TextureLoader.Critters, TextureLoader.BlackTexture);
             }
         }
 

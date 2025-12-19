@@ -203,7 +203,8 @@
     "width": 32,
     "height": 32,
     "standing": true,
-    "glowing": false
+    "glowing": false,
+    "shaderAnim": 2
   },
   {
     "name": "lake_tree2",
@@ -212,7 +213,8 @@
     "width": 32,
     "height": 32,
     "standing": true,
-    "glowing": false
+    "glowing": false,
+    "shaderAnim": 2
   },
   {
     "name": "lake_underground_tree1",

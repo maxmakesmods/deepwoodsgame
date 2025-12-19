@@ -13,7 +13,6 @@
 #include "common_Animations.fxh"
 
 matrix WorldViewProjection;
-float2 GroundTilesTextureSize;
 int BlurHalfSize;
 
 sampler2D GroundTilesTextureSampler = sampler_state

@@ -2,6 +2,7 @@
 using DeepWoods.Main;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
 using System.Collections.Generic;
 
 namespace DeepWoods.Objects
@@ -12,8 +13,9 @@ namespace DeepWoods.Objects
         private IndexBuffer indexBuffer;
         private DynamicVertexBuffer instanceBuffer;
         private InstanceData[] instances;
-        private Texture2D texture;
-        private Texture2D glowmap;
+        private readonly Texture2D texture;
+        private readonly Texture2D glowmap;
+        private readonly Random rng;
 
         private struct InstanceData : IVertexType
         {
@@ -23,6 +25,7 @@ namespace DeepWoods.Objects
             public float IsGlowing;
             public Vector3 AnimationData;
             public float ShaderAnim;
+            public Vector4 Rand;
             public float IsHidden;
 
             public static readonly VertexDeclaration vertexDeclaration = new(
@@ -32,14 +35,16 @@ namespace DeepWoods.Objects
                 new VertexElement(28, VertexElementFormat.Single, VertexElementUsage.TextureCoordinate, 4),
                 new VertexElement(32, VertexElementFormat.Vector3, VertexElementUsage.TextureCoordinate, 5),
                 new VertexElement(44, VertexElementFormat.Single, VertexElementUsage.TextureCoordinate, 6),
-                new VertexElement(48, VertexElementFormat.Single, VertexElementUsage.TextureCoordinate, 7)
+                new VertexElement(48, VertexElementFormat.Vector4, VertexElementUsage.TextureCoordinate, 7),
+                new VertexElement(64, VertexElementFormat.Single, VertexElementUsage.TextureCoordinate, 8)
             );
 
             public readonly VertexDeclaration VertexDeclaration => vertexDeclaration;
         }
 
-        public InstancedObjects(List<DWObject> sprites, Texture2D texture, Texture2D glowmap)
+        public InstancedObjects(int seed, List<DWObject> sprites, Texture2D texture, Texture2D glowmap)
         {
+            this.rng = new(seed);
             this.texture = texture;
             CreateBasicBuffers();
             CreateInstanceBuffer(sprites);
@@ -59,6 +64,7 @@ namespace DeepWoods.Objects
                     IsGlowing = sprites[i].Def.Glowing ? 1f : 0f,
                     AnimationData = new(sprites[i].Def.AnimationFrames, sprites[i].Def.AnimationFrameOffset, sprites[i].Def.AnimationFPS),
                     ShaderAnim = (int)sprites[i].Def.ShaderAnim,
+                    Rand = new(rng.NextSingle(), rng.NextSingle(), rng.NextSingle(), rng.NextSingle()),
                     IsHidden = 0f
                 };
             }

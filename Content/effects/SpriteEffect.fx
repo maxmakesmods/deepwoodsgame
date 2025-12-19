@@ -48,7 +48,8 @@ struct VertexShaderInput
     float IsGlowing : TEXCOORD4;
     float3 AnimationData : TEXCOORD5;
     float ShaderAnim : TEXCOORD6;
-    float IsHidden : TEXCOORD7;
+    float4 Rand : TEXCOORD7;
+    float IsHidden : TEXCOORD8;
 };
 
 struct VertexShaderOutput
@@ -108,11 +109,11 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
     float2 adjustedTexCoord = float2(tex_x + input.TexCoord.x * tex_width, tex_y + input.TexCoord.y * tex_height);
 
     float4x4 worldViewProjection = mul(world, ViewProjection);
-    
-    
+
     float rowIndex = input.WorldPos.y;
-    
-    
+
+    adjustedPos = applyVertexShaderAnimation(adjustedPos, input.Rand, int(input.ShaderAnim + 0.5));
+
     if (IsShadow)
     {
         float y = adjustedPos.y * 1.25;
@@ -156,7 +157,7 @@ float4 MainPS(VertexShaderOutput input) : COLOR
 {
     clip(-input.IsHidden);
 
-    float2 uv = applyShaderAnimation(input.TexCoord, int(input.ShaderAnim + 0.5));
+    float2 uv = applyPixelShaderAnimation(input.TexCoord, input.UVBounds, int(input.ShaderAnim + 0.5));
 
     clip(checkBounds(uv, input.UVBounds));
 
