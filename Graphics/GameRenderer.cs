@@ -75,6 +75,10 @@ namespace DeepWoods.Graphics
                 i++;
             }
             */
+
+            spriteBatch.Draw(
+                DeepWoodsMain.Instance.Game.World.SubWorlds[GameWorld.OverGroundId].Terrain.TempDebugGetFogLayer(),
+                new Rectangle(32, 128, 256, 256), Color.White);
         }
 
         private void DrawPlayerMouseCursors(List<LocalPlayer> players, bool isGamePaused)

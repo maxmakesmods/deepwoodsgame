@@ -11,9 +11,10 @@
 #include "common_lightsAndShadows.fxh"
 #include "common_BlueNoise.fxh"
 #include "common_Animations.fxh"
+#include "common_FogLayer.fxh"
+#include "common_Dithering.fxh"
 
 matrix WorldViewProjection;
-int BlurHalfSize;
 
 sampler2D GroundTilesTextureSampler = sampler_state
 {
@@ -74,21 +75,8 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
 
 int getGroundType(float2 uv)
 {
-    float2 gridTexelSize = 1.0 / (GridSize * CellSize);
-    uv = int2(uv / gridTexelSize) * gridTexelSize;
-    
-    float bluenoise1 = getRandomFromBlueNoise(uv / CellSize, BlueNoiseSineXOffset, BlueNoiseSineXChannel);
-    float bluenoise2 = getRandomFromBlueNoise(uv / CellSize, BlueNoiseSineYOffset, BlueNoiseSineYChannel);
-
-    float wavy_x = uv.x + (sin(uv.y * GridSize.x * 3.1415) / GridSize.x) * 0.25 * bluenoise1;
-    float wavy_y = uv.y + (sin(uv.x * GridSize.y * 3.1415) / GridSize.y) * 0.25 * bluenoise2;
-
-    int gridX = int(wavy_x * GridSize.x);
-    int gridY = int(wavy_y * GridSize.y);
-
-    float2 gridTextureUV = float2(gridX / GridSize.x, gridY / GridSize.y);
-    int groundType = int(tex2D(TerrainGridTextureSampler, gridTextureUV).r / 256.0 + 0.5) - 1.0;
-    
+    float2 ditheredUV = getDitheredUV(uv);
+    int groundType = int(tex2D(TerrainGridTextureSampler, ditheredUV).r / 256.0 + 0.5) - 1.0;
     return groundType;
 }
 
@@ -113,22 +101,17 @@ float4 getGroundTypeColorAndGlow(float2 uv, int groundType)
 
 float4 MainPS(VertexShaderOutput input) : COLOR
 {
-    float2 gridTexelSize = 1.0 / (GridSize * CellSize);
-
-    int blurFullSize = BlurHalfSize * 2 + 1;
     
-    float bluenoise = getRandomFromBlueNoise(input.Tex, BlueNoiseDitherOffset, BlueNoiseDitherChannel);
-    int pixelIndex = int(bluenoise * (blurFullSize * blurFullSize));
 
-    int pixelX = pixelIndex / blurFullSize;
-    int pixelY = pixelIndex % blurFullSize;
+    int fogValue = getFogValue(input.WorldPos / GridSize);
+    clip(fogValue - 0.5);
 
-    int groundType = getGroundType(input.Tex + float2(pixelX - BlurHalfSize, pixelY - BlurHalfSize) * gridTexelSize);
+    int groundType = getGroundType(input.Tex);
     clip(groundType);
 
     float2 uv = animateWater(input.Tex, groundType);
     float4 color_and_glow = getGroundTypeColorAndGlow(uv, groundType);
-    
+
     float3 litColor = applyLights(input.WorldPos, color_and_glow.rgb, color_and_glow.a);
     float3 shadowedLitColor = applyShadows(input.WorldPos, litColor, color_and_glow.a, -1, 0);
 

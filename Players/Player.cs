@@ -3,13 +3,9 @@ using DeepWoods.Game;
 using DeepWoods.Helpers;
 using DeepWoods.Loaders;
 using DeepWoods.Main;
-using DeepWoods.UI;
 using DeepWoods.World;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
-using MonoGame.Extended;
-using System;
 using System.Runtime.InteropServices;
 
 namespace DeepWoods.Players
@@ -46,6 +42,8 @@ namespace DeepWoods.Players
         public Vector2 position;
         public Point lookDir;
         public Point lookAt;
+
+        public int ViewDistance { get; private set; } = 4;
 
         private VertexCharacterData[] vertices;
         private short[] indices;
@@ -149,8 +147,14 @@ namespace DeepWoods.Players
 
         public void SetPosition(Vector2 position)
         {
+            Vector2 oldposition = this.position;
             this.position = position;
             lookAt = position.RoundToPoint() + lookDir;
+
+            if (oldposition != position)
+            {
+                DeepWoodsMain.Instance.Game.World.UpdateFogLayer(this);
+            }
         }
 
         public void SetLookDir(Point lookDir)

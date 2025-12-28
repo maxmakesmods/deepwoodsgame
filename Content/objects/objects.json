@@ -279,7 +279,7 @@
     "width": 32,
     "height": 32,
     "standing": true,
-    "glowing": false
+    "glowing": true
   },
   {
     "name": "magic_underground_tree2",
@@ -288,7 +288,7 @@
     "width": 32,
     "height": 32,
     "standing": true,
-    "glowing": false
+    "glowing": true
   },
   {
     "name": "marsh_tree",
@@ -531,7 +531,7 @@
     "width": 32,
     "height": 32,
     "standing": true,
-    "glowing": false
+    "glowing": true
   },
   {
     "name": "volcanic_underground_tree2",
@@ -540,7 +540,7 @@
     "width": 32,
     "height": 32,
     "standing": true,
-    "glowing": false
+    "glowing": true
   },
   {
     "name": "well",

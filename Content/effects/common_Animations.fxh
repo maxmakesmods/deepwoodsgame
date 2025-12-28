@@ -49,7 +49,7 @@ float2 animateWater(float2 uv, int groundType)
     return uv;
 }
 
-float4 applyVertexShaderAnimation(float4 vertexPos, float4 randvalues, int ShaderAnim)
+float2 applyVertexShaderAnimation(float2 worldPos, float4 randvalues, int ShaderAnim)
 {
     if (ShaderAnim == 2) // Movy
     {
@@ -78,10 +78,10 @@ float4 applyVertexShaderAnimation(float4 vertexPos, float4 randvalues, int Shade
             rand = randvalues.w;
         }
         
-        vertexPos.x = vertexPos.x + time * cos(rand * 2 * 3.1415) * 0.02;
-        vertexPos.y = vertexPos.y + time * sin(rand * 2 * 3.1415) * 0.02;
+        worldPos.x = worldPos.x + time * cos(rand * 2 * 3.1415) * 0.02;
+        worldPos.y = worldPos.y + time * sin(rand * 2 * 3.1415) * 0.02;
     }
-    return vertexPos;
+    return worldPos;
 }
 
 float2 applyPixelShaderAnimation(float2 uv, float4 uvBounds, int ShaderAnim)

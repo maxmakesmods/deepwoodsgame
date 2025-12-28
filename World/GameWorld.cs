@@ -87,12 +87,7 @@ namespace DeepWoods.World
                 new BiomePair(new GenericBiome(4) { Trees = ["lake_tree1", "lake_tree2"] }, new GenericBiome(12) { Trees = ["lake_underground_tree1", "lake_underground_tree2"] }),
                 //new BiomePair(new GenericBiome(5) { Trees = ["lakeunderwater_tree1", "lakeunderwater_tree2"] }, new GenericBiome(12) { Trees = ["tree3", "tree4"] }),
                 new BiomePair(new GenericBiome(6) { Trees = ["borealforest_tree1", "borealforest_tree2"] }, new GenericBiome(13) { Trees = ["boreal_underground_tree1", "boreal_underground_tree2"] }),
-                new BiomePair(new GenericBiome(7) { Trees = ["magic_tree1", "magic_tree2", "magic_tree1_color2", "magic_tree2_color2"] },
-                
-                //new GenericBiome(14) { Trees = ["magic_underground_tree1", "magic_underground_tree2"] }
-                new GenericBiome(GroundType.UndergroundCrystalFloor, GroundType.UndergroundCrystalFloor) { Trees = ["magic_underground_tree1", "magic_underground_tree2"] }
-                
-                
+                new BiomePair(new GenericBiome(7) { Trees = ["magic_tree1", "magic_tree2", "magic_tree1_color2", "magic_tree2_color2"] }, new GenericBiome(14) { Trees = ["magic_underground_tree1", "magic_underground_tree2"] }
                 ),
             ];
         }
@@ -144,7 +139,7 @@ namespace DeepWoods.World
         internal void Draw(LocalPlayer player)
         {
             var subWorld = GetPlayerSubWorld(player);
-            subWorld.Apply();
+            subWorld.Apply(player);
             subWorld.ObjectManager.DrawShadowMap(game.PlayerManager.Players, player);
             DeepWoodsMain.Instance.GraphicsDevice.SetRenderTarget(player.myRenderTarget);
             DeepWoodsMain.Instance.GraphicsDevice.Clear(GameRenderer.ClearColor);
@@ -158,6 +153,12 @@ namespace DeepWoods.World
         {
             var subWorld = GetPlayerSubWorld(player);
             return subWorld.Terrain;
+        }
+
+        public void UpdateFogLayer(Player player)
+        {
+            var subWorld = GetPlayerSubWorld(player);
+            subWorld.Terrain.UpdateFogLayer(player);
         }
 
         internal void Update(double dayDelta, float deltaTime)

@@ -11,6 +11,7 @@
 #include "common_lightsAndShadows.fxh"
 #include "common_BlueNoise.fxh"
 #include "common_Animations.fxh"
+#include "common_FogLayer.fxh"
 
 matrix ViewProjection;
 
@@ -77,12 +78,19 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
         0.0,  -s,   c, 0.0,
         0.0, 0.0, 0.0, 1.0
     );
+    
+    float rowIndex = input.WorldPos.y;
+    float2 worldPos = applyVertexShaderAnimation(input.WorldPos, input.Rand, int(input.ShaderAnim + 0.5));
+    if (input.IsStanding)
+    {
+        worldPos.y += 0.25;
+    }
 
     float4x4 translation = float4x4(
         1.0, 0.0, 0.0, 0.0,
         0.0, 1.0, 0.0, 0.0,
         0.0, 0.0, 1.0, 0.0,
-        input.WorldPos.x, input.WorldPos.y, 0.0, 1.0
+        worldPos.x, worldPos.y, 0.0, 1.0
     );
 
     float4x4 world;
@@ -109,10 +117,6 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
     float2 adjustedTexCoord = float2(tex_x + input.TexCoord.x * tex_width, tex_y + input.TexCoord.y * tex_height);
 
     float4x4 worldViewProjection = mul(world, ViewProjection);
-
-    float rowIndex = input.WorldPos.y;
-
-    adjustedPos = applyVertexShaderAnimation(adjustedPos, input.Rand, int(input.ShaderAnim + 0.5));
 
     if (IsShadow)
     {
@@ -156,6 +160,9 @@ float checkBounds(float2 uv, float4 uvBounds)
 float4 MainPS(VertexShaderOutput input) : COLOR
 {
     clip(-input.IsHidden);
+
+    int fogValue = getFogValue(input.WorldPos / GridSize);
+    clip(fogValue - 0.5);
 
     float2 uv = applyPixelShaderAnimation(input.TexCoord, input.UVBounds, int(input.ShaderAnim + 0.5));
 

@@ -23,12 +23,6 @@ namespace DeepWoods.World.Biomes
         {
             OpenGroundType = (GroundType)(index * 2 + 1);
             ClosedGroundType = (GroundType)(index * 2 + 2);
-
-            if (OpenGroundType == GroundType.Magma)
-            {
-                OpenGroundType = GroundType.Obsidian;
-                ClosedGroundType = GroundType.Magma;
-            }
         }
 
         public GenericBiome(GroundType groundType)

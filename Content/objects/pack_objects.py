@@ -59,11 +59,11 @@ def main():
     glow_maps = {}
     images = []
     for fname in os.listdir('raw'):
-        if fname.lower().endswith('.png') and not fname.lower().endswith('_glow.png'):
+        if fname.lower().endswith('.png') and not fname.lower().endswith('_glowmap.png'):
             path = os.path.join('raw', fname)
             img = Image.open(path).convert('RGBA')
             images.append((fname[:-4], img))
-            glow_map_path = os.path.join('raw', fname[:-4] + '_glow.png')
+            glow_map_path = os.path.join('raw', fname[:-4] + '_glowmap.png')
             if os.path.exists(glow_map_path):
                 glow_map = Image.open(glow_map_path).convert('RGBA')
                 glow_maps[fname[:-4]] = glow_map

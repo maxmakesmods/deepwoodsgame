@@ -9,8 +9,11 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended;
 using MonoGame.Extended.Collections;
+using MonoGame.Extended.Collisions.Layers;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 
 namespace DeepWoods.World
 {
@@ -22,7 +25,10 @@ namespace DeepWoods.World
         private readonly VertexPositionColorTexture[] drawingQuad;
         private readonly short[] drawingIndices = [0, 1, 2, 0, 2, 3];
         private readonly Tile[,] tiles;
-        private readonly Texture2D terrainGridTexture;
+
+        private readonly Texture2D gridTexture;
+        private readonly Dictionary<PlayerId, Texture2D> fogLayers = [];
+
         private readonly int seed;
         private readonly int width;
         private readonly int height;
@@ -70,7 +76,7 @@ namespace DeepWoods.World
             forestGenerator.Generate(tiles, biomes, rng.Next());
             groundTypeGenerator.Generate(tiles, biomes, rng.Next());
 
-            terrainGridTexture = GenerateTerrainTexture();
+            gridTexture = GenerateTerrainTexture();
             drawingQuad = CreateVertices();
 
             List<int> bluenoiseChannels = [0, 1, 2, 3];
@@ -284,6 +290,49 @@ namespace DeepWoods.World
             return texture;
         }
 
+        private Texture2D GetFogLayer(LocalPlayer player)
+        {
+            if (!fogLayers.TryGetValue(player.ID, out var fogLayer))
+            {
+                fogLayer = new Texture2D(DeepWoodsMain.Instance.GraphicsDevice, renderwidth, renderheight, false, SurfaceFormat.Alpha8);
+                fogLayers[player.ID] = fogLayer;
+                UpdateFogLayer(player);
+            }
+            return fogLayer;
+        }
+
+        public Texture2D TempDebugGetFogLayer()
+        {
+            return fogLayers.Values.FirstOrDefault();
+        }
+
+        public void UpdateFogLayer(Player player)
+        {
+            if (fogLayers.TryGetValue(player.ID, out var fogLayer))
+            {
+                byte[] pixelData = new byte[fogLayer.Width * fogLayer.Height];
+                fogLayer.GetData(pixelData);
+                Point pos = player.position.RoundToPoint();
+                int radius = player.ViewDistance;
+                for (int x = -radius; x <= radius; x++)
+                {
+                    for (int y = -radius; y <= radius; y++)
+                    {
+                        if (new Vector2(x, y).LengthSquared() <= (radius * radius))
+                        {
+                            Point npos = pos + new Point(x, y);
+                            int pixelIndex = npos.Y * fogLayer.Width + npos.X;
+                            if (pixelIndex >= 0 && pixelIndex < pixelData.Length)
+                            {
+                                pixelData[pixelIndex] = byte.MaxValue;
+                            }
+                        }
+                    }
+                }
+                fogLayer.SetData(pixelData);
+            }
+        }
+
         private VertexPositionColorTexture[] CreateVertices()
         {
             var drawingQuad = new VertexPositionColorTexture[4];
@@ -299,11 +348,11 @@ namespace DeepWoods.World
             Matrix view = player.myCamera.View;
             Matrix projection = player.myCamera.Projection;
 
-            EffectLoader.GroundEffect.Parameters["ShadowMap"].SetValue(player.myShadowMap);
-            EffectLoader.GroundEffect.Parameters["ShadowMapBounds"].SetValue(player.myCamera.ShadowRectangle.GetBoundsV4());
-            EffectLoader.GroundEffect.Parameters["ShadowMapTileSize"].SetValue(player.myCamera.ShadowRectangle.GetSizeV2());
+            EffectLoader.SetParamSafely("ShadowMap", player.myShadowMap);
+            EffectLoader.SetParamSafely("ShadowMapBounds", player.myCamera.ShadowRectangle.GetBoundsV4());
+            EffectLoader.SetParamSafely("ShadowMapTileSize", player.myCamera.ShadowRectangle.GetSizeV2());
 
-            EffectLoader.GroundEffect.Parameters["WorldViewProjection"].SetValue(view * projection);
+            EffectLoader.SetParamSafely("WorldViewProjection", view * projection);
             foreach (EffectPass pass in EffectLoader.GroundEffect.CurrentTechnique.Passes)
             {
                 pass.Apply();
@@ -311,26 +360,27 @@ namespace DeepWoods.World
             }
         }
 
-        internal void Apply()
+        internal void Apply(LocalPlayer player)
         {
-            EffectLoader.GroundEffect.Parameters["GridSize"].SetValue(new Vector2(renderwidth, renderheight));
-            EffectLoader.GroundEffect.Parameters["GroundTilesTexture"].SetValue(TextureLoader.GroundTilesTexture);
-            EffectLoader.GroundEffect.Parameters["GroundTilesTextureSize"].SetValue(new Vector2(TextureLoader.GroundTilesTexture.Width, TextureLoader.GroundTilesTexture.Height));
-            EffectLoader.GroundEffect.Parameters["GlowMap"].SetValue(TextureLoader.GroundTilesGlowMap);
-            EffectLoader.GroundEffect.Parameters["CellSize"].SetValue((float)CellSize);
-            EffectLoader.GroundEffect.Parameters["BlueNoiseTexture"].SetValue(TextureLoader.BluenoiseTexture);
-            EffectLoader.GroundEffect.Parameters["BlueNoiseDitherChannel"].SetValue(blueNoiseDitherChannel);
-            EffectLoader.GroundEffect.Parameters["BlueNoiseDitherOffset"].SetValue(blueNoiseDitherOffset);
-            EffectLoader.GroundEffect.Parameters["BlueNoiseVariantChannel"].SetValue(blueNoiseVariantChannel);
-            EffectLoader.GroundEffect.Parameters["BlueNoiseVariantOffset"].SetValue(blueNoiseVariantOffset);
-            EffectLoader.GroundEffect.Parameters["BlueNoiseSineXChannel"].SetValue(blueNoiseSineXChannel);
-            EffectLoader.GroundEffect.Parameters["BlueNoiseSineXOffset"].SetValue(blueNoiseSineXOffset);
-            EffectLoader.GroundEffect.Parameters["BlueNoiseSineYChannel"].SetValue(blueNoiseSineYChannel);
-            EffectLoader.GroundEffect.Parameters["BlueNoiseSineYOffset"].SetValue(blueNoiseSineYOffset);
-            EffectLoader.GroundEffect.Parameters["BlueNoiseTextureSize"].SetValue(new Vector2(TextureLoader.BluenoiseTexture.Width, TextureLoader.BluenoiseTexture.Height));
-            EffectLoader.GroundEffect.Parameters["BlurHalfSize"].SetValue(DitherSize);
-            EffectLoader.GroundEffect.Parameters["TerrainGridTexture"].SetValue(terrainGridTexture);
-            EffectLoader.GroundEffect.Parameters["DUDVTexture"].SetValue(TextureLoader.DUDVTexture);
+            EffectLoader.SetParamSafely("GridSize", new Vector2(renderwidth, renderheight));
+            EffectLoader.SetParamSafely("CellSize", (float)CellSize);
+            EffectLoader.SetParamSafely("GroundTilesTexture", TextureLoader.GroundTilesTexture);
+            EffectLoader.SetParamSafely("GroundTilesTextureSize", new Vector2(TextureLoader.GroundTilesTexture.Width, TextureLoader.GroundTilesTexture.Height));
+            EffectLoader.SetParamSafely("GlowMap", TextureLoader.GroundTilesGlowMap);
+            EffectLoader.SetParamSafely("BlueNoiseTexture", TextureLoader.BluenoiseTexture);
+            EffectLoader.SetParamSafely("BlueNoiseDitherChannel", blueNoiseDitherChannel);
+            EffectLoader.SetParamSafely("BlueNoiseDitherOffset", blueNoiseDitherOffset);
+            EffectLoader.SetParamSafely("BlueNoiseVariantChannel", blueNoiseVariantChannel);
+            EffectLoader.SetParamSafely("BlueNoiseVariantOffset", blueNoiseVariantOffset);
+            EffectLoader.SetParamSafely("BlueNoiseSineXChannel", blueNoiseSineXChannel);
+            EffectLoader.SetParamSafely("BlueNoiseSineXOffset", blueNoiseSineXOffset);
+            EffectLoader.SetParamSafely("BlueNoiseSineYChannel", blueNoiseSineYChannel);
+            EffectLoader.SetParamSafely("BlueNoiseSineYOffset", blueNoiseSineYOffset);
+            EffectLoader.SetParamSafely("BlueNoiseTextureSize", new Vector2(TextureLoader.BluenoiseTexture.Width, TextureLoader.BluenoiseTexture.Height));
+            EffectLoader.SetParamSafely("BlurHalfSize", DitherSize);
+            EffectLoader.SetParamSafely("TerrainGridTexture", gridTexture);
+            EffectLoader.SetParamSafely("TerrainFogLayer", GetFogLayer(player));
+            EffectLoader.SetParamSafely("DUDVTexture", TextureLoader.DUDVTexture);
         }
 
         private bool IsInsideGrid(int x, int y)
