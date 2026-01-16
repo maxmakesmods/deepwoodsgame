@@ -82,6 +82,11 @@ int getGroundType(float2 uv)
 
 float4 getGroundTypeColorAndGlow(float2 uv, int groundType)
 {
+    if (groundType < 0)
+    {
+        return float4(0, 0, 0, 0);
+    }
+
     float x = frac(uv.x * GridSize.x) * CellSize / GroundTilesTextureSize.x;
     float y = (1.0 - frac(uv.y * GridSize.y)) * CellSize / GroundTilesTextureSize.y;
 
@@ -103,11 +108,10 @@ float4 MainPS(VertexShaderOutput input) : COLOR
 {
     
 
-    int fogValue = getFogValue(input.WorldPos / GridSize);
-    clip(fogValue - 0.5);
+    float fogValue = getFogValue(input.WorldPos / GridSize);
+    //clip(fogValue - 0.5);
 
     int groundType = getGroundType(input.Tex);
-    clip(groundType);
 
     float2 uv = animateWater(input.Tex, groundType);
     float4 color_and_glow = getGroundTypeColorAndGlow(uv, groundType);
@@ -115,7 +119,8 @@ float4 MainPS(VertexShaderOutput input) : COLOR
     float3 litColor = applyLights(input.WorldPos, color_and_glow.rgb, color_and_glow.a);
     float3 shadowedLitColor = applyShadows(input.WorldPos, litColor, color_and_glow.a, -1, 0);
 
-    return float4(shadowedLitColor * (1.0 + color_and_glow.a * 0.5), 1.0);
+    return fogValue * float4(shadowedLitColor * (1.0 + color_and_glow.a * 0.5), 1.0)
+        + (1.0 - fogValue) * float4(getGroundTypeColorAndGlow(input.Tex, 31).xyz, 1.0);
 }
 
 technique BasicColorDrawing

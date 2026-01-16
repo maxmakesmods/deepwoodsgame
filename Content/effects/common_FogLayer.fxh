@@ -15,10 +15,10 @@ sampler2D TerrainFogLayerSampler = sampler_state
     AddressV = CLAMP;
 };
 
-int getFogValue(float2 worldUV)
+float getFogValue(float2 worldUV)
 {
     float2 ditheredUV = getDitheredUV(worldUV);
-    return (int) tex2D(TerrainFogLayerSampler, ditheredUV).r;
+    return tex2D(TerrainFogLayerSampler, ditheredUV).r;
 }
 
 #endif

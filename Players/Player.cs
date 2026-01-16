@@ -43,7 +43,7 @@ namespace DeepWoods.Players
         public Point lookDir;
         public Point lookAt;
 
-        public int ViewDistance { get; private set; } = 4;
+        public int ViewDistance { get; private set; } = 6;
 
         private VertexCharacterData[] vertices;
         private short[] indices;

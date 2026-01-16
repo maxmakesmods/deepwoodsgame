@@ -161,8 +161,8 @@ float4 MainPS(VertexShaderOutput input) : COLOR
 {
     clip(-input.IsHidden);
 
-    int fogValue = getFogValue(input.WorldPos / GridSize);
-    clip(fogValue - 0.5);
+    float fogValue = getFogValue(input.WorldPos / GridSize);
+    //clip(fogValue - 0.5);
 
     float2 uv = applyPixelShaderAnimation(input.TexCoord, input.UVBounds, int(input.ShaderAnim + 0.5));
 
@@ -173,7 +173,7 @@ float4 MainPS(VertexShaderOutput input) : COLOR
     if (IsShadow)
     {
         clip(-step(color.a, 0.9));
-        return float4(input.RowIndex + 1.0, 0.0, 0.0, 1.0);
+        return fogValue * float4(input.RowIndex + 1.0, 0.0, 0.0, 1.0);
     }
     else
     {
@@ -181,7 +181,7 @@ float4 MainPS(VertexShaderOutput input) : COLOR
         
         float3 litColor = applyLights(input.WorldPos, color.rgb, glow);
         float3 shadowedLitColor = applyShadows(input.WorldPos, litColor, glow, input.RowIndex, ShadowSkew);
-        return float4(shadowedLitColor * (1.0 + glow * 0.5), color.a);
+        return fogValue * float4(shadowedLitColor * (1.0 + glow * 0.5), color.a);
     }
 }
 

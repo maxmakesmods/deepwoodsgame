@@ -39,6 +39,7 @@
         UndergroundCrystalRocks,
 
         Placeholder31,
-        Placeholder32,
+
+        Fog,
     }
 }

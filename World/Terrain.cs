@@ -1,5 +1,4 @@
-﻿using DeepWoods.Game;
-using DeepWoods.Helpers;
+﻿using DeepWoods.Helpers;
 using DeepWoods.Loaders;
 using DeepWoods.Main;
 using DeepWoods.Players;
@@ -7,18 +6,17 @@ using DeepWoods.World.Biomes;
 using DeepWoods.World.Generators;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MonoGame.Extended;
 using MonoGame.Extended.Collections;
-using MonoGame.Extended.Collisions.Layers;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 
 namespace DeepWoods.World
 {
     public class Terrain
     {
+        private readonly static int FogScale = 1;
+
         public readonly static int CellSize = 32;
         private readonly static int DitherSize = 4;
 
@@ -92,188 +90,6 @@ namespace DeepWoods.World
             blueNoiseSineYOffset = new Vector2(rng.Next(TextureLoader.BluenoiseTexture.Width), rng.Next(TextureLoader.BluenoiseTexture.Height));
         }
 
-        private static int CalcDistSqrd(int x1, int y1, int x2, int y2)
-        {
-            return (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1);
-        }
-
-        private static float CalcDist(int x1, int y1, int x2, int y2)
-        {
-            int distSqrd = CalcDistSqrd(x1, y1, x2, y2);
-            return MathF.Sqrt(distSqrd);
-        }
-
-
-        private List<PatchCenter> CreateRing(List<IBiome> biomes)
-        {
-            var patchCenters = new List<PatchCenter>();
-
-            int repeats = 2;
-
-            float deltaAngle = 360f / (biomes.Count * repeats);
-
-            int xcenter = width / 2;
-            int ycenter = height / 2;
-            int xradius = width / 4;
-            int yradius = height / 4;
-
-            int biomeRadiusSqrd = (width / 6) * (width / 6);
-
-            VoidBiome voidBiome = new();
-
-            /*
-            patchCenters.Add(new()
-            {
-                x = xcenter,
-                y = ycenter,
-                radius = biome_radius,
-                biome = voidBiome
-            });
-            */
-
-            float spiralDistanceDelta = 0.1f;
-            float spiralAngleDeltaMultiplier = 2f;
-
-            for (int i = 0; i < biomes.Count * repeats; i++)
-            {
-                var angle = new Angle(i * deltaAngle * spiralAngleDeltaMultiplier, AngleType.Degree);
-                int x = (int)(xradius * (1 + spiralDistanceDelta * i) * MathF.Cos(angle));
-                int y = (int)(yradius * (1 + spiralDistanceDelta * i) * MathF.Sin(angle));
-
-                patchCenters.Add(new()
-                {
-                    x = xcenter + x,
-                    y = ycenter + y,
-                    radiusSqrd = biomeRadiusSqrd,
-                    biome = biomes[i / repeats]
-                });
-
-                /*
-                patchCenters.Add(new()
-                {
-                    x = xcenter + x * 2,
-                    y = ycenter + y * 2,
-                    radius = biome_radius,
-                    biome = voidBiome
-                });
-                */
-            }
-
-            return patchCenters;
-        }
-
-
-
-
-        private void GenerateBiomes2(List<IBiome> biomes)
-        {
-            List<PatchCenter> patchCenters = CreateRing(biomes);
-
-            VoidBiome voidBiome = new();
-
-            for (int x = 1; x < width - 1; x++)
-            {
-                for (int y = 1; y < height - 1; y++)
-                {
-                    float ourDistToMapCenterSqrd = CalcDistSqrd(width / 2, height / 2, x, y);
-
-                    IBiome nearestBiome = voidBiome;
-
-                    float nearestDistSqrd = float.MaxValue;
-                    foreach (var patchCenter in patchCenters)
-                    {
-                        float distSqrd = CalcDistSqrd(x, y, patchCenter.x, patchCenter.y);
-                        if (distSqrd < nearestDistSqrd)
-                        {
-                            float patchCenterRadius = MathF.Sqrt(patchCenter.radiusSqrd);
-                            float patchDistToMapCenter = CalcDist(width / 2, height / 2, patchCenter.x, patchCenter.y);
-                            float innerBorderDist = patchDistToMapCenter - patchCenterRadius;
-                            float outerBorderDist = patchDistToMapCenter + patchCenterRadius;
-
-                            if (ourDistToMapCenterSqrd > innerBorderDist * innerBorderDist
-                                && ourDistToMapCenterSqrd < outerBorderDist * outerBorderDist)
-                            {
-                                nearestBiome = patchCenter.biome;
-                                nearestDistSqrd = distSqrd;
-                            }
-                        }
-                    }
-
-                    tiles[x, y].biome = nearestBiome;
-                    if (tiles[x, y].isOpen)
-                    {
-                        tiles[x, y].groundType = nearestBiome.OpenGroundType;
-                    }
-                    else
-                    {
-                        tiles[x, y].groundType = nearestBiome.ClosedGroundType;
-                    }
-                }
-            }
-
-            foreach (var patchCenter in patchCenters)
-            {
-                if (IsInsideGrid(patchCenter.x, patchCenter.y))
-                {
-                    tiles[patchCenter.x, patchCenter.y].groundType = GroundType.Void;
-                }
-            }
-        }
-
-
-        private void GenerateBiomesOLD(List<IBiome> biomes, int numPatches)
-        {
-            biomes.Shuffle(rng);
-
-            int currentBiomeIndex = 0;
-            IBiome getNextBiome()
-            {
-                if (currentBiomeIndex >= biomes.Count)
-                {
-                    currentBiomeIndex = 0;
-                }
-                return biomes[currentBiomeIndex++];
-            }
-
-            List<PatchCenter> patchCenters = [];
-            for (int i = 0; i < numPatches; i++)
-            {
-                patchCenters.Add(new()
-                {
-                    x = rng.Next(width),
-                    y = rng.Next(height),
-                    biome = getNextBiome()
-                });
-            }
-
-            for (int x = 1; x < width - 1; x++)
-            {
-                for (int y = 1; y < height - 1; y++)
-                {
-                    IBiome nearestBiome = null;
-                    float nearestDistSqrd = float.MaxValue;
-                    foreach (var patchCenter in patchCenters)
-                    {
-                        float distSqrd = CalcDistSqrd(x, y, patchCenter.x, patchCenter.y);
-                        if (distSqrd <  nearestDistSqrd)
-                        {
-                            nearestBiome = patchCenter.biome;
-                            nearestDistSqrd = distSqrd;
-                        }
-                    }
-                    tiles[x, y].biome = nearestBiome;
-                    if (tiles[x, y].isOpen)
-                    {
-                        tiles[x, y].groundType = nearestBiome.OpenGroundType;// GroundType.Grass;
-                    }
-                    else
-                    {
-                        tiles[x, y].groundType = nearestBiome.ClosedGroundType;//GroundType.ForestFloor;
-                    }
-                }
-            }
-        }
-
         private Texture2D GenerateTerrainTexture()
         {
             var texture = new Texture2D(DeepWoodsMain.Instance.GraphicsDevice, renderwidth, renderheight, false, SurfaceFormat.Single);
@@ -294,7 +110,8 @@ namespace DeepWoods.World
         {
             if (!fogLayers.TryGetValue(player.ID, out var fogLayer))
             {
-                fogLayer = new Texture2D(DeepWoodsMain.Instance.GraphicsDevice, renderwidth, renderheight, false, SurfaceFormat.Alpha8);
+                fogLayer = new Texture2D(DeepWoodsMain.Instance.GraphicsDevice, renderwidth * FogScale, renderheight * FogScale, false, SurfaceFormat.Alpha8);
+                fogLayer.SetData(new byte[fogLayer.Width * fogLayer.Height]);
                 fogLayers[player.ID] = fogLayer;
                 UpdateFogLayer(player);
             }
@@ -312,23 +129,34 @@ namespace DeepWoods.World
             {
                 byte[] pixelData = new byte[fogLayer.Width * fogLayer.Height];
                 fogLayer.GetData(pixelData);
-                Point pos = player.position.RoundToPoint();
-                int radius = player.ViewDistance;
+
+                Point pos = (player.position * FogScale).RoundToPoint();
+                int radius = player.ViewDistance * FogScale;
+
                 for (int x = -radius; x <= radius; x++)
                 {
                     for (int y = -radius; y <= radius; y++)
                     {
-                        if (new Vector2(x, y).LengthSquared() <= (radius * radius))
+                        float length = new Vector2(x, y).Length();
+                        if (length <= radius)
                         {
                             Point npos = pos + new Point(x, y);
                             int pixelIndex = npos.Y * fogLayer.Width + npos.X;
                             if (pixelIndex >= 0 && pixelIndex < pixelData.Length)
                             {
-                                pixelData[pixelIndex] = byte.MaxValue;
+                                if (length + 1 < radius)
+                                {
+                                    pixelData[pixelIndex] = 255;
+                                }
+                                else if (pixelData[pixelIndex] < 255)
+                                {
+                                    pixelData[pixelIndex] = 128;
+                                }
                             }
                         }
                     }
                 }
+
                 fogLayer.SetData(pixelData);
             }
         }
