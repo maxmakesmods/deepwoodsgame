@@ -7,36 +7,37 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended;
+using System;
 
 namespace DeepWoods.Players
 {
     public class LocalPlayer : Player
     {
-        public Camera myCamera;
-        public RenderTarget2D myRenderTarget;
-        public RenderTarget2D myShadowMap;
+        public PlayerIndex PlayerIndex { get; private set; }
+        public Rectangle PlayerViewport { get; private set; }
+        public Camera Camera { get; private set; }
+        public RenderTarget2D RenderTarget { get; private set; }
+        public RenderTarget2D ShadowMap { get; private set; }
+        public RenderTarget2D LightMap { get; private set; }
 
         private RectangleF relativeViewport;
         private KeyboardState previousKeyboardState;
-
         private bool noclip;
-
-        public PlayerIndex PlayerIndex { get; private set; }
-        public Rectangle PlayerViewport { get; private set; }
 
         public LocalPlayer(DeepWoodsGame game, PlayerIndex playerIndex, PlayerId id, Vector2 startPos)
             :base(game, id, startPos)
         {
             PlayerIndex = playerIndex;
-            myCamera = new Camera(DWMouse.GetState(this));
+            Camera = new Camera(DWMouse.GetState(this));
         }
 
         public void SetPlayerViewport(RectangleF relativeViewport)
         {
             this.relativeViewport = relativeViewport;
             PlayerViewport = relativeViewport.Scale(DeepWoodsMain.Instance.GraphicsDevice.Viewport.Bounds).ToRectangle();
-            myRenderTarget = RecreateRenderTarget(SurfaceFormat.Color);
-            myShadowMap = RecreateRenderTarget(SurfaceFormat.Single);
+            RenderTarget = RecreateRenderTarget(SurfaceFormat.Color);
+            ShadowMap = RecreateRenderTarget(SurfaceFormat.Single);
+            LightMap = RecreateRenderTarget(SurfaceFormat.Color);
         }
 
         private RenderTarget2D RecreateRenderTarget(SurfaceFormat format)
@@ -93,18 +94,22 @@ namespace DeepWoods.Players
         private void DoRenderUpdate()
         {
             PlayerViewport = relativeViewport.Scale(DeepWoodsMain.Instance.GraphicsDevice.Viewport.Bounds).ToRectangle();
-            if (PlayerViewport.Width != myRenderTarget.Width || PlayerViewport.Height != myRenderTarget.Height)
-            {
-                myRenderTarget.Dispose();
-                myRenderTarget = RecreateRenderTarget(SurfaceFormat.Color);
-            }
-            if (PlayerViewport.Width != myRenderTarget.Width || myShadowMap.Height != myShadowMap.Height)
-            {
-                myShadowMap.Dispose();
-                myShadowMap = RecreateRenderTarget(SurfaceFormat.Single);
-            }
 
-            myCamera.Update(position, PlayerViewport, DWMouse.GetState(this), game.isGamePaused);
+            RenderTarget = RecreateRenderTargetIfNecessary(RenderTarget, SurfaceFormat.Color);
+            ShadowMap = RecreateRenderTargetIfNecessary(ShadowMap, SurfaceFormat.Single);
+            LightMap = RecreateRenderTargetIfNecessary(LightMap, SurfaceFormat.Color);
+
+            Camera.Update(position, PlayerViewport, DWMouse.GetState(this), game.isGamePaused);
+        }
+
+        private RenderTarget2D RecreateRenderTargetIfNecessary(RenderTarget2D rendertarget, SurfaceFormat format)
+        {
+            if (PlayerViewport.Width != rendertarget.Width || PlayerViewport.Height != rendertarget.Height)
+            {
+                rendertarget.Dispose();
+                rendertarget = RecreateRenderTarget(format);
+            }
+            return rendertarget;
         }
 
         private void DoInteractions(KeyboardState keyboardState)
@@ -125,12 +130,11 @@ namespace DeepWoods.Players
             if (keyboardState.IsKeyDown(Keys.K) && !previousKeyboardState.IsKeyDown(Keys.K))
             {
                 noclip = !noclip;
-                //att.World.SwitchToUnderground(this, 0);
             }
 
             if (keyboardState.IsKeyDown(Keys.J) && !previousKeyboardState.IsKeyDown(Keys.J))
             {
-                //att.World.SwitchToOverground(this);
+                game.World.RemoveFogLayerCheat();
             }
 
             if (keyboardState.IsKeyDown(Keys.H) && !previousKeyboardState.IsKeyDown(Keys.H))
@@ -221,14 +225,14 @@ namespace DeepWoods.Players
 
         public void DrawUI(SpriteBatch spriteBatch)
         {
-            Vector2 screenPosTopLeft = myCamera.GetScreenPosAtTile(lookAt);
-            Vector2 screenPosBottomRight = myCamera.GetScreenPosAtTile(lookAt + new Point(1, 1));
+            Vector2 screenPosTopLeft = Camera.GetScreenPosAtTile(lookAt);
+            Vector2 screenPosBottomRight = Camera.GetScreenPosAtTile(lookAt + new Point(1, 1));
             Vector2 screenPosBottomLeft = new Vector2(screenPosTopLeft.X, screenPosBottomRight.Y);
             SizeF screenPosRectangleSize = (screenPosTopLeft - screenPosBottomRight).Abs();
             RectangleF lookAtRectangle = new(screenPosBottomLeft, screenPosRectangleSize);
 
-            lookAtRectangle.X -= myCamera.Viewport.X;
-            lookAtRectangle.Y -= myCamera.Viewport.Y;
+            lookAtRectangle.X -= Camera.Viewport.X;
+            lookAtRectangle.Y -= Camera.Viewport.Y;
 
             spriteBatch.DrawRectangle(lookAtRectangle, Color.DarkOrchid, 3f);
 

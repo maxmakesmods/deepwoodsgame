@@ -1,5 +1,6 @@
 ﻿
 using DeepWoods.Game;
+using DeepWoods.Lighting;
 using DeepWoods.Objects;
 using DeepWoods.Players;
 using DeepWoods.World.Biomes;
@@ -26,15 +27,15 @@ namespace DeepWoods.World
             LightManager = new LightManager(Terrain, rng.Next());
         }
 
-        internal void Update(double dayDelta, float deltaTime)
+        internal void Update(float deltaTime)
         {
-            LightManager.Update(dayDelta, deltaTime);
+            LightManager.Update(deltaTime);
         }
 
         internal void Apply(LocalPlayer player)
         {
             Terrain.Apply(player);
-            LightManager.Apply();
+            LightManager.Apply(player);
         }
     }
 }

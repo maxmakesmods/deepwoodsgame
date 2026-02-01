@@ -5,26 +5,21 @@ using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 
-namespace DeepWoods.Objects
+namespace DeepWoods.Lighting
 {
-    public class InstancedObjects
+    public class InstancedLights
     {
         private VertexBuffer vertexBuffer;
         private IndexBuffer indexBuffer;
         private DynamicVertexBuffer instanceBuffer;
         private InstanceData[] instances;
-        private readonly Texture2D texture;
-        private readonly Texture2D glowmap;
         private readonly Random rng;
 
         private struct InstanceData : IVertexType
         {
             public Vector2 WorldPos;
-            public Vector4 TexRect;
-            public float IsStanding;
-            public float IsGlowing;
-            public Vector3 AnimationData;
-            public float ShaderAnim;
+            public Vector4 LightColor;
+            public float LightAnim;
             public Vector4 Rand;
             public float IsHidden;
 
@@ -32,38 +27,30 @@ namespace DeepWoods.Objects
                 new VertexElement(0, VertexElementFormat.Vector2, VertexElementUsage.TextureCoordinate, 1),
                 new VertexElement(8, VertexElementFormat.Vector4, VertexElementUsage.TextureCoordinate, 2),
                 new VertexElement(24, VertexElementFormat.Single, VertexElementUsage.TextureCoordinate, 3),
-                new VertexElement(28, VertexElementFormat.Single, VertexElementUsage.TextureCoordinate, 4),
-                new VertexElement(32, VertexElementFormat.Vector3, VertexElementUsage.TextureCoordinate, 5),
-                new VertexElement(44, VertexElementFormat.Single, VertexElementUsage.TextureCoordinate, 6),
-                new VertexElement(48, VertexElementFormat.Vector4, VertexElementUsage.TextureCoordinate, 7),
-                new VertexElement(64, VertexElementFormat.Single, VertexElementUsage.TextureCoordinate, 8)
+                new VertexElement(28, VertexElementFormat.Vector4, VertexElementUsage.TextureCoordinate, 4),
+                new VertexElement(44, VertexElementFormat.Single, VertexElementUsage.TextureCoordinate, 5)
             );
 
             public readonly VertexDeclaration VertexDeclaration => vertexDeclaration;
         }
 
-        public InstancedObjects(int seed, List<DWObject> sprites, Texture2D texture, Texture2D glowmap)
+        public InstancedLights(int seed, List<Light> lights)
         {
-            this.rng = new(seed);
-            this.texture = texture;
+            rng = new(seed);
             CreateBasicBuffers();
-            CreateInstanceBuffer(sprites);
-            this.glowmap = glowmap;
+            CreateInstanceBuffer(lights);
         }
 
-        private void CreateInstanceBuffer(List<DWObject> sprites)
+        private void CreateInstanceBuffer(List<Light> lights)
         {
-            instances = new InstanceData[sprites.Count];
-            for (int i = 0; i < sprites.Count; i++)
+            instances = new InstanceData[lights.Count];
+            for (int i = 0; i < lights.Count; i++)
             {
                 instances[i] = new InstanceData()
                 {
-                    WorldPos = sprites[i].WorldPos,
-                    TexRect = new(sprites[i].TexRect.X, sprites[i].TexRect.Y, sprites[i].TexRect.Width, sprites[i].TexRect.Height),
-                    IsStanding = sprites[i].Def.Standing ? 1f : 0f,
-                    IsGlowing = sprites[i].Def.Glowing ? 1f : 0f,
-                    AnimationData = new(sprites[i].Def.AnimationFrames, sprites[i].Def.AnimationFrameOffset, sprites[i].Def.AnimationFPS),
-                    ShaderAnim = (int)sprites[i].Def.ShaderAnim,
+                    WorldPos = lights[i].position,
+                    LightColor = lights[i].color,
+                    LightAnim = 0f,
                     Rand = new(rng.NextSingle(), rng.NextSingle(), rng.NextSingle(), rng.NextSingle()),
                     IsHidden = 0f
                 };
@@ -76,10 +63,10 @@ namespace DeepWoods.Objects
         {
             VertexPositionTexture[] vertices =
             [
-                new VertexPositionTexture(new Vector3(0, 0, 0), new Vector2(0, 1)),
-                new VertexPositionTexture(new Vector3(0, 1, 0), new Vector2(0, 0)),
-                new VertexPositionTexture(new Vector3(1, 1, 0), new Vector2(1, 0)),
-                new VertexPositionTexture(new Vector3(1, 0, 0), new Vector2(1, 1)),
+                new VertexPositionTexture(new Vector3(-0.5f, -0.5f, 0), new Vector2(0, 1)),
+                new VertexPositionTexture(new Vector3(-0.5f, 0.5f, 0), new Vector2(0, 0)),
+                new VertexPositionTexture(new Vector3(0.5f, 0.5f, 0), new Vector2(1, 0)),
+                new VertexPositionTexture(new Vector3(0.5f, -0.5f, 0), new Vector2(1, 1)),
             ];
             ushort[] indices = [0, 1, 2, 0, 2, 3];
 
@@ -93,10 +80,7 @@ namespace DeepWoods.Objects
         {
             DeepWoodsMain.Instance.GraphicsDevice.SetVertexBuffers(new VertexBufferBinding(vertexBuffer, 0, 0), new VertexBufferBinding(instanceBuffer, 0, 1));
             DeepWoodsMain.Instance.GraphicsDevice.Indices = indexBuffer;
-            EffectLoader.SpriteEffect.Parameters["ObjectTextureSize"].SetValue(new Vector2(texture.Width, texture.Height));
-            EffectLoader.SpriteEffect.Parameters["SpriteTexture"].SetValue(texture);
-            EffectLoader.SpriteEffect.Parameters["GlowMap"].SetValue(glowmap);
-            foreach (EffectPass pass in EffectLoader.SpriteEffect.CurrentTechnique.Passes)
+            foreach (EffectPass pass in EffectLoader.LightEffect.CurrentTechnique.Passes)
             {
                 pass.Apply();
                 DeepWoodsMain.Instance.GraphicsDevice.DrawInstancedPrimitives(PrimitiveType.TriangleList, 0, 0, 2, instances.Length);
@@ -106,6 +90,18 @@ namespace DeepWoods.Objects
         public void HideInstance(int index)
         {
             instances[index].IsHidden = 1f;
+            instanceBuffer.SetData(instances);
+        }
+
+        internal void UpdateLights(List<Light> lights)
+        {
+            for (int i = 0; i < instances.Length; i++)
+            {
+                instances[i].WorldPos = lights[i].position;
+                instances[i].LightColor = lights[i].color;
+                instances[i].LightAnim = 0f;
+                instances[i].IsHidden = 0f;
+            }
             instanceBuffer.SetData(instances);
         }
     }

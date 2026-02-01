@@ -45,6 +45,12 @@
 /processorParam:DebugMode=Auto
 /build:effects/GroundEffect.fx
 
+#begin effects/LightEffect.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:effects/LightEffect.fx
+
 #begin effects/SpriteEffect.fx
 /importer:EffectImporter
 /processor:EffectProcessor

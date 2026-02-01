@@ -1,4 +1,5 @@
 ﻿using DeepWoods.Objects;
+using Microsoft.Xna.Framework;
 using System.Collections.Generic;
 
 namespace DeepWoods.World.Biomes

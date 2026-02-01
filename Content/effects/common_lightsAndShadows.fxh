@@ -5,9 +5,11 @@
 #include "common.fxh"
 
 float3 AmbientLightColor;
+/*
 float4 Lights[8];
 float2 LightPositions[8];
 int NumLights;
+*/
 
 float4 ShadowMapBounds;
 float2 ShadowMapTileSize;
@@ -23,13 +25,30 @@ sampler2D ShadowMapSampler = sampler_state
     AddressV = CLAMP;
 };
 
-float calcDistSqrd(float2 p1, float2 p2)
+sampler2D LightMapSampler = sampler_state
 {
-    return (p2.x - p1.x) * (p2.x - p1.x) + (p2.y - p1.y) * (p2.y - p1.y);
+    Texture = <LightMap>;
+    MinFilter = POINT;
+    MagFilter = POINT;
+    MipFilter = POINT;
+    AddressU = CLAMP;
+    AddressV = CLAMP;
+};
+
+float3 getLightMapLights(float2 pos)
+{
+    if (pos.x < ShadowMapBounds.x || pos.x > ShadowMapBounds.z
+        || pos.y < ShadowMapBounds.y || pos.y > ShadowMapBounds.w)
+    {
+        return float3(0, 0, 0);
+    }
+    float2 lightMapUV = (pos - ShadowMapBounds.xy) / ShadowMapTileSize;
+    return tex2D(LightMapSampler, float2(lightMapUV.x, 1.0 - lightMapUV.y)).rgb;
 }
 
 float3 applyLights(float2 pos, float3 color, float glow)
 {
+    /*
     float3 light = AmbientLightColor;
 
     for (int i = 0; i < NumLights; i++)
@@ -41,6 +60,9 @@ float3 applyLights(float2 pos, float3 color, float glow)
     }
     
     return glow * color + (1.0 - glow) * color * light;
+    */
+    
+    return glow * color + (1.0 - glow) * color * clamp(AmbientLightColor + getLightMapLights(pos), 0, 1);
 }
 
 float3 applyShadows(float2 pos, float3 color, float glow, float rowIndex, float shadowSkew)

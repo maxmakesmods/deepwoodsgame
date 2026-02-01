@@ -1,12 +1,12 @@
 ﻿using DeepWoods.Game;
 using DeepWoods.Graphics;
+using DeepWoods.Helpers;
 using DeepWoods.Main;
 using DeepWoods.Objects;
 using DeepWoods.Players;
 using DeepWoods.World.Biomes;
 using DeepWoods.World.Generators;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -74,6 +74,7 @@ namespace DeepWoods.World
             foreach (var (_, subworld) in SubWorlds)
             {
                 subworld.ObjectManager.FinalGenerate();
+                subworld.LightManager.FinalGenerate();
             }
         }
 
@@ -92,12 +93,12 @@ namespace DeepWoods.World
             ];
         }
 
-        internal void SwitchToOverground(Player player)
+        public void SwitchToOverground(Player player)
         {
             SwitchSubWorld(player, OverGroundId);
         }
 
-        internal void SwitchToUnderground(Player player, int index)
+        public void SwitchToUnderground(Player player, int index)
         {
             SwitchSubWorld(player, UnderGroundId(index));
         }
@@ -110,7 +111,13 @@ namespace DeepWoods.World
             }
         }
 
-        private SubWorld GetPlayerSubWorld(Player player)
+        public IBiome GetPlayerBiome(Player player)
+        {
+            var subworld = GetPlayerSubWorld(player);
+            return subworld.Terrain.GetBiome(player.position.RoundToPoint());
+        }
+
+        public SubWorld GetPlayerSubWorld(Player player)
         {
             if (playerSubWorlds.TryGetValue(player.ID, out SubWorld subWorld))
             {
@@ -119,37 +126,40 @@ namespace DeepWoods.World
             return SubWorlds[OverGroundId];
         }
 
-        internal bool IsCave(Player player, int currentTileX, int currentTileY)
+        internal bool IsPlayerOverground(LocalPlayer player)
+        {
+            return GetPlayerSubWorld(player) == SubWorlds[OverGroundId];
+        }
+
+        public bool IsCave(Player player, int currentTileX, int currentTileY)
         {
             var subWorld = GetPlayerSubWorld(player);
             return subWorld.ObjectManager.IsCave(currentTileX, currentTileY);
         }
 
-        internal DWObject TryPickUpObject(Player player, int currentTileX, int currentTileY)
+        public DWObject TryPickUpObject(Player player, int currentTileX, int currentTileY)
         {
             var subWorld = GetPlayerSubWorld(player);
             return subWorld.ObjectManager.TryPickUpObject(currentTileX, currentTileY);
         }
 
-        internal Point GetSpawnPosition()
+        public Point GetSpawnPosition()
         {
             return SubWorlds[OverGroundId].Terrain.GetSpawnPosition();
         }
 
-        internal void Draw(LocalPlayer player)
+        public void Draw(LocalPlayer player)
         {
             var subWorld = GetPlayerSubWorld(player);
             subWorld.Apply(player);
+
             subWorld.ObjectManager.DrawShadowMap(game.PlayerManager.Players, player);
-            DeepWoodsMain.Instance.GraphicsDevice.SetRenderTarget(player.myRenderTarget);
-            DeepWoodsMain.Instance.GraphicsDevice.Clear(GameRenderer.ClearColor);
-            DeepWoodsMain.Instance.GraphicsDevice.DepthStencilState = DepthStencilState.None;
+            subWorld.LightManager.DrawLightMap(player);
             subWorld.Terrain.Draw(player);
-            DeepWoodsMain.Instance.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
             subWorld.ObjectManager.Draw(player);
         }
 
-        internal Terrain GetTerrain(Player player)
+        public Terrain GetTerrain(Player player)
         {
             var subWorld = GetPlayerSubWorld(player);
             return subWorld.Terrain;
@@ -161,15 +171,15 @@ namespace DeepWoods.World
             subWorld.Terrain.UpdateFogLayer(player);
         }
 
-        internal void Update(double dayDelta, float deltaTime)
+        public void Update(float deltaTime)
         {
             foreach (var (_, subWorld) in SubWorlds)
             {
-                subWorld.Update(dayDelta, deltaTime);
+                subWorld.Update(deltaTime);
             }
         }
 
-        internal void SwitchOverUnderground(Player player, int caveX, int caveY)
+        public void SwitchOverUnderground(Player player, int caveX, int caveY)
         {
             int oppositeCaveX, oppositeCaveY;
             var subWorld = GetPlayerSubWorld(player);
@@ -201,6 +211,14 @@ namespace DeepWoods.World
                     player.SetPosition(newPosition, direction);
                     break;
                 }
+            }
+        }
+
+        public void RemoveFogLayerCheat()
+        {
+            foreach (var (_, subworld) in SubWorlds)
+            {
+                subworld.Terrain.RemoveFogLayerCheat();
             }
         }
     }

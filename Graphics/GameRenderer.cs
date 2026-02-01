@@ -38,7 +38,7 @@ namespace DeepWoods.Graphics
             DeepWoodsMain.Instance.GraphicsDevice.Clear(ClearColor);
             foreach (var player in game.PlayerManager.LocalPlayers)
             {
-                spriteBatch.Draw(player.myRenderTarget, player.PlayerViewport, Color.White);
+                spriteBatch.Draw(player.RenderTarget, player.PlayerViewport, Color.White);
             }
 
             DrawPlayerMouseCursors(game.PlayerManager.LocalPlayers, isGamePaused);
@@ -53,7 +53,7 @@ namespace DeepWoods.Graphics
 
             foreach (var pl in game.PlayerManager.Players)
             {
-                pl.Draw(player.myCamera);
+                pl.Draw(player.Camera);
             }
 
             spriteBatch.Begin(samplerState: SamplerState.PointClamp);
@@ -76,41 +76,49 @@ namespace DeepWoods.Graphics
             }
             */
 
+            /*
             spriteBatch.Draw(
                 DeepWoodsMain.Instance.Game.World.SubWorlds[GameWorld.OverGroundId].Terrain.TempDebugGetFogLayer(),
                 new Rectangle(32, 128, 256, 256), Color.White);
+            */
+
+            /*
+            spriteBatch.Draw(
+                DeepWoodsMain.Instance.Game.PlayerManager.LocalPlayers[0].LightMap,
+                new Rectangle(32, 128, 256, 256), Color.White);
+            */
         }
 
         private void DrawPlayerMouseCursors(List<LocalPlayer> players, bool isGamePaused)
-        {
-            if (isGamePaused)
-                return;
+{
+if (isGamePaused)
+    return;
 
-            List<Color> colors = [
-                Color.Pink,
-                Color.AliceBlue
-                ];
+List<Color> colors = [
+    Color.Pink,
+    Color.AliceBlue
+    ];
 
-            int i = 0;
-            foreach (var player in players)
-            {
-                var mouseState = DWMouse.GetState(player);
+int i = 0;
+foreach (var player in players)
+{
+    var mouseState = DWMouse.GetState(player);
 
-                spriteBatch.Draw(TextureLoader.MouseCursor,
-                    new Rectangle(mouseState.X, mouseState.Y, TextureLoader.MouseCursor.Width * 2, TextureLoader.MouseCursor.Height * 2),
-                    colors[i % 2]);
+    spriteBatch.Draw(TextureLoader.MouseCursor,
+        new Rectangle(mouseState.X, mouseState.Y, TextureLoader.MouseCursor.Width * 2, TextureLoader.MouseCursor.Height * 2),
+        colors[i % 2]);
 
-                var terrain = game.World.GetTerrain(player);
+    var terrain = game.World.GetTerrain(player);
 
 
-                var tilePos = player.myCamera.GetTileAtScreenPos(mouseState.Position);
-                var biome = terrain.GetBiome(tilePos.X, tilePos.Y);
+    var tilePos = player.Camera.GetTileAtScreenPos(mouseState.Position);
+    var biome = terrain.GetBiome(tilePos.X, tilePos.Y);
 
-                string mouseString = $"{tilePos.X},{tilePos.Y},{biome?.IsVoid??true}";
-                DeepWoodsMain.Instance.TextHelper.DrawStringOnScreen(spriteBatch, new Vector2(mouseState.X, mouseState.Y + 32), mouseString);
+    string mouseString = $"{tilePos.X},{tilePos.Y},{biome?.IsVoid??true}";
+    DeepWoodsMain.Instance.TextHelper.DrawStringOnScreen(spriteBatch, new Vector2(mouseState.X, mouseState.Y + 32), mouseString);
 
-                i++;
-            }
-        }
-    }
+    i++;
+}
+}
+}
 }

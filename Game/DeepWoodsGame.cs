@@ -37,7 +37,7 @@ namespace DeepWoods.Game
             Renderer = new GameRenderer(this);
 
 
-            Clock.TimeScale = 00;
+            Clock.TimeScale = 120;
             Clock.SetTime(1, 10, 0);
 
 
@@ -92,7 +92,7 @@ namespace DeepWoods.Game
 
             double deltaTime = isGamePaused ? 0 : gameTime.ElapsedGameTime.TotalSeconds;
 
-            World.Update(Clock.DayDelta, (float)deltaTime);
+            World.Update((float)deltaTime);
             PlayerManager.Update((float)deltaTime);
             Clock.Update(deltaTime);
 

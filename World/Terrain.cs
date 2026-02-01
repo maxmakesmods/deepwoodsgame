@@ -1,4 +1,5 @@
-﻿using DeepWoods.Helpers;
+﻿using DeepWoods.Graphics;
+using DeepWoods.Helpers;
 using DeepWoods.Loaders;
 using DeepWoods.Main;
 using DeepWoods.Players;
@@ -161,6 +162,19 @@ namespace DeepWoods.World
             }
         }
 
+        internal void RemoveFogLayerCheat()
+        {
+            foreach (var (_, fogLayer) in fogLayers)
+            {
+                byte[] pixelData = new byte[fogLayer.Width * fogLayer.Height];
+                for (int i = 0; i < pixelData.Length; i++)
+                {
+                    pixelData[i] = 255;
+                }
+                fogLayer.SetData(pixelData);
+            }
+        }
+
         private VertexPositionColorTexture[] CreateVertices()
         {
             var drawingQuad = new VertexPositionColorTexture[4];
@@ -173,12 +187,17 @@ namespace DeepWoods.World
 
         public void Draw(LocalPlayer player)
         {
-            Matrix view = player.myCamera.View;
-            Matrix projection = player.myCamera.Projection;
+            DeepWoodsMain.Instance.GraphicsDevice.SetRenderTarget(player.RenderTarget);
+            DeepWoodsMain.Instance.GraphicsDevice.Clear(GameRenderer.ClearColor);
+            DeepWoodsMain.Instance.GraphicsDevice.BlendState = BlendState.Opaque;
+            DeepWoodsMain.Instance.GraphicsDevice.DepthStencilState = DepthStencilState.None;
 
-            EffectLoader.SetParamSafely("ShadowMap", player.myShadowMap);
-            EffectLoader.SetParamSafely("ShadowMapBounds", player.myCamera.ShadowRectangle.GetBoundsV4());
-            EffectLoader.SetParamSafely("ShadowMapTileSize", player.myCamera.ShadowRectangle.GetSizeV2());
+            Matrix view = player.Camera.View;
+            Matrix projection = player.Camera.Projection;
+
+            EffectLoader.SetParamSafely("ShadowMap", player.ShadowMap);
+            EffectLoader.SetParamSafely("ShadowMapBounds", player.Camera.ShadowRectangle.GetBoundsV4());
+            EffectLoader.SetParamSafely("ShadowMapTileSize", player.Camera.ShadowRectangle.GetSizeV2());
 
             EffectLoader.SetParamSafely("WorldViewProjection", view * projection);
             foreach (EffectPass pass in EffectLoader.GroundEffect.CurrentTechnique.Passes)
@@ -306,6 +325,11 @@ namespace DeepWoods.World
                 return null;
 
             return tiles[x, y].biome;
+        }
+
+        internal IBiome GetBiome(Point p)
+        {
+            return GetBiome(p.X, p.Y);
         }
 
         internal Point GetSpawnPosition()
