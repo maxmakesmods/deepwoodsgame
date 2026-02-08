@@ -3,6 +3,7 @@
 #define DEEPWOODS_COMMON_ANIMATIONS
 
 #include "common.fxh"
+#include "common_BlueNoise.fxh"
 
 sampler2D DUDVTextureSampler = sampler_state
 {
@@ -84,7 +85,7 @@ float2 applyVertexShaderAnimation(float2 worldPos, float4 randvalues, int Shader
     return worldPos;
 }
 
-float2 applyPixelShaderAnimation(float2 uv, float4 uvBounds, int ShaderAnim)
+float2 applyPixelShaderUVAnimation(float2 uv, float4 uvBounds, int ShaderAnim)
 {
     if (ShaderAnim == 1) // Wavy
     {
@@ -94,13 +95,29 @@ float2 applyPixelShaderAnimation(float2 uv, float4 uvBounds, int ShaderAnim)
         float yvalue = frac((GlobalTime * 0.1) + uv.y * ObjectTextureSize.y / CellSize);
         
         yvalue = cos(yvalue * 2 - 1);
-        
-        
+
         float xOffset = yvalue * cellUVSize.x * 0.125;
         uv.x = uv.x + xOffset;
     }
 
     return uv;
+}
+
+float3 applyPixelShaderColorAnimation(float2 uv, float4 uvBounds, float3 color, float glow, int ShaderAnim)
+{
+    if (ShaderAnim == 4) // LavaGlowFlow
+    {
+        float intensity = 0.25;
+        float speed = 4;
+
+        float uvspeed = speed / BlueNoiseTextureSize;
+        float bluenoise = getRandomFromBlueNoise(uv, ObjectTextureSize, float2(0, -GlobalTime * uvspeed), 0);
+        float colormodifier = (bluenoise - 0.5) * 2.0;
+        float3 animatedColor = color + colormodifier * intensity;
+        return glow * animatedColor + (1.0 - glow) * color;
+    }
+
+    return color;
 }
 
 #endif

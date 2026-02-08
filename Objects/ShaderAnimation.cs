@@ -7,6 +7,7 @@ namespace DeepWoods.Objects
         Wavy = 1,
         Movy = 2,
         Sway = 3,
+        LavaGlowFlow = 4,
 
     }
 }

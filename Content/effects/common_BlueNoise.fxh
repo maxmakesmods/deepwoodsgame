@@ -24,11 +24,16 @@ float2 BlueNoiseSineXOffset;
 int BlueNoiseSineYChannel;
 float2 BlueNoiseSineYOffset;
 
-float getRandomFromBlueNoise(float2 uv, float2 offset, int channel)
+float getRandomFromBlueNoise(float2 uv, float2 texSize, float2 offset, int channel)
 {
-    float2 bluenoiseUV = int2(uv * GridSize * CellSize) / BlueNoiseTextureSize;
+    float2 bluenoiseUV = int2(uv * texSize) / BlueNoiseTextureSize;
     float bluenoise = tex2D(BlueNoiseTextureSampler, bluenoiseUV + offset)[channel];
     return frac(bluenoise);
+}
+
+float getRandomFromBlueNoise(float2 uv, float2 offset, int channel)
+{
+    return getRandomFromBlueNoise(uv, GridSize * CellSize, offset, channel);
 }
 
 #endif

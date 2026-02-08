@@ -531,7 +531,8 @@
     "width": 32,
     "height": 32,
     "standing": true,
-    "glowing": true
+    "glowing": true,
+    "shaderAnim": 4
   },
   {
     "name": "volcanic_underground_tree2",
@@ -540,7 +541,8 @@
     "width": 32,
     "height": 32,
     "standing": true,
-    "glowing": true
+    "glowing": true,
+    "shaderAnim": 4
   },
   {
     "name": "well",

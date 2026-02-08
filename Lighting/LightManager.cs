@@ -33,7 +33,7 @@ namespace DeepWoods.Lighting
             height = terrain.Height;
 
             // TODO TEMP light test
-            for (int i = 0; i < (width * height) / 100; i++)
+            for (int i = 0; i < 1; i++)
             {
                 float distance = 0.5f + rng.NextSingle() * 2f;
                 Vector3 color = new Vector3(rng.NextSingle(), rng.NextSingle(), rng.NextSingle());

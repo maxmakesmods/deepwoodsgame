@@ -162,9 +162,10 @@ float4 MainPS(VertexShaderOutput input) : COLOR
     clip(-input.IsHidden);
 
     float fogValue = getFogValue(input.WorldPos / GridSize);
-    //clip(fogValue - 0.5);
+    
+    int shaderAnim = int(input.ShaderAnim + 0.5);
 
-    float2 uv = applyPixelShaderAnimation(input.TexCoord, input.UVBounds, int(input.ShaderAnim + 0.5));
+    float2 uv = applyPixelShaderUVAnimation(input.TexCoord, input.UVBounds, shaderAnim);
 
     clip(checkBounds(uv, input.UVBounds));
 
@@ -178,10 +179,13 @@ float4 MainPS(VertexShaderOutput input) : COLOR
     else
     {
         float glow = tex2D(GlowMapSampler, uv).r * input.IsGlowing;
-        
+
         float3 litColor = applyLights(input.WorldPos, color.rgb, glow);
         float3 shadowedLitColor = applyShadows(input.WorldPos, litColor, glow, input.RowIndex, ShadowSkew);
-        return fogValue * float4(shadowedLitColor * (1.0 + glow * 0.5), color.a);
+
+        float3 finalColor = applyPixelShaderColorAnimation(uv, input.UVBounds, shadowedLitColor, glow, shaderAnim);
+
+        return fogValue * float4(finalColor, color.a);
     }
 }
 

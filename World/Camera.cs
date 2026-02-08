@@ -41,9 +41,6 @@ namespace DeepWoods.World
         {
             Viewport = new(viewport);
 
-            position.X = playerPos.X + 0.5f;
-            position.Y = playerPos.Y + 0.5f - position.Z / 2;
-
             int mouseWheel = mouseState.ScrollWheelValue;
             int mouseWheelDelta = mouseWheel - lastMouseWheel;
             lastMouseWheel = mouseWheel;
@@ -73,6 +70,9 @@ namespace DeepWoods.World
             {
                 position.Z = MaximumCameraZ;
             }
+
+            position.X = playerPos.X + 0.5f;
+            position.Y = playerPos.Y + 0.5f - position.Z / 2;
 
             RecalculateShadowRectangle();
         }

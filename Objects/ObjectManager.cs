@@ -232,7 +232,7 @@ namespace DeepWoods.Objects
 
         internal void Draw(LocalPlayer player)
         {
-            DeepWoodsMain.Instance.GraphicsDevice.BlendState = BlendState.Opaque;
+            DeepWoodsMain.Instance.GraphicsDevice.BlendState = BlendState.AlphaBlend;
             DeepWoodsMain.Instance.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 
             Matrix view = player.Camera.View;
